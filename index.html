@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First page</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+    <section class="hero">
+    <div class="hero-content">
+    <h1>Ta kontroll över dina personuppgifter</h1>
+    <p>Hantera GDPR-raderingar enkelt och strukturerat</p>
+    <button>Kom igång →</button>
+
+    <img src="pictures/picture1.png" alt="Hero bild ">
+    </div>
+</section>
+
+
+<section class="features">
+    <div class="feature-list">
+        <div class="feature">
+            <h3>Skapa ärende</h3>
+            <p>Välj webbplats och identifiera dina uppgifter</p>
+        </div>
+
+        <div class="feature">
+            <h3>Generera mall</h3>
+            <p>Få juridiskt korrekt GDPR-begäran</p>
+        </div>
+
+        <div class="feature">
+            <h3>Följ upp</h3>
+            <p>Spåra status och få påminnelser</p>
+        </div>
+    </div>
+
+    <img src="pictures/picture2.png" alt="GDPR illustration" class="feature-image">
+</section>
+
+
+<script>
+
+const features = document.querySelectorAll('.feature');
+
+window.addEventListener('scroll', () => {
+    features.forEach(feature => {
+        const rect = feature.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+            feature.classList.add('visible');
+        }
+    });
+});
+</script>
+
+
+
+
+</body>
+</html>
