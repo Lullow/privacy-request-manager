@@ -11,47 +11,128 @@
     <link rel="stylesheet" href="style.css">
 
 </head>
-<body>
+<body class="page">
     
-<h1>Fyll i dina uppgifter här</h1>
+    <header class="topbar">
+        <a class="brand" href="index.html">
+            <span class="brand-dot"></span>
+            Privary Request Manager
+        </a>
+        <a class="btn btn-secondary" href="index.html">Tillbaka</a>
+    </header>
 
-<img src="pictures/picture3.png" alt="Logo" class="form-image">
+    <main class="container">
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h1>Skapa nytt raderingsärende</h1>
+                    <p class="muted">
+                        Välj webbplats och identifiera dina uppgifter
+                    </p>
+                </div>    
+            </div>
+            <img class="card-icon" src="pictures/fav.png" alt="icon">
 
-<div class="form" >
-<!--Replace action later to collect data-->
-    <form action="#" method="post"> 
+            <form class="form" action="dashboard.html">
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="FullName">För- och efternamn</label>
+                        <input id="fullName" name="fullName" type="text" placeholder="[Förnamn] [Efternamn]" required>                    
+                    </div>
+                    
+                    <div class="field">
+                        <label for="email">E-post</label>
+                        <input id="email" name="email" type="email" placeholder="exempel@mail.com" required>
+                    </div>
 
-        <label for="name">För- och efternamn</label>
-        <input type="text" id="name" name="name" required>
-        
-        <br>
+                    <div class="field">
+                        <label for="city">Ort</label>
+                        <input id="city" name="city" type="text" placeholder="[Ort]" required>
+                    </div>
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-        
-        <br>
+                    <div class="field">
+                        <label for="profileUrl">Länk till profilsida</label>
+                        <input id="profileUrl" name="profileUrl" type="url" placeholder="https://">
+                        <small class="hint">Tips: Klistra in länken där du hittade dina uppgifter</small>
+                    </div>
+                </div>
 
-        <label for="city">Ort</label>
-        <input type="text" id="city" name="city" required>
-        
-        <br>
+                <br>
+                <hr class="divider">
 
-        <label for="site">Välj webbplats</label>
-        <select name="site" id="site" required>
-            <option value="" selected disabled>Välj alternativ</option>
-            <option>Ratsit</option>
-            <option>MrKoll</option>
-            <option>Birthday</option>
-            <option>Hitta</option>
-            <option>Eniro</option>
-            <option>Upplysning</option>
-            <option>Merinfo</option>
-            <option>Biluppgifter</option>
-            <option>Google (delisting)</option>
-        </select>
+                <section class="block">
+                    <h2>Vilka webbplater har dina personuppgifter?</h2>
+                    <p class="muted">Välj en eller flera:</p>
 
-    </form>
-</div>
+                    <div class="chip-grid">
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="ratsit">
+                            <span>Ratsit</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="mrkoll">
+                            <span>MrKoll</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="birthday">
+                            <span>Birthday</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="hitta">
+                            <span>Hitta</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="eniro">
+                            <span>Eniro</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="upplysning">
+                            <span>Upplysning</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="merinfo">
+                            <span>Merinfo</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="google">
+                            <span>Google (delisting)</span>
+                        </label>
+                    </div>
+                </section>
+
+                <br>
+                <hr class="divider">
+
+                <section class="block">
+                    <h2>Kolla upp dig snabbt</h2>
+                    <p class="muted">Om du inte redan har gjort det kan du öppna länkarna i en ny flik</p>
+                        
+                    <div class="link-buttons">
+                        <a class="btn btn-secondary" href="https://www.ratsit.se/" target="_blank" rel="noopener">Ratsit</a>
+                        <a class="btn btn-secondary" href="https://mrkoll.se/" target="_blank" rel="noopener">MrKoll</a>
+                        <a class="btn btn-secondary" href="https://www.birthday.se/" target="_blank" rel="noopener">Birthday</a>
+                        <a class="btn btn-secondary" href="https://www.hitta.se/" target="_blank" rel="noopener">Hitta</a>
+                        <a class="btn btn-secondary" href="https://www.eniro.se/" target="_blank" rel="noopener">Eniro</a>
+                        <a class="btn btn-secondary" href="https://www.upplysning.se/" target="_blank" rel="noopener">Upplysning</a>
+                        <a class="btn btn-secondary" href="https://www.merinfo.se/" target="_blank" rel="noopener">Merinfo</a>
+                        <a class="btn btn-secondary" href="https://support.google.com/legal/answer/10769224?hl=sv" target="_blank" rel="noopener">Google formulär</a>
+                        <a class="btn btn-secondary" href="https://www.bing.com/webmaster/tools/eu-privacy-request" target="_blank" rel="noopener">Bing formulär</a>
+                        <a class="btn btn-secondary" href="https://www.imy.se/privatperson/dataskydd/dina-rattigheter/radering/" target="_blank" rel="noopener">IMY: radering</a>
+                    </div>
+                </section>
+
+                <br>
+                <hr class="divider">
+
+                <div class="actions">
+                    <a class="btn btn-secondary" href="index.html">Avbryt</a>
+                    <button class="btn" type="submit">Skapa ärende -></button>
+                </div>
+
+                <p class="disclaimer">Skriv relevant disclaimer.. vad kan det vara? ^^</p>
+            </form>
+        </section>
+    </main>
 
 </body>
 </html>
