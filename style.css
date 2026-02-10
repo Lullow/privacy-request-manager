@@ -1,12 +1,20 @@
-body * {
-    font-family: georgia;
+body {
+    font-family: "Inter", sans-serif;
 }
 
 .hero-content {
     color: rgba(18, 34, 87, 0.86);
     text-align: center;
     font-size: 30px;
-    font-family: georgia;
+    font-family: "Inter", sans-serif;
+}
+
+.hero-image {
+    text-align: center;
+}
+
+.hero-image img {
+    max-width: 100%;
 }
 
 .feature {
@@ -22,21 +30,24 @@ body * {
     transform: translateX(0);
 }
 
-button {
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: rgba(16, 32, 86, 0.892);
     color: white;
     padding: 15px 40px;
     font-size: 18px;
     border: none;
-    border-radius: 8px;
+    border-radius: 15px;
     cursor: pointer;
-    font-family: georgia;
-    transition: all 0.3s ease;
+    font-family: "Inter", sans-serif;
+    text-decoration: none;
 }
 
-button:hover {
-    background-color: rgba(16, 32, 86, 1);
-    transform: translateY(-2px);
+.btn:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -45,6 +56,7 @@ button:hover {
     gap: 10px;
     align-items: center;
 }
+
 /* Stack feature on eachother */
 .feature-list {
     display: flex;
@@ -63,4 +75,3 @@ button:hover {
     height: 600px ;
     padding-left: 500px;
 }
-

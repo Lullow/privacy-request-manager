@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="pictures/fav.png" type="image/x-icon">
     <link rel="stylesheet" href="style.css">
 
 </head>
@@ -18,13 +22,33 @@
     <form action="#" method="post"> 
 
         <label for="name">För- och efternamn</label>
-        <input type="text" id="name" name="name" required><br>
+        <input type="text" id="name" name="name" required>
+        
+        <br>
 
         <label for="email">Email</label>
-        <input type="text" id="email" name="email" required><br>
+        <input type="email" id="email" name="email" required>
+        
+        <br>
 
         <label for="city">Ort</label>
-        <input type="text" id="city" name="city" required><br>
+        <input type="text" id="city" name="city" required>
+        
+        <br>
+
+        <label for="site">Välj webbplats</label>
+        <select name="site" id="site" required>
+            <option value="" selected disabled>Välj alternativ</option>
+            <option>Ratsit</option>
+            <option>MrKoll</option>
+            <option>Birthday</option>
+            <option>Hitta</option>
+            <option>Eniro</option>
+            <option>Upplysning</option>
+            <option>Merinfo</option>
+            <option>Biluppgifter</option>
+            <option>Google (delisting)</option>
+        </select>
 
     </form>
 </div>
