@@ -75,3 +75,242 @@ body {
     height: 600px ;
     padding-left: 500px;
 }
+
+
+
+/* ---------------------------- * /
+/* ---------------------------- * /
+
+/* Form page layout */
+.page {
+    font-family: "Inter", sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    margin: 0;
+}
+
+.topbar {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(16, 32, 86, 0.892);
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px 40px;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.08);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.card-icon {
+    width: 44px;
+    height: 44px;
+}
+
+h1 {
+    margin: 0 0 8px 0;
+    font-size: 28px;
+}
+
+h2 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+}
+
+.muted {
+    margin: 0;
+    color: #475569;
+}
+
+.hint {
+    display: block;
+    margin-top: 6px;
+    color: #64748b;
+}
+
+.form {
+    margin-top: 18px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.field input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    font-size: 14px;
+    outline: none;
+}
+
+.field input:focus {
+    border-color: rgba(16, 32, 86, 0.65);
+    box-shadow: 0 0 0 4px rgba(16, 32, 86, 0.12);
+}
+
+.divider {
+    border: none;
+    height: 1px;
+    background: #e2e8f0;
+    margin: 22px 0;
+}
+
+.block {
+    margin-bottom: 18px;
+}
+
+/* Chip buttons - (checkboxes) */
+.chip-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.chip {
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+}
+
+.chip input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.chip span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.chip input:checked + span {
+    background: rgba(16, 32, 86, 0.892);
+    border-color: rgba(16, 32, 86, 0.892);
+    color: #fff;
+}
+
+/* Button alterrnatives */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(16, 32, 86, 0.892);
+    color: white;
+    padding: 12px 18px;
+    font-size: 14px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.14);
+}
+
+.btn-secondary {
+    background: #f1f5f9;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    box-shadow: none;
+}
+
+.btn-secondary:hover {
+    box-shadow: none;
+}
+
+/* Actions  */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.link-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.disclaimer {
+    margin-top: 16px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+.grid-2 {
+    grid-template-columns: 1fr;
+}
+.actions {
+    flex-direction: column;
+    align-items: stretch;
+}
+}
+
+
+
+/* WRONG PADDING IN FIELD OR GRID?? COLUMNS IN NAME / ORT OVERLAPS THE EMAIL AND PROFILSIDA  */
+/* FIX GRID2 (choose between 4 columns after eachother (delete grid2) or change the field input(?) <- HOW? */
+/* CHANGE h1 colour to navy blue? */
+/* 
