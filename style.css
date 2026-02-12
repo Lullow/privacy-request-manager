@@ -165,9 +165,7 @@ h2 {
 }
 
 .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+
 }
 
 .field label {
@@ -309,6 +307,23 @@ h2 {
 }
 
 
+/* Generera mall btn */
+.feature-btn {
+    display: inline-block;
+    padding: 16px 40px;
+    background-color:  #2f3e73;  /* mörkblå färg */
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    border-radius: 999px; /* Rundar knappen  */
+    transition: 0.2s ease; /*  */
+}
+
+.feature-btn:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
 
 /* WRONG PADDING IN FIELD OR GRID?? COLUMNS IN NAME / ORT OVERLAPS THE EMAIL AND PROFILSIDA  */
 /* FIX GRID2 (choose between 4 columns after eachother (delete grid2) or change the field input(?) <- HOW? */
