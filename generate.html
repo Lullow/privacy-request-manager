@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generera GDPR-mall | Privacy Request Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="pictures/fav.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav>
+            <h1>Privacy Request Manager</h1>
+            <a href="index.html">Tillbaka</a>
+        </nav>
+    </header>
+
+
+    <main>
+
+        <!-- Ärendeinformation -->
+        <section class="request-info">
+            <h2>Ärendeinformation</h2>
+
+            <p><strong>Namn:</strong>Förnamn Efternamn</p>
+            <p><strong>Epost:</strong>Exempel epost</p>
+            <p><strong>Ort:</strong>Stockholm</p>
+            <p><strong>Profil-länk:</strong>https://exempel.se/profil</p>
+
+            <div>
+                <h3>Valda webbplatser</h3>
+                <ul>
+                    <li>Ratsit</li>
+                    <li>Hitta</li>
+                    <li>MrKoll</li>
+                    <li>Upplysning</li>
+                    <li>Med mera..</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Inställningar -->
+        <section class="generator-settings">
+            <h2>Inställningar</h2>
+
+            <form>
+                <div class="form-group">
+                    <label for="tone">Välj ton:</label>
+                    <select id="tone" name="tone">
+                        <option value="">Neutral</option>
+                        <option value="">Formell</option>
+                        <option value="">Tydlig / Krävande</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="template-type">Typ av mall:</label>
+                    <select id="template-type" name="template-type">
+                    <option value="gdpr">GDPR-begäran</option>
+                    <option value="gdpr">Uppföljning</option>
+                    <option value="gdpr">IMY-klagomål</option>
+                    </select>
+                </div>
+
+                <button type="button">Generera mall</button>
+            </form>
+        </section>
+    </main>
+</body>
+
+
+</html>
