@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="dashboard">
+
+    <!-- Första raden: header -->
+    <div class="dashboard-header">
+        <h1>Mina ärenden</h1>
+        <button class="notification-btn">
+            <svg class="bell-icon" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="currentColor"/>
+                <path d="M18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 10-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Andra raden: filters + donut -->
+    <div class="dashboard-top">
+        <div class="filters">
+            <label><input type="checkbox" checked> Alla</label>
+            <label><input type="checkbox" checked> Pågående</label>
+            <label><input type="checkbox" checked> Avslutad</label>
+        </div>
+
+        <div class="donut" data-waiting="50" data-complete="30" data-denied="20">
+            <div class="donut-center">
+                0
+                <span>Ärenden</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case-list -->
+    <div class="case-list">
+        <!-- header row -->
+        <div class="case-row header">
+            <div class="cell">Företag</div>
+            <div class="cell">Status</div>
+            <div class="cell">Action</div>
+        </div>
+
+        <!-- data rows -->
+        <div class="case-row">
+            <div class="cell"><button>Merinfo</button></div>
+            <div class="cell status waiting">Pågående</div>
+            <div class="cell case-actions">
+                <button class="btn-dashboard">Visa</button>
+                <button class="btn-dashboard">Skicka påminnelse</button>
+            </div>
+        </div>
+
+        <div class="case-row">
+            <div class="cell"><button>Ratsit</button></div>
+            <div class="cell status complete">Avslutad</div>
+            <div class="cell case-actions">
+                <button class="btn-dashboard">Visa</button>
+                <button class="btn-dashboard">Skicka påminnelse</button>
+            </div>
+        </div>
+
+        <div class="case-row">
+            <div class="cell"><button>MrKoll</button></div>
+            <div class="cell status complete">+ 30 dagar</div>
+            <div class="cell case-actions">
+                <button class="btn-dashboard">Visa</button>
+                <button class="btn-dashboard">Skicka påminnelse</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Sektionen med frågor -->
+<section class="dashboard-under-panel">
+    <hr>
+    <div class="questions">
+        <h3>Har du frågor?</h3>
+        <h5>Vad är mina rättigheter?</h5>
+        <h5>Vad är paragraf 17?</h5>
+        <h5>Varför blev mitt ärende nekat och vad är nästa steg?</h5>
+        <h5>Inom hur lång tid ska ett företag svara?</h5>
+    </div>
+</section>
+
+<!-- Animation JS -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const donut = document.querySelector(".donut");
+    const center = donut.querySelector(".donut-center");
+
+    const complete = parseInt(donut.dataset.complete);
+    const waiting = parseInt(donut.dataset.waiting);
+    const denied = parseInt(donut.dataset.denied);
+
+    let currentComplete = 0;
+    let currentWaiting = 0;
+    let currentDenied = 0;
+
+    const animationSteps = 100;
+    let step = 0;
+
+    const animateDonut = () => {
+        step++;
+        currentComplete = (complete / animationSteps) * step;
+        currentWaiting = (waiting / animationSteps) * step;
+        currentDenied = (denied / animationSteps) * step;
+
+        donut.style.setProperty('--complete', `${currentComplete}%`);
+        donut.style.setProperty('--waiting', `${currentComplete + currentWaiting}%`);
+        donut.style.setProperty('--denied', `${currentComplete + currentWaiting + currentDenied}%`);
+
+        if (step < animationSteps) {
+            requestAnimationFrame(animateDonut);
+        }
+    };
+
+    animateDonut();
+
+    let total = 0;
+    const totalCount = document.querySelectorAll(".status").length;
+
+    const animateCenter = () => {
+        total++;
+        center.firstChild.textContent = total;
+        if(total < totalCount) {
+            setTimeout(animateCenter, 1000 / totalCount);
+        }
+    };
+    animateCenter();
+});
+</script>
+
+</body>
+</html>
