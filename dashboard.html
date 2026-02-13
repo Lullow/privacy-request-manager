@@ -4,34 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <section class="dashboard">
 
-    <!-- Första raden: header -->
+    <!-- Header -->
+    <!-- Notification icon. Scalable vector graphics (svg) from heroicons -->
     <div class="dashboard-header">
         <h1>Mina ärenden</h1>
         <button class="notification-btn">
-            <svg class="bell-icon" viewBox="0 0 24 24">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2z" fill="currentColor"/>
-                <path d="M18 16v-5c0-3.07-1.63-5.64-4.5-6.32V4a1.5 1.5 0 10-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/>
+                <svg class="bell-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                </svg>
+        </button>
+
+    <!-- Message icon. Scalable vector graphics (svg) from heroicons -->
+        <button class="message-btn">
+            <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
             </svg>
         </button>
     </div>
 
-    <!-- Andra raden: filters + donut -->
+
+    <!-- Filters + Donut -->
     <div class="dashboard-top">
         <div class="filters">
-            <label><input type="checkbox" checked> Alla</label>
+            <label><input type="checkbox" checked> Alla</label> 
             <label><input type="checkbox" checked> Pågående</label>
             <label><input type="checkbox" checked> Avslutad</label>
         </div>
 
         <div class="donut" data-waiting="50" data-complete="30" data-denied="20">
             <div class="donut-center">
-                0
+                0 <!-- Startingvalue -->
                 <span>Ärenden</span>
             </div>
         </div>
@@ -43,12 +54,12 @@
         <div class="case-row header">
             <div class="cell">Företag</div>
             <div class="cell">Status</div>
-            <div class="cell">Action</div>
+            <div class="cell">Åtgärder</div>
         </div>
 
-        <!-- data rows -->
+        <!-- Case rows -->
         <div class="case-row">
-            <div class="cell"><button>Merinfo</button></div>
+            <div class="cell"><a href="https://www.merinfo.se">Merinfo</a></div>
             <div class="cell status waiting">Pågående</div>
             <div class="cell case-actions">
                 <button class="btn-dashboard">Visa</button>
@@ -57,7 +68,7 @@
         </div>
 
         <div class="case-row">
-            <div class="cell"><button>Ratsit</button></div>
+            <div class="cell"><a href="https://www.ratsit.se">Ratsit</a></div>
             <div class="cell status complete">Avslutad</div>
             <div class="cell case-actions">
                 <button class="btn-dashboard">Visa</button>
@@ -66,7 +77,7 @@
         </div>
 
         <div class="case-row">
-            <div class="cell"><button>MrKoll</button></div>
+            <div class="cell"><a href="https://mrkoll.se">MrKoll</a></div>
             <div class="cell status complete">+ 30 dagar</div>
             <div class="cell case-actions">
                 <button class="btn-dashboard">Visa</button>
@@ -74,11 +85,9 @@
             </div>
         </div>
     </div>
-</section>
 
-<!-- Sektionen med frågor -->
+<!-- Question section -->
 <section class="dashboard-under-panel">
-    <hr>
     <div class="questions">
         <h3>Har du frågor?</h3>
         <h5>Vad är mina rättigheter?</h5>
@@ -136,5 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
+</section>
 </body>
 </html>

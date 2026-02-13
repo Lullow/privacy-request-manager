@@ -331,7 +331,6 @@ h2 {
 
 
 
-
 body {
     font-family: "Inter", sans-serif;
     margin: 0;
@@ -344,6 +343,9 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 20px 40px;
+    color: rgba(18, 34, 87, 0.86);
+
+
 }
 
 .header-right {
@@ -355,7 +357,7 @@ body {
 /* ---------- Dashboard Top: Filters + Donut ---------- */
 .dashboard-top {
     display: flex;
-    justify-content: space-between; /* Filter vänster, donut höger */
+    justify-content: space-between;
     align-items: center;
     width: 100%;
     padding: 0 40px;
@@ -423,12 +425,12 @@ body {
     align-items: center;
     justify-content: center;
     background: conic-gradient(
-        #7f99e8 0% var(--complete,0%), /* Grön - godkända */
-        #5159b9 0% var(--waiting,0%),  /* Gul - pågående */
-        #202385 0% var(--denied,0%)    /* Röd - nekade */
+        #7f99e8b0 0% var(--complete,0%), 
+        #434ba2cb 0% var(--waiting,0%),  
+        #15197fcd 0% var(--denied,0%)    
     );
     transition: background 0.8s ease;
-    box-shadow:  0 10px 22px rgba(18, 2, 74, 0.817);
+    box-shadow:  0 8px 20px rgba(23, 2, 100, 0.521);
     cursor: default;
     position: relative;
     margin-right: 200px;
@@ -483,7 +485,7 @@ body {
     padding-bottom: 6px;
 }
 
-/* ---------- Notification ---------- */
+/* ---------- Notification icon---------- */
 .notification-btn {
     background: none;
     border: none;
@@ -503,6 +505,42 @@ body {
     transform: scale(1.1);
     color: #22366d;
 }
+
+/* ---------- Message icon---------- */
+
+.message-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    position: relative;
+    outline: none;
+}
+
+.message-icon {
+    width: 30px;          
+    height: 30px;         
+    color: #122857;
+    transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.message-btn:hover .message-icon {
+    transform: scale(1.1);
+    color: #22366d;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 .btn-dashboard {
     display: inline-flex;
