@@ -331,6 +331,18 @@ h2 {
 
 
 
+
+
+.border { 
+    background-color: rgb(255, 255, 255);
+    border-radius: 30px;
+}
+
+.dashboard { 
+    background-color:  rgba(180, 188, 187, 0.095);
+    }
+
+
 body {
     font-family: "Inter", sans-serif;
     margin: 0;
@@ -341,11 +353,60 @@ body {
 .dashboard-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
+    align-items: flex-start;
+    gap: 2px;
     color: rgba(18, 34, 87, 0.86);
 
+}
 
+.dashboard-header h1 {
+    white-space: nowrap;
+    padding-left: 80px;
+    padding-top: 80px;
+}
+
+.header-icons {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+}
+
+
+.filters {
+    padding-top: 150px;
+    font-weight: 550;
+}
+
+
+.filters input[type=checkbox] {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border: 1px solid rgba(18, 34, 87, 0.4);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+}
+
+
+.filters input[type=checkbox]:checked {
+    background-color: rgba(18, 34, 87, 0.86);
+    border-color: rgba(18, 34, 87, 0.86);
+}
+
+.filters input[type=checkbox]:checked::after {
+    content: "✓";
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);  
+
+}
+
+
+.case-list {
+    color: rgba(18, 34, 87, 0.86);
 }
 
 .header-right {
@@ -394,8 +455,11 @@ body {
 
 .cell {
     padding: 12px 8px;
-    border-bottom: 1px solid rgba(0,0,0,0.08);
+    border-bottom: 1px solid rgba(232, 233, 239, 0.86);
+    color: rgba(18, 34, 87, 0.86);
 }
+
+
 
 .header .cell {
     font-weight: 600;
@@ -409,11 +473,11 @@ body {
 }
 
 .status.waiting {
-    color: rgba(37, 69, 173, 0.86); 
+    color:rgba(18, 34, 87, 0.86);
 }
 
 .status.complete {
-    color: rgba(37, 69, 173, 0.86); 
+    color: rgba(18, 34, 87, 0.86); 
 }
 
 /* ---------- Donut Diagram ---------- */
@@ -436,7 +500,7 @@ body {
     margin-right: 200px;
 }
 
-/* Mittcirkel som gör ringen ihålig */
+/* Inner donutcircle */
 .donut-center {
     width: 130px;
     height: 130px;
@@ -453,7 +517,7 @@ body {
     position: absolute;
 }
 
-/* Text i mitten - "Ärenden" */
+/* Inner text "Ärende" */
 .donut-center span {
     font-size: 14px;
     font-weight: normal;
@@ -461,7 +525,7 @@ body {
     margin-top: 4px;
 }
 
-/* Hover-effekt på hela donut */
+/* Hover-effect donut */
 .donut:hover {
     transform: scale(1.05);
     transition: transform 0.3s ease;
@@ -476,12 +540,12 @@ body {
 }
 
 .dashboard-under-panel h3 {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
+    font-size: x-large;
 }
 
 .dashboard-under-panel h5 {
     margin: 15px 0;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
     padding-bottom: 6px;
 }
 
@@ -491,6 +555,7 @@ body {
     border: none;
     cursor: pointer;
     padding: 8px;
+    padding-left: 450px;
     position: relative;
 }
 
@@ -530,18 +595,29 @@ body {
 }
 
 
+/* ---------- Dashboard icon---------- */
+.dashboard-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    position: relative;
+    outline: none;
+}
 
+.dashboard-icon {
+    width: 30px;          
+    height: 30px;         
+    color: #122857;
+    transition: transform 0.3s ease, color 0.2s ease;
+}
 
+.dashboard-button:hover .dashboard-icon {
+    transform: scale(1.1);
+    color: #22366d;
+}
 
-
-
-
-
-
-
-
-
-
+/* ---------- Dashboard buttons (visa/skicka påminnelse) ---------- */
 .btn-dashboard {
     display: inline-flex;
     align-items: center;
@@ -555,8 +631,8 @@ body {
     cursor: pointer;
     font-family: "Inter", sans-serif;
     text-decoration: none;
+    font-weight: 600;
 }
-
 
 .btn-dashboard:hover {
     opacity: 0.95;
@@ -564,5 +640,8 @@ body {
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-
+.btn-dashboard:active {
+    background-color: #1d2260;
+    color: white;
+}
 
