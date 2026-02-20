@@ -1,5 +1,14 @@
 function FirstPage() {
 
+const goToLogin = () => {
+// TODO: add loginpage 
+}
+const goToForm = () => {
+// TODO: add goToTemplate function
+}
+
+
+
 return(
 
 <section className="hero">
@@ -8,13 +17,80 @@ return(
         <div className="hero-text">
             <h1>Radera ditt digitala fotspår</h1>
             <p>Hantera GDPR-raderingar enkelt och strukturerat</p>
-            <a className="btn" href="form.html"> Kom igång→</a>
-            
-        </div>
 
+  {/* goToLogin placeholder  */}  
+            <div className="Buttons">
+                <button className= "get-started-btn" onClick={goToLogin}>
+                    Kom igång→
+                </button>
+            </div>
+        </div>
     </div>
 
-)
+  {/* HeroImage  */}  
+    <div className="hero-image">
+        <img src="./first-page.png" alt="Hero bild"/>
+    </div>
+
+
+
+ {/* feature div for different background color */}  
+<section className="features">
+    <div className="feature-list">
+        <div className="feature">
+            <h3>Skapa konto</h3>
+            <p>Registrera dig säkert och enkelt</p>
+        </div>
+
+        <div className="feature">
+            <div className="Buttons">
+
+                  {/* To form/template or to login? */}  
+                <button className="generate-template-btn" onClick={goToTemplate}>   
+                Generera begäran
+                </button>
+            </div>
+            <p>Få juridiskt korrekt GDPR-begäran</p>
+        </div>
+
+        <div className="feature">
+            <h3>Följ upp</h3>
+            <p>Spåra status och få påminnelser</p>
+        </div>
+    </div>
+
+    <img src="./first-page2.png" alt="GDPR illustration" class="feature-image"/>
+</section>
+
+
+
+
+
+
+ {/* ----------------------------------------------------------------------------------- */}  
+<script>
+
+    const features = document.querySelectorAll('.feature');
+
+    window.addEventListener('scroll', () => {
+    features.forEach(feature => {
+        const rect = feature.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+            feature.classList.add('visible');
+        }
+    });
+});
+</script>
+
+
+</section>
+</body>
+</html>
+
+
+
+
+export default FirstPage
 
 
 
