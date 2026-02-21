@@ -1,3 +1,5 @@
+import React from "react";
+
 function FirstPage({ goToForm }) {
 
 const goToLogin = () => {
@@ -6,6 +8,8 @@ const goToLogin = () => {
 const goToTemplate = () => {
     if (goToForm) {
     goToForm(); // kopplar till App utan att ändra din struktur
+
+
 }
 }
 
@@ -22,7 +26,7 @@ return(
 
   {/* goToLogin placeholder  */}  
             <div className="Buttons">
-                <button className= "get-started-btn" onClick={goToLogin}>
+                <button className= "get-started-btn" type="button" onClick={goToTemplate}>
                     Kom igång→
                 </button>
             </div>
