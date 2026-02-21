@@ -1,10 +1,12 @@
-function FirstPage() {
+function FirstPage({ goToForm }) {
 
 const goToLogin = () => {
 // TODO: add loginpage 
 }
-const goToForm = () => {
-// TODO: add goToTemplate function
+const goToTemplate = () => {
+    if (goToForm) {
+    goToForm(); // kopplar till App utan att ändra din struktur
+}
 }
 
 
@@ -59,39 +61,36 @@ return(
         </div>
     </div>
 
-    <img src="./first-page2.png" alt="GDPR illustration" class="feature-image"/>
+    <img src="./first-page2.png" alt="GDPR illustration" className="feature-image"/>
 </section>
 
-
-
-
-
-
- {/* ----------------------------------------------------------------------------------- */}  
-<script>
-
-    const features = document.querySelectorAll('.feature');
-
-    window.addEventListener('scroll', () => {
-    features.forEach(feature => {
-        const rect = feature.getBoundingClientRect();
-        if (rect.top < window.innerHeight - 100) {
-            feature.classList.add('visible');
-        }
-    });
-});
-</script>
-
-
 </section>
-</body>
-</html>
+);
 
-
-
-
+}
 export default FirstPage
 
+
+
+//  {/* ----------------------------------------------------------------------------------- */}  
+// <script>
+
+//     const features = document.querySelectorAll('.feature');
+
+//     window.addEventListener('scroll', () => {
+//     features.forEach(feature => {
+//         const rect = feature.getBoundingClientRect();
+//         if (rect.top < window.innerHeight - 100) {
+//             feature.classList.add('visible');
+//         }
+//     });
+// });
+// </script>
+
+
+// </section>
+// </body>
+// </html>
 
 
 
