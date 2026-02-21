@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { useRef, useState, useEffect } from "react";
+=======
+import React from "react";
+>>>>>>> a4427ecb75a0ecb968e5e604b056f92cd6e6aa9a
 
 function FirstPage({ goToForm }) {
 
@@ -8,6 +12,8 @@ const goToLogin = () => {
 const goToTemplate = () => {
     if (goToForm) {
     goToForm(); // kopplar till App utan att ändra din struktur
+
+
 }
 }
 
@@ -50,7 +56,7 @@ return(
 
   {/* goToLogin placeholder  */}  
             <div className="Buttons">
-                <button className= "get-started-btn" onClick={goToLogin}>
+                <button className= "get-started-btn" type="button" onClick={goToTemplate}>
                     Kom igång→
                 </button>
             </div>

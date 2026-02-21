@@ -10,6 +10,7 @@ export default function TopBar({ onBack }){
             <button className="btn btn-secondary" type="button" onClick={onBack}>
                 Tillbaka
             </button>
+            
         </header>
-    )
+    );
 }
