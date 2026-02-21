@@ -1,13 +1,17 @@
-import FirstPage from './components/FirstPage'
-
+import { useState } from 'react';
+import FirstPage from './pages/FirstPage'
+import FormPage from './pages/FormPage';
 
 function App() {
+  const [page, setPage] = useState("home");
 
-  return (
-    <FirstPage />
-  )
+if (page === "form"){
+  return <FormPage onBack={() => setPage("home")} />;
 }
 
-export default App
+  return <FirstPage goToForm={() => setPage("form")} />;
+}
+
+export default App;
 
 
