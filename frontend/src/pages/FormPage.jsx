@@ -1,16 +1,27 @@
 import React, { useState } from "react";
 import TopBar from "../components/TopBar";
 
-// Creates the component
-function FormPage({ onBack }){ {/* onBack recives prop from App.jsx */}
+// CHIPS - Alternatives that user can choose (Creates a list of userchoices)
+const REQUEST_TYPES = [
+    { id: "delete", label: "Radering (Art. 17?)"},
+    { id: "access", label: "Registerutdrag (Art. 15?)"},
+    { id: "rectify", label: "Rättelse (Art. 16?)"},
+    { id: "restrict", label: "Begränsningar (Art. 18?)"},
+    { id: "object", label: "Invändningar (Art. 21?)"},
+    { id: "portability", label: "Dataportabilitet (Art. 20?)"},
+]
 
-{/* Creates the form-state in this component */}
+// Creates the component
+function FormPage({ onBack }){ // onBack recives prop from App.jsx
+
+// Creates the form-state in this component
 const [form, setForm] = useState({
     companyName: "",
     companyEmail: "",
     fullName: "",
     city: "",
     profileUrl: "",
+    requestTypes: ["delete"],
 });
 
 // Helper: updates a field in the form-state without having to write the object multiple times
@@ -20,6 +31,20 @@ function updateField(key, value) {
         ...prev, 
         [key]: value,
     }));
+}
+
+// TOGGLE - Adds / deletes a requestType in the array
+function toggleRequestType(id) {
+    setForm((prev) => {
+        const exists = prev.requestTypes.includes(id);
+
+    return {
+        ...prev,
+        requestTypes: exists 
+        ? prev.requestTypes.filter((x) => x !== id) // Deletes
+        : [...prev.requestTypes, id], // Adds
+    };
+});
 }
 
     return (
@@ -88,6 +113,28 @@ function updateField(key, value) {
                         />
                     </div>
 
+                    <hr className="divider" />
+
+                    {/* GDPR-type chips*/}
+                    <div className="block">
+                        <h2>Vad vill du begära?</h2>
+                        <p className="muted">Välj en eller flera.</p>
+
+                        <div className="chip-grid">
+                            {REQUEST_TYPES.map((t) => (
+                                <label className="chip" key={t.id}>
+                                    <input 
+                                    type="checkbox"
+                                    checked={form.requestTypes.includes(t.id)}
+                                    onChange={() => toggleRequestType(t.id)}
+                                    />
+                                    <span>{t.label}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+
                     {/* DEBUG: test för att se att state funkar */}
                     <pre style={{ marginTop: 16 }}>
                     {JSON.stringify(form, null, 2)}
@@ -98,5 +145,6 @@ function updateField(key, value) {
         </div>
     );
 }
-{/* Export the component */}
-export default FormPage 
+
+// Export the component
+export default FormPage
