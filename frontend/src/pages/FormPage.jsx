@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import TopBar from "../components/TopBar";
 
-// CHIPS - Alternatives that user can choose (Creates a list of userchoices)
+// CHIPS - GDPR alternatives that user can choose from
+// Outside components because it's hardwired and should not change
 const REQUEST_TYPES = [
     { id: "delete", label: "Radering (Art. 17?)"},
     { id: "access", label: "Registerutdrag (Art. 15?)"},
@@ -15,7 +16,7 @@ const REQUEST_TYPES = [
 // Creates the component
 function FormPage({ onBack }){ // onBack recives prop from App.jsx
 
-// Creates the form-state in this component
+// All the values from the form gets saved here
 const [form, setForm] = useState({
     companyName: "",
     companyEmail: "",
@@ -25,12 +26,13 @@ const [form, setForm] = useState({
     requestTypes: ["delete"],
 });
 
-// UI-state - shows if we just copied the text
+// UI-state - Used to display "Kopierat" temporarily
 const [copied, setCopied] = useState(false);
 
 
-// Helper: updates a field in the form-state without having to write the object multiple times
+// Helper-function: updates a field in the form-state without having to write the object multiple times
 // prev = earlier state / ...prev copies all the old fields / [key]: value overwrites the fields that we wanna change
+// This is the standard-pattern to update objects in React
 function updateField(key, value) {
     setForm((prev) => ({
         ...prev, 
@@ -39,7 +41,7 @@ function updateField(key, value) {
 }
 
 
-// TOGGLE - Adds / deletes a requestType in the array
+// TOGGLE requestType - Adds or deletes a GDPR type in the array
 function toggleRequestType(id) {
     setForm((prev) => {
         const exists = prev.requestTypes.includes(id);
@@ -53,7 +55,7 @@ function toggleRequestType(id) {
 });
 }
 
-// Fetches labels for choosen requestTypes
+// Fetches labels that matches the user choices (Derived values)
 const selectedRequests = REQUEST_TYPES
     .filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
     .map((t) => `- ${t.label}`) // Changes to textrows
@@ -81,7 +83,7 @@ const template = `
     ${form.fullName || ""}
 `.trim();
 
-// Basic validation for missing fields TODO: Make this more advanced 
+// Basic validation to control missing fields TODO: Make this more advanced 
 const errors = {
     companyName: form.companyName.trim() ? "" : "Fyll i företagets namn.",
     companyEmail: form.companyEmail.trim() ? "" : "Fyll i företagets e-post.",
@@ -92,7 +94,7 @@ const errors = {
 const isValid = !errors.companyName && !errors.companyEmail && !errors.fullName;
 
 
-// Copy the template to clipboard
+// Copies the template to clipboard
 async function copyToClipboard() {
     try {
         await navigator.clipboard.writeText(template);
@@ -106,32 +108,41 @@ async function copyToClipboard() {
     }
 }
 
+
+// DOESNT WORK AS INTENDED DELETE?
+// CRLF linebreak to insert form message to e-mail program
+const bodyForMail = template.replaceAll("\n", "\r\n");
+
+// DOESNT WORK AS INTENDED DELETE?
 // Create mailto-link based on the form
 const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
     `GDPR-begäran - ${form.fullName}`
-)}&body${encodeURIComponent(template)}`;
+)}&body${encodeURIComponent(bodyForMail)}`;
 
+// JSX (UI) - The visual representation of the state and functions above
     return (
-        <div className="page">
-            {/* Topbar navigaton button*/}
+        <div className="page"> {/* The outer wrapper for the entire page */}
+            {/* Topbar navigaton bar - separate component 
+            The onBack prop allows this component to navigate back to FirstPage.*/}
             <TopBar onBack={onBack} />
 
             {/* Main content */}
-            <main className="container">
-                <div className="card">
-                    <div className="grid-2">
+            <main className="container">        {/* Main content area */}
+                <div className="card">          {/* Card wrapper for visual grouping of the form */}
+                    <div className="grid-2">    {/* Grid wrapper for form inputs (currently single column layout) */}
                         <h1>Skapa GDPR-begäran</h1>
                         <p>Fyll i dina uppgifter nedan för att skapa din begäran.</p>
 
-                        {/* FORM: company names */}
+                        {/* FORM: company names (required) */}
                         <div className="field">
                             <label>Företag *</label>
                             <input 
                             type="text" 
                             placeholder="Ex: Google, Mrkoll.." 
-                            value={form.companyName} // Reads the value from state
-                            onChange={(e) => updateField ("companyName", e.target.value)} // Writes back the value from state                            
+                            value={form.companyName} // Reads the value from React state
+                            onChange={(e) => updateField ("companyName", e.target.value)} // When user types -> update state                           
                             />
+                            {/* Display validation error if field is empty */}
                             {errors.companyName && <small className="hint">{errors.companyName}</small>}
                         </div>
 
@@ -184,7 +195,7 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
 
                     <hr className="divider" />
 
-                    {/* GDPR-type chips*/}
+                    {/* GDPR-type chips - Render GDPR options dynamically from REQUEST_TYPES */}
                     <div className="block">
                         <h2>Vad vill du begära?</h2>
                         <p className="muted">Välj en eller flera.</p>
@@ -194,10 +205,10 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
                                 <label className="chip" key={t.id}>
                                     <input 
                                     type="checkbox"
-                                    checked={form.requestTypes.includes(t.id)}
-                                    onChange={() => toggleRequestType(t.id)}
+                                    checked={form.requestTypes.includes(t.id)} // Checkbox is checked if its id exists in form.requestTypes
+                                    onChange={() => toggleRequestType(t.id)} // Toggle selection on click
                                     />
-                                    <span>{t.label}</span>
+                                    <span>{t.label}</span> {/* Display the readable label */} 
                                 </label>
                             ))}
                         </div>
@@ -207,41 +218,63 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
 
                     <div className="field">
                         <label>Förhandsvisning av GDPR-begäran</label>
-                        <textarea
+                        <textarea // Textarea displays dynamically generated template
                             readOnly
                             value={template}
-                            style={{ minHeight: 265, minWidth: 1050}}
+                            style={{ minHeight: 265, minWidth: 1050}} // TODO: Can minWidth cause problems? Seems like it
                         />
                     </div>
 
+                    {/* Navigate back */}
                     <div className="actions">
                         <button className="btn btn-secondary" type="button" onClick={onBack}>
                             Tillbaka
                         </button>
-
-                        <button className="btn" type="button" onClick={copyToClipboard} disabled={!isValid}
-                        style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}>
+                        
+                        {/* Copy generated template to clipboard */}
+                        <button className="btn" 
+                        type="button" 
+                        onClick={copyToClipboard} 
+                        disabled={!isValid}
+                        style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}
+                        >
                         {copied ? "Kopierat" : "Kopiera text"}
                         </button>
                         
                         {/* Opens external mail program with the content of the form 
                         TODO: DOESN'T WORK - ONLY SUBJECT WORKS NOT THE "TEXT" INPUT. FIX!!*/}
                         <a href={isValid ? mailtoLink : "#"}
+                            type="button"
                             className="btn"
                             style={!isValid ? { opacity: 0.6, pointerEvents: "none" } : undefined}
                             >
                             Öppna i mail
                         </a>
+                        
+                        {/* DOESNT WORK AS INTENDED DELETE?*/}
+                        <button className="btn"
+                            type="button"
+                            onClick={() => window.location.href = mailtoLink}
+                            disabled={!isValid}
+                            >
+                                Öppna i mail
+                        </button>
+
+                        {/* DOESNT WORK AS INTENDED DELETE?*/}                        
+                        <small className="hint">
+                        Om texten inte följer med i din mailklient, använd Kopiera text. Klicka <b>Kopiera text</b> och klistra in i mailet.
+                        </small>
+
                     </div>
 
-                    {/* Create a textfield to user when a field that's mandatory isn't filled out  */}
+                    {/* Show hint if required fields are missing  */}
                     {!isValid && (
                         <small className="hint">
                             Fyll i de obligatoriska fälten (*) för att kunna kopiera en komplett mall.
                         </small>
                     )}
 
-                    {/* DEBUG: test för att se att state funkar */}
+                    {/* DEBUG: shows entire form state object */}
                     <pre style={{ marginTop: 16 }}>
                     {JSON.stringify(form, null, 2)}
 
