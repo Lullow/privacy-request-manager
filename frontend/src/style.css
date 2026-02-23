@@ -1,7 +1,14 @@
 /* FirstPage */
 
+.header-icons {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 .hero-text{
-    padding-top: 60px;
+    padding-top: 20px;
 }
 
 .hero-content {
