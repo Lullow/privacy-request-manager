@@ -20,9 +20,7 @@
     border-radius: 50px;
     mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
     padding-top: 30px;
-
 }
-
 
 .feature {
     opacity: 0;
@@ -70,7 +68,6 @@
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-
 /* Stack feature on eachother */
 .feature-list {
     display: flex;
@@ -86,7 +83,6 @@
     padding-right: 90px;
     border-radius: 50px;
     mask-image: radial-gradient(ellipse at center, black 60%, transparent 70%);
-
 }
 
 .form-image {
@@ -95,14 +91,13 @@
 }
 
 
-
 /* ---------------------------- * /
 /* ---------------------------- * /
 
 /* Form page layout */
 .page {
     font-family: "Inter", sans-serif;
-    background: #f8fafcde;
+    background: #f8fafc;
     color: #0f172a;
     margin: 0;
 }
@@ -367,7 +362,7 @@ body {
     font-family: "Inter", sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9faffb6;
+    background-color: #f8fafc;
 }
 
 .dashboard-header {
