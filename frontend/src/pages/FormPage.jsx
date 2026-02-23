@@ -101,9 +101,15 @@ async function copyToClipboard() {
         // Restore after 1.2 seconds
         setTimeout(() => setCopied(false), 1200);
     } catch (err) {
+        console.error(err); {/* Logs the error to aviod ESLint unused-vars */}
         alert("Kunde inte kopiera automatiskt. Markera texten och kopiera den manuellt.")
     }
 }
+
+// Create mailto-link based on the form
+const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
+    `GDPR-begäran - ${form.fullName}`
+)}&body${encodeURIComponent(template)}`;
 
     return (
         <div className="page">
@@ -217,8 +223,17 @@ async function copyToClipboard() {
                         style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}>
                         {copied ? "Kopierat" : "Kopiera text"}
                         </button>
+                        
+                        {/* Opens external mail program with the content of the form 
+                        TODO: DOESN'T WORK - ONLY SUBJECT WORKS NOT THE "TEXT" INPUT. FIX!!*/}
+                        <a href={isValid ? mailtoLink : "#"}
+                            className="btn"
+                            style={!isValid ? { opacity: 0.6, pointerEvents: "none" } : undefined}
+                            >
+                            Öppna i mail
+                        </a>
                     </div>
-                    
+
                     {/* Create a textfield to user when a field that's mandatory isn't filled out  */}
                     {!isValid && (
                         <small className="hint">
