@@ -9,7 +9,8 @@ const REQUEST_TYPES = [
     { id: "restrict", label: "Begränsningar (Art. 18?)"},
     { id: "object", label: "Invändningar (Art. 21?)"},
     { id: "portability", label: "Dataportabilitet (Art. 20?)"},
-]
+];
+
 
 // Creates the component
 function FormPage({ onBack }){ // onBack recives prop from App.jsx
@@ -27,6 +28,7 @@ const [form, setForm] = useState({
 // UI-state - shows if we just copied the text
 const [copied, setCopied] = useState(false);
 
+
 // Helper: updates a field in the form-state without having to write the object multiple times
 // prev = earlier state / ...prev copies all the old fields / [key]: value overwrites the fields that we wanna change
 function updateField(key, value) {
@@ -35,6 +37,7 @@ function updateField(key, value) {
         [key]: value,
     }));
 }
+
 
 // TOGGLE - Adds / deletes a requestType in the array
 function toggleRequestType(id) {
@@ -78,6 +81,17 @@ const template = `
     ${form.fullName || ""}
 `.trim();
 
+// Basic validation for missing fields TODO: Make this more advanced 
+const errors = {
+    companyName: form.companyName.trim() ? "" : "Fyll i företagets namn.",
+    companyEmail: form.companyEmail.trim() ? "" : "Fyll i företagets e-post.",
+    fullName: form.fullName.trim() ? "" : "Fyll i ditt namn.",
+};
+
+// Valid if there's no empty strings
+const isValid = !errors.companyName && !errors.companyEmail && !errors.fullName;
+
+
 // Copy the template to clipboard
 async function copyToClipboard() {
     try {
@@ -110,8 +124,9 @@ async function copyToClipboard() {
                             type="text" 
                             placeholder="Ex: Google, Mrkoll.." 
                             value={form.companyName} // Reads the value from state
-                            onChange={(e) => updateField ("companyName", e.target.value)} // Writes back the value from state
+                            onChange={(e) => updateField ("companyName", e.target.value)} // Writes back the value from state                            
                             />
+                            {errors.companyName && <small className="hint">{errors.companyName}</small>}
                         </div>
 
                         {/* FORM: company email */}
@@ -123,6 +138,7 @@ async function copyToClipboard() {
                             value={form.companyEmail}
                             onChange={(e) => updateField ("companyEmail", e.target.value)}
                             />
+                            {errors.companyEmail && <small className="hint">{errors.companyEmail}</small>}
                         </div>
 
                         {/* FORM: name */}
@@ -133,7 +149,8 @@ async function copyToClipboard() {
                             placeholder="För- efternamn"
                             value={form.fullName}
                             onChange={(e) => updateField ("fullName", e.target.value)}
-                            />                        
+                            />
+                            {errors.fullName && <small className="hint">{errors.fullName}</small>}
                         </div>
 
                         {/* FORM: city */}
@@ -182,10 +199,8 @@ async function copyToClipboard() {
                     
                     <hr className="divider" />
 
-                    
                     <div className="field">
                         <label>Förhandsvisning av GDPR-begäran</label>
-
                         <textarea
                             readOnly
                             value={template}
@@ -198,10 +213,18 @@ async function copyToClipboard() {
                             Tillbaka
                         </button>
 
-                        <button className="btn" type="button" onClick={copyToClipboard}>Kopiera</button>
+                        <button className="btn" type="button" onClick={copyToClipboard} disabled={!isValid}
+                        style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}>
                         {copied ? "Kopierat" : "Kopiera text"}
+                        </button>
                     </div>
-
+                    
+                    {/* Create a textfield to user when a field that's mandatory isn't filled out  */}
+                    {!isValid && (
+                        <small className="hint">
+                            Fyll i de obligatoriska fälten (*) för att kunna kopiera en komplett mall.
+                        </small>
+                    )}
 
                     {/* DEBUG: test för att se att state funkar */}
                     <pre style={{ marginTop: 16 }}>
@@ -215,4 +238,4 @@ async function copyToClipboard() {
 }
 
 // Export the component
-export default FormPage
+export default FormPage;
