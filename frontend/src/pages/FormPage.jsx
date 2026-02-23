@@ -24,6 +24,9 @@ const [form, setForm] = useState({
     requestTypes: ["delete"],
 });
 
+// UI-state - shows if we just copied the text
+const [copied, setCopied] = useState(false);
+
 // Helper: updates a field in the form-state without having to write the object multiple times
 // prev = earlier state / ...prev copies all the old fields / [key]: value overwrites the fields that we wanna change
 function updateField(key, value) {
@@ -73,7 +76,20 @@ const template = `
 
     Med vänliga hälsningar,
     ${form.fullName || ""}
-`.trim(); 
+`.trim();
+
+// Copy the template to clipboard
+async function copyToClipboard() {
+    try {
+        await navigator.clipboard.writeText(template);
+        setCopied(true);
+
+        // Restore after 1.2 seconds
+        setTimeout(() => setCopied(false), 1200);
+    } catch (err) {
+        alert("Kunde inte kopiera automatiskt. Markera texten och kopiera den manuellt.")
+    }
+}
 
     return (
         <div className="page">
@@ -166,6 +182,7 @@ const template = `
                     
                     <hr className="divider" />
 
+                    
                     <div className="field">
                         <label>Förhandsvisning av GDPR-begäran</label>
 
@@ -175,6 +192,16 @@ const template = `
                             style={{ minHeight: 265, minWidth: 1050}}
                         />
                     </div>
+
+                    <div className="actions">
+                        <button className="btn btn-secondary" type="button" onClick={onBack}>
+                            Tillbaka
+                        </button>
+
+                        <button className="btn" type="button" onClick={copyToClipboard}>Kopiera</button>
+                        {copied ? "Kopierat" : "Kopiera text"}
+                    </div>
+
 
                     {/* DEBUG: test för att se att state funkar */}
                     <pre style={{ marginTop: 16 }}>
