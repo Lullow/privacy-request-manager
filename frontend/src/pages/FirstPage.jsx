@@ -56,7 +56,7 @@ return(
 
   {/* goToLogin placeholder  */}  
             <div className="Buttons">
-                <button className= "get-started-btn" type="button" onClick={goToTemplate}>
+                <button className= "FirstPage-btn" type="button" onClick={goToTemplate}>
                     Kom igång→
                 </button>
             </div>
@@ -69,7 +69,6 @@ return(
     </div>
 
 
-
  {/* feature div for different background color */}  
 <section className="features">
     <div className="feature-list">
@@ -78,20 +77,21 @@ return(
             <p>Registrera dig säkert och enkelt</p>
         </div>
 
-
         <div ref= {ref2} className= {isVisible2 ? "feature visible" : "feature"}>
-            <div className="Buttons">
-                {/* To form/template or to login? */}  
-                <button className="generate-template-btn" onClick={goToTemplate}>   
-                Generera begäran
-                </button>
+            <h3>Generera begäran</h3>
                 <p>Få juridiskt korrekt GDPR-begäran</p>
             </div>
-        </div>
 
         <div ref= {ref3} className= {isVisible3 ? "feature visible" : "feature"}>
             <h3>Följ upp</h3>
             <p>Spåra status och få påminnelser</p>
+        </div>
+
+        <div className="Buttons">
+            {/* To form/template or to login? */}  
+            <button className="FirstPage-btn" onClick={goToTemplate}>   
+                Börja direkt
+            </button>
         </div>
     </div>
 
