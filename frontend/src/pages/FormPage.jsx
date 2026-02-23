@@ -47,6 +47,34 @@ function toggleRequestType(id) {
 });
 }
 
+// Fetches labels for choosen requestTypes
+const selectedRequests = REQUEST_TYPES
+    .filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
+    .map((t) => `- ${t.label}`) // Changes to textrows
+    .join("\n"); // Makes them to a "list"
+
+// Creates the GDPR-template message
+const template = `
+    Ämne: GDPR-begäran - ${form.fullName || "Ditt namn"}
+
+    Hej ${form.companyName || ""},
+
+    Jag önskar härmed att utöva mina rättigheter enligt GDPR.
+
+    Jag begär följande:
+    ${selectedRequests || "- (Ingen vald begäran)"}
+
+    Mina uppgifter:
+    Namn: ${form.fullName}
+    Ort: ${form.city}
+    Profil / Länk: ${form.profileUrl}
+
+    Vänligen bekräfta mottagandet av denna begäran och återkom inom lagstadgad tid.
+
+    Med vänliga hälsningar,
+    ${form.fullName || ""}
+`.trim(); 
+
     return (
         <div className="page">
             {/* Topbar navigaton button*/}
@@ -135,7 +163,18 @@ function toggleRequestType(id) {
                             ))}
                         </div>
                     </div>
+                    
+                    <hr className="divider" />
 
+                    <div className="field">
+                        <label>Förhandsvisning av GDPR-begäran</label>
+
+                        <textarea
+                            readOnly
+                            value={template}
+                            style={{ minHeight: 265, minWidth: 1050}}
+                        />
+                    </div>
 
                     {/* DEBUG: test för att se att state funkar */}
                     <pre style={{ marginTop: 16 }}>
