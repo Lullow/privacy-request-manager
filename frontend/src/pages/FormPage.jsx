@@ -103,7 +103,7 @@ async function copyToClipboard() {
         // Restore after 1.2 seconds
         setTimeout(() => setCopied(false), 1200);
     } catch (err) {
-        console.error(err); {/* Logs the error to aviod ESLint unused-vars */}
+        console.error(err); // Logs the error to aviod ESLint unused-vars
         alert("Kunde inte kopiera automatiskt. Markera texten och kopiera den manuellt.")
     }
 }
@@ -117,7 +117,7 @@ const bodyForMail = template.replaceAll("\n", "\r\n");
 // Create mailto-link based on the form
 const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
     `GDPR-begäran - ${form.fullName}`
-)}&body${encodeURIComponent(bodyForMail)}`;
+)}&body=${encodeURIComponent(bodyForMail)}`;
 
 // JSX (UI) - The visual representation of the state and functions above
     return (
@@ -221,7 +221,7 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
                         <textarea // Textarea displays dynamically generated template
                             readOnly
                             value={template}
-                            style={{ minHeight: 265, minWidth: 1050}} // TODO: Can minWidth cause problems? Seems like it
+                            style={{ minHeight: 265, width: "100%" }} // TODO: Can minWidth cause problems? Seems like it
                         />
                     </div>
 
