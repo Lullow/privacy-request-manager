@@ -1,10 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 
-function FirstPage({ goToForm }) {
+function FirstPage({ goToForm, goToLogin }) {
 
-const goToLogin = () => {
-// TODO: add loginpage 
-}
 const goToTemplate = () => {
     if (goToForm) {
     goToForm(); // kopplar till App utan att ändra din struktur
@@ -100,6 +97,13 @@ return(
         <div ref= {ref1} className= {isVisible1 ? "feature visible" : "feature"}>
             <h3>Skapa konto</h3>
             <p>Registrera dig säkert och enkelt</p>
+                <div>
+
+            {/* UNDER CONSTRUCTION */}
+            <button className="get-started-btn" onClick={goToLogin}>
+            Logga in
+            </button>
+    </div>
         </div>
 
         <div ref= {ref2} className= {isVisible2 ? "feature visible" : "feature"}>
