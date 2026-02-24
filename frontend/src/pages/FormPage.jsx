@@ -57,30 +57,30 @@ function toggleRequestType(id) {
 
 // Fetches labels that matches the user choices (Derived values)
 const selectedRequests = REQUEST_TYPES
-    .filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
-    .map((t) => `- ${t.label}`) // Changes to textrows
-    .join("\n"); // Makes them to a "list"
+.filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
+.map((t) => `    - ${t.label}`) // Changes to textrows
+.join("\n"); // Makes them to a "list"
 
 // Creates the GDPR-template message
 const template = `
-    Ämne: GDPR-begäran - ${form.fullName || "Ditt namn"}
+Ämne: GDPR-begäran - ${form.fullName || "Ditt namn"}
 
-    Hej ${form.companyName || ""},
+Hej ${form.companyName || ""},
 
-    Jag önskar härmed att utöva mina rättigheter enligt GDPR.
+Jag önskar härmed att utöva mina rättigheter enligt GDPR.
 
-    Jag begär följande:
-    ${selectedRequests || "- (Ingen vald begäran)"}
+Jag begär följande:
+${selectedRequests || "- (Ingen vald begäran)"}
 
-    Mina uppgifter:
-    Namn: ${form.fullName}
-    Ort: ${form.city}
-    Profil / Länk: ${form.profileUrl}
+Mina uppgifter:
+Namn: ${form.fullName}
+Ort: ${form.city}
+Profil / Länk: ${form.profileUrl}
 
-    Vänligen bekräfta mottagandet av denna begäran och återkom inom lagstadgad tid.
+Vänligen bekräfta mottagandet av denna begäran och återkom inom lagstadgad tid.
 
-    Med vänliga hälsningar,
-    ${form.fullName || ""}
+Med vänliga hälsningar,
+${form.fullName || ""}
 `.trim();
 
 // Basic validation to control missing fields TODO: Make this more advanced 
@@ -240,24 +240,15 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
                         >
                         {copied ? "Kopierat" : "Kopiera text"}
                         </button>
-                        
-                        {/* Opens external mail program with the content of the form 
-                        TODO: DOESN'T WORK - ONLY SUBJECT WORKS NOT THE "TEXT" INPUT. FIX!!*/}
-                        <a href={isValid ? mailtoLink : "#"}
-                            type="button"
-                            className="btn"
-                            style={!isValid ? { opacity: 0.6, pointerEvents: "none" } : undefined}
-                            >
-                            Öppna i mail
-                        </a>
-                        
-                        {/* DOESNT WORK AS INTENDED DELETE?*/}
+
+                        {/* DOESNT WORK AS INTENDED DELETE? */}
                         <button className="btn"
                             type="button"
                             onClick={() => window.location.href = mailtoLink}
                             disabled={!isValid}
+                            style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}
                             >
-                                Öppna i mail
+                            Öppna i mail
                         </button>
 
                         {/* DOESNT WORK AS INTENDED DELETE?*/}                        
@@ -266,13 +257,6 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
                         </small>
 
                     </div>
-
-                    {/* Show hint if required fields are missing  */}
-                    {!isValid && (
-                        <small className="hint">
-                            Fyll i de obligatoriska fälten (*) för att kunna kopiera en komplett mall.
-                        </small>
-                    )}
 
                     {/* DEBUG: shows entire form state object */}
                     <pre style={{ marginTop: 16 }}>
