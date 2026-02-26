@@ -2,6 +2,7 @@ import { useState } from 'react';
 import FirstPage from './pages/FirstPage'
 import FormPage from './pages/FormPage';
 import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/DashboardPage';
 
 
 function App() {
@@ -17,14 +18,22 @@ if (page == "login"){
   return <LoginPage onBack={() => setPage("home")} />;
 }
 
+// DASHBOARD PAGE
+if (page === "dashboard") {
+  return <DashboardPage/>}
+
 // FIRST PAGE (HOME)
   return (
   <FirstPage 
   goToForm={() => setPage("form")} 
   goToLogin={() => setPage("login")}
+  goToDashboard={() => setPage("dashboard")}
   />
   );
 }
+
+
+
 
 export default App;
 
