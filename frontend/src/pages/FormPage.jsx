@@ -58,7 +58,7 @@ function toggleRequestType(id) {
 // Fetches labels that matches the user choices (Derived values)
 const selectedRequests = REQUEST_TYPES
 .filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
-.map((t) => `    - ${t.label}`) // Changes to textrows
+.map((t) => `- ${t.label}`) // Changes to textrows
 .join("\n"); // Makes them to a "list"
 
 // Creates the GDPR-template message
@@ -70,6 +70,7 @@ Hej ${form.companyName || ""},
 Jag önskar härmed att utöva mina rättigheter enligt GDPR.
 
 Jag begär följande:
+
 ${selectedRequests || "- (Ingen vald begäran)"}
 
 Mina uppgifter:
@@ -271,3 +272,17 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
 
 // Export the component
 export default FormPage;
+
+
+/* 
+
+När användaren klickar “Skicka begäran”:
+
+- UI får direkt “Skickas…”
+- Backend lägger jobbet i kö
+- Jobbet kör i bakgrunden
+- Status uppdateras efteråt 
+
+celery / rabbit / FastAPI background tasks?
+
+*/

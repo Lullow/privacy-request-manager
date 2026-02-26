@@ -6,6 +6,7 @@ function LoginPage({ onBack }) {
     //Toggles between login and register account
     const [mode, setMode] = useState("login"); // login // register
     
+    
     return (
         <div className="page">
             <TopBar onBack={onBack}/>
