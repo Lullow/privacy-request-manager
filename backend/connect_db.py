@@ -15,7 +15,7 @@ engine = create_async_engine(
 
 # Skapar en "session factory" (en funktion/fabrik) som kan skapa AsyncSession-objekt.
 # Varje request i FastAPI kommer oftast få en egen session (så man inte delar state mellan requests).
-SessionLoacal = async_sessionmaker(
+SessionLocal = async_sessionmaker(
     bind=engine,                    # Kopplar session-fabriken till vår engine
     expire_on_commit=False,         # Gör att objekt du hämtat inte "tappar data" direkt efter commit (smidigt i API)
     class_=AsyncSession,            # Säger att vi vill ha AsyncSession (inte sync Session)
@@ -25,7 +25,7 @@ SessionLoacal = async_sessionmaker(
 # Den ger oss en session som automatiskt stängs när requesten är klar.
 async def get_session() -> AsyncSession:
     # Skapar en ny session (via vår SessionLocal-fabrik)
-    async with SessionLoacal() as session:
+    async with SessionLocal() as session:
         # "yield" = lämna ut sessionen till endpointen (t.ex. i router)
         # När endpointen är klar fortsätter koden efter yield och stänger sessionen automatiskt.
         yield session
