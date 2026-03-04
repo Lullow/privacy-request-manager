@@ -10,8 +10,11 @@ class PrivacyRequestCreate(BaseModel):
     # Företagsnamn: (obligatoriskt)
     company_name: str
 
-    # Företagets email (valideras som ett riktigt email genom "EmailStr import")
-    company_email: str
+    # Företagets email (valideras som ett riktigt email genom "EmailStr import" (obligatoriskt))
+    company_email: EmailStr
+
+    # Användarens för- och efternamn (obligatoriskt)
+    full_name: str
 
     # Stad (valfritt)
     city: str | None = None
