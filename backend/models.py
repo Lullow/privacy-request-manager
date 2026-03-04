@@ -41,6 +41,11 @@ class PrivacyRequest(Base):
     # Här gör du ingen email-validering i DB – det gör du istället i Pydantic-schemas (om du vill).
     company_email: Mapped[str] = mapped_column(String(200))
 
+    # Användarens för- och efternamn
+    # full_name blir en kolumn av typen String(200) (VARCHAR(200) typiskt)
+    # required (nullable=False implicit) eftersom du inte satt nullable=True
+    full_name: Mapped[str] = mapped_column(String(200))
+
     # Stad (kan vara tom)
     # city får vara None (valfritt fält).
     # Typen "str | None" betyder att Python kan ha None,
