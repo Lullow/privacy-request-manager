@@ -15,9 +15,12 @@ class Settings(BaseSettings):
 
     # DATABASE_URL: str innebär att Settings kräver att DATABASE_URL finns i .env eller env vars.
     # Om den saknas får du ett validation error när Settings() skapas.
-    DATABASE_URL: str # type annotation
+    DATABASE_URL: str  # type annotation
 
     # Den här raden betyder: om CORS_ORIGIONS inte finns i .env så används defaulten.
+    # Din frontend kör på http://localhost:5173 och din backend på http://localhost:8000. Webbläsaren blockerar som standard requests mellan olika "origins" (adresser).
+    # Om du inte sätter CORS_ORIGINS skulle webbläsaren blockera alla requests från din frontend till din backend.
+    # Pydantic vet att den ska leta efter cors_origin för att se vilken port som frontend ska köra på
     CORS_ORIGINS: str = "http://localhost:5173"
 
     # @property gör att du kan använda settings.cors_origins_list som en "vanlig variabel"
@@ -31,8 +34,9 @@ class Settings(BaseSettings):
         #
         # .split(",") delar upp på kommatecken
         # .strip() tar bort mellanslag runt varje origin
+        # I verkligheten kan du ha flera frontend-adresser som behöver prata med din backend, därav behöver det bli en lista
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
-    
+
 
 # Vi skapar en global instans av Settings så du kan importera den överallt:
 # from settings import settings

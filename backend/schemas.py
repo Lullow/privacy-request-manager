@@ -5,6 +5,7 @@ from datetime import datetime
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
 from pydantic import BaseModel, EmailStr
 
+
 # Vad frontend skickar in när den skapar ett nytt ärende
 class PrivacyRequestCreate(BaseModel):
     # Företagsnamn: (obligatoriskt)
@@ -19,8 +20,9 @@ class PrivacyRequestCreate(BaseModel):
     # Stad (valfritt)
     city: str | None = None
 
-    # Profil-länk (valfritt)
+    # Profil-länk (valfritt).  #menar du profile URL? #TODO
     profile_link: str | None = None
+
 
 # Vad API:t skickar tillbaka (inkl id och created_at)
 class PrivacyRequestRead(BaseModel):
@@ -34,4 +36,9 @@ class PrivacyRequestRead(BaseModel):
     created_at: datetime
 
     # Gör så att Pydantic kan läsa från SQLAlchemy-objekt
-    model_config = {'from_attributes': True}
+    model_config = {"from_attributes": True}
+
+
+# för PUT, status är den enda som uppdateras
+class PrivacyRequestUpdate(BaseModel):
+    status: str
