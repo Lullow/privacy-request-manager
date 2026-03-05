@@ -13,6 +13,12 @@ from models import PrivacyRequest
 # - PrivacyRequestRead: datan vi skickar tillbaka som svar
 from schemas import PrivacyRequestCreate, PrivacyRequestRead, PrivacyRequestUpdate
 
+# - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
+from sqlalchemy import select
+
+# AsyncSession: själva DB-sessionen som används när vi kör async mot databasen
+from sqlalchemy.ext.asyncio import AsyncSession
+
 # Skapar en router:
 # - prefix="/privacy-requests": alla endpoints här får den prefixen automatiskt
 # - tags=[...]: snygg kategorisering i Swagger /docs
