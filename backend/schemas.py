@@ -20,7 +20,7 @@ class PrivacyRequestCreate(BaseModel):
     # Stad (valfritt)
     city: str | None = None
 
-    # Profil-länk (valfritt).  #menar du profile URL? #TODO
+    # Profil-länk (valfritt).  #menar du profile URL? #TODO Ja, ändrat den nu, tack!
     profile_url: str | None = None
 
 
