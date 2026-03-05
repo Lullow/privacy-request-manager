@@ -2,16 +2,9 @@
 # - Depends: dependency injection (t.ex. hämta DB-session automatiskt)
 # - HTTPException: kasta ett kontrollerat fel (t.ex. 404) som API:t returnerar som JSON
 # - status: färdiga HTTP-statuskoder (201, 404 osv)
-from fastapi import APIRouter, Depends, HTTPException, status
-
-# - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
-from sqlalchemy import select
-
-# AsyncSession: själva DB-sessionen som används när vi kör async mot databasen
-from sqlalchemy.ext.asyncio import AsyncSession
-
 # get_session: vår egen dependency som skapar/stänger DB-session per request
 from connect_db import get_session
+from fastapi import APIRouter, Depends, HTTPException, status
 
 # PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
 from models import PrivacyRequest
