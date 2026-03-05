@@ -21,7 +21,7 @@ class PrivacyRequestCreate(BaseModel):
     city: str | None = None
 
     # Profil-länk (valfritt).  #menar du profile URL? #TODO
-    profile_link: str | None = None
+    profile_url: str | None = None
 
 
 # Vad API:t skickar tillbaka (inkl id och created_at)
