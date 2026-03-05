@@ -4,6 +4,10 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+@property
+def cors_origins_list(self) -> list[str]:
+    return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+
 # Skapar en klass som samlar all "config" för projektet
 # (databas-URL, CORS-origins, osv)
 class Settings(BaseSettings):
