@@ -5,7 +5,9 @@ from datetime import datetime
 # - DateTime: datum + tid
 # - String: text med maxlängd (i DB blir det ofta VARCHAR)
 # - Text: (inte använd i din kod just nu) text utan fast maxlängd
-from sqlalchemy import DateTime, String, Text
+# from datetime import datetime importerar Python-klassen datetime — den används för defaultvärde
+# DateTime — talar om för databasen vad kolumnen är för typ
+from sqlalchemy import DateTime, ForeignKey, String
 
 # Importerar ORM-delarna:
 # - DeclarativeBase: bas-klassen som alla modeller bygger på
@@ -20,10 +22,20 @@ class Base(DeclarativeBase):
     pass
 
 
+class User(Base):
+    __tablename__ = "user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True)
+    # Du lagrar aldrig lösenordet i klartext i databasen (säkerhetsregel) Om databasen läckte och du hade sparat lösenord123 direkt, kan vem som helst logga in som alla användare. Istället hashar du lösenordet
+    password_hash: Mapped[str] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 # __tablename__ berättar vilket namn tabellen ska ha i databasen.
 # Viktigt: måste matcha om du redan skapat tabellen i DB.
 class PrivacyRequest(Base):
-    __tablename__ = "privacy_request" # tabellens namn i databasen
+    __tablename__ = "privacy_request"  # tabellens namn i databasen
 
     # Primary-key
     # id är primärnyckeln (PK).
@@ -57,6 +69,9 @@ class PrivacyRequest(Base):
     # Du använder String(200) här: bra för kortare länkar.
     # Om du tror att URLs kan bli längre kan du byta till Text istället.
     profile_url: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    # kopplar varje ärende till en specifik användare.
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     # Status för ärende (MVP: bara text)
     # status är en enkel status-sträng.

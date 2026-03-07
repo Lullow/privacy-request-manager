@@ -3,8 +3,15 @@
 # - HTTPException: kasta ett kontrollerat fel (t.ex. 404) som API:t returnerar som JSON
 # - status: färdiga HTTP-statuskoder (201, 404 osv)
 # get_session: vår egen dependency som skapar/stänger DB-session per request
-from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
+
+# - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
+from sqlalchemy import select
+
+# AsyncSession: själva DB-sessionen som används när vi kör async mot databasen
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from connect_db import get_session
 
 # PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
 from models import PrivacyRequest
@@ -12,12 +19,6 @@ from models import PrivacyRequest
 # - PrivacyRequestCreate: datan vi förväntar oss från frontend när man skapar
 # - PrivacyRequestRead: datan vi skickar tillbaka som svar
 from schemas import PrivacyRequestCreate, PrivacyRequestRead, PrivacyRequestUpdate
-
-# - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
-from sqlalchemy import select
-
-# AsyncSession: själva DB-sessionen som används när vi kör async mot databasen
-from sqlalchemy.ext.asyncio import AsyncSession
 
 # Skapar en router:
 # - prefix="/privacy-requests": alla endpoints här får den prefixen automatiskt
@@ -72,9 +73,15 @@ async def create_privacy_request(
 )
 async def list_privacy_requests(
     session: AsyncSession = Depends(get_session),  # DB-session injiceras
+    status: str | None = None,
 ):
     # Bygger en SELECT query som sorterar senaste först (högst id)
     stmt = select(PrivacyRequest).order_by(PrivacyRequest.id.desc())
+
+    # Om användaren skickade med ?status=draft i URL:en — alltså om status inte är None.
+    # Med if status filtrerar den på det värdet användaren skickade in.
+    if status:
+        stmt = stmt.where(PrivacyRequest.status == status)
 
     # Kör queryn mot DB (async)
     result = await session.execute(stmt)
@@ -170,3 +177,4 @@ async def delete_privacy_request(
 
     await session.delete(row)
     await session.commit()
+    return {"message": "Privacy request deleted"}

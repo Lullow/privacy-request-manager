@@ -3,10 +3,11 @@
 # - SettingsConfigDict: sättet man konfigurerar BaseSettings i Pydantic v2
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Kommenterade ut denna eftersom att den är en dublett av rad 33
+# @property
+# def cors_origins_list(self) -> list[str]:
+#    return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
-@property
-def cors_origins_list(self) -> list[str]:
-    return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
 # Skapar en klass som samlar all "config" för projektet
 # (databas-URL, CORS-origins, osv)
