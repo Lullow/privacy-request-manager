@@ -35,22 +35,18 @@ router = APIRouter(prefix="/privacy-requests", tags=["Privacy Requests"])
 )
 async def create_privacy_request(
     payload: PrivacyRequestCreate,  # payload = request body (JSON) som måste matcha PrivacyRequestCreate
-    session: AsyncSession = Depends(
-        get_session
-    ),  # session injiceras automatiskt via Depends
+    session: AsyncSession = Depends(get_session),  # session injiceras automatiskt via Depends
 ):
+
     # Skapar en SQLAlchemy-rad (objekt) som matchar DB-tabellen
     new_row = PrivacyRequest(
         company_name=payload.company_name,  # tar värdet från payload
-        company_email=str(
-            payload.company_email
-        ),  # EmailStr -> str för DB (funkar fint)
+        company_email=str(payload.company_email),  # EmailStr -> str för DB (funkar fint)
         full_name=payload.full_name,  # matchar modellen
         city=payload.city,  # kan vara None
         profile_url=payload.profile_url,  # kan vara None
         # status defaultar till "draft" i modellen, så vi behöver inte skicka den här
     )
-
     # Lägger till objektet i sessionen (som en "pending insert")
     session.add(new_row)
 
@@ -67,9 +63,7 @@ async def create_privacy_request(
 # GET-endpoint: listar alla privacy requests
 @router.get(
     "",  # blir "/privacy-requests"
-    response_model=list[
-        PrivacyRequestRead
-    ],  # vi retunerar en lista av PrivacyRequestRead
+    response_model=list[PrivacyRequestRead], # vi retunerar en lista av PrivacyRequestRead
 )
 async def list_privacy_requests(
     session: AsyncSession = Depends(get_session),  # DB-session injiceras
