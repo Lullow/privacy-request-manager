@@ -7,14 +7,13 @@ from datetime import datetime
 # - Text: (inte använd i din kod just nu) text utan fast maxlängd
 # from datetime import datetime importerar Python-klassen datetime — den används för defaultvärde
 # DateTime — talar om för databasen vad kolumnen är för typ
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String, Text
 
 # Importerar ORM-delarna:
 # - DeclarativeBase: bas-klassen som alla modeller bygger på
 # - Mapped: typ-hint som talar om för SQLAlchemy att detta är ett ORM-fält/kolumn
 # - mapped_column: funktionen som definierar en kolumn (typ, constraints, default, osv)
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Base-klassen är “startpunkten” för alla dina modeller.
 # SQLAlchemy samlar metadata från Base för att kunna skapa tabeller och migrations.
@@ -25,6 +24,7 @@ class Base(DeclarativeBase):
 class User(Base):
     __tablename__ = "user"
 
+    # Primary-key för användaren
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(200), unique=True)
     # Du lagrar aldrig lösenordet i klartext i databasen (säkerhetsregel) Om databasen läckte och du hade sparat lösenord123 direkt, kan vem som helst logga in som alla användare. Istället hashar du lösenordet
@@ -71,7 +71,12 @@ class PrivacyRequest(Base):
     profile_url: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     # kopplar varje ärende till en specifik användare.
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    # TODO: Ändra från valfritt när auth implementeras.
+    # Lägger valfritt tillsvidare
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"), nullable=True)
+
+    # Tone för AI-generering
+    tone: Mapped[str] = mapped_column(String(50), default="neutral")
 
     # Status för ärende (MVP: bara text)
     # status är en enkel status-sträng.
@@ -85,6 +90,40 @@ class PrivacyRequest(Base):
     # utcnow används ofta för att slippa tidszonsstrul.
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # Relationship till Message
+    # En request kan ha flera AI- eller manuella meddelanden
+    messages: Mapped[list["Message"]] = relationship(back_populates="privacy_request", cascade="all, delete-orphan")
+
+
+class Message(Base):
+    __tablename__ = "message"
+
+    # Primary-key
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # Foregin-key till den privacy_request som meddelandet hör till
+    id: Mapped[int] = mapped_column(ForeignKey=("privacy_request.id"))
+    
+    # Vilken typ av message är detta, exempelvis: initial_request, follow-up
+    message_type: Mapped[str] = mapped_column(String(50))
+
+    # Vem skapade meddelandet, exempelvis: AI eller manuellt av användaren
+    source: Mapped[str] = mapped_column(String(50), default="ai")
+
+    # Ämnesrad
+    subject: Mapped[str] = mapped_column(String(255))
+
+    # Meddelande texten
+    message_body: Mapped[str] = mapped_column(Text)
+
+    # Tone sparas för att veta hur AI genererade texten
+    tone: Mapped[str] = mapped_column(str(50), default="neutral")
+
+    # När meddelandet skapades
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    # Relationship tillbaka till request
+    privacy_request: Mapped["PrivacyRequest"] = relationship(back_populates="messages")
 
 """
 Snabba “bra-att-veta” notes
