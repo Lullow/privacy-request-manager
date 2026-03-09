@@ -3,7 +3,22 @@
 # - HTTPException: kasta ett kontrollerat fel (t.ex. 404) som API:t returnerar som JSON
 # - status: färdiga HTTP-statuskoder (201, 404 osv)
 # get_session: vår egen dependency som skapar/stänger DB-session per request
+from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
+
+# PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
+from models import PrivacyRequest
+
+# - PrivacyRequestCreate: datan vi förväntar oss från frontend när man skapar
+# - PrivacyRequestRead: datan vi skickar tillbaka som svar
+from schemas import (
+    GenerateMessageRequest,  # AI-integrering 
+    GenerateMessageResponse,  # AI-integrering 
+    MessageRead,  # AI-integrering 
+    PrivacyRequestCreate,
+    PrivacyRequestRead,
+    PrivacyRequestUpdate,
+)
 
 # - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
 from sqlalchemy import select
@@ -11,14 +26,7 @@ from sqlalchemy import select
 # AsyncSession: själva DB-sessionen som används när vi kör async mot databasen
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from connect_db import get_session
-
-# PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
-from models import PrivacyRequest
-
-# - PrivacyRequestCreate: datan vi förväntar oss från frontend när man skapar
-# - PrivacyRequestRead: datan vi skickar tillbaka som svar
-from schemas import PrivacyRequestCreate, PrivacyRequestRead, PrivacyRequestUpdate
+# TODO: from services.ai_generator import generate_gdpr_message <- detta kommer behövas eventuellt (installation av paketen krävs)
 
 # Skapar en router:
 # - prefix="/privacy-requests": alla endpoints här får den prefixen automatiskt
@@ -27,7 +35,7 @@ router = APIRouter(prefix="/privacy-requests", tags=["Privacy Requests"])
 
 
 # Tar emot data från frontend, skapar en ny rad i databasen och returnerar den sparade raden med id och created_at.
-# POST-endpoint: skapar ett nytt privacy request i databasen
+# CREATE-endpoint: skapar ett nytt privacy request i databasen
 @router.post(
     "",  # tom sträng betyder: exakt "/privacy-requests" (p.g.a. prefixen ovan)
     response_model=PrivacyRequestRead,  # FastAPI validerar och serialiserar svaret enligt detta schema
@@ -45,7 +53,10 @@ async def create_privacy_request(
         full_name=payload.full_name,  # matchar modellen
         city=payload.city,  # kan vara None
         profile_url=payload.profile_url,  # kan vara None
-        # status defaultar till "draft" i modellen, så vi behöver inte skicka den här
+        tone=payload.tone, # AI-integrering 
+        # status defaultar till "draft" i modellen, så vi behöver inte skicka den här <- fixade detta (ta bort denna kommentar sen)
+        # 
+        status="draft"
     )
     # Lägger till objektet i sessionen (som en "pending insert")
     session.add(new_row)
@@ -172,3 +183,17 @@ async def delete_privacy_request(
     await session.delete(row)
     await session.commit()
     return {"message": "Privacy request deleted"}
+
+
+# ~ CREATE ENDPOINT - AI-generate-endpoint
+@router.post(
+    "/{request_id}/generate",
+    response_model = GenerateMessageResponse,
+)
+async def generate_request_message(
+    request_id: int,
+    payload: GenerateMessageRequest,
+    session: AsyncSession = Depends(get_session),
+):
+    # Hämta requesten från databasen
+    pass
