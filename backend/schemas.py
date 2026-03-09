@@ -42,3 +42,24 @@ class PrivacyRequestRead(BaseModel):
 # för PUT, status är den enda som uppdateras
 class PrivacyRequestUpdate(BaseModel):
     status: str
+
+
+# Vad frontend skickar när man registrerar ett konto
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str  # klartext här — hashas sedan i auth-logiken
+
+
+# Vad API:t skickar tillbaka efter register/login (aldrig password!) password från frontend används bara för att hasha och spara password_hash i databasen — sedan kastas klartext-lösenordet.
+class UserRead(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# Vad frontend skickar vid inloggning
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str

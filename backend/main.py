@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.routers import router as privacy_request_router
+from auth.router import router as auth_router
 
 # Importerar settings-instansen (läser från .env via pydantic-settings)
 from settings import settings
@@ -39,6 +40,7 @@ app.add_middleware(
 # -/api/privacy-requests
 # -/api/privacy-requests/{id}
 app.include_router(privacy_request_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 
 
 # En enkel "health check" endpoint:
