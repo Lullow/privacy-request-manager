@@ -7,18 +7,27 @@ from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
 
 # PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
-from models import PrivacyRequest
+# Message för att kunna spara AI-genererade meddelande i databasen
+from models import Message, PrivacyRequest
 
 # - PrivacyRequestCreate: datan vi förväntar oss från frontend när man skapar
 # - PrivacyRequestRead: datan vi skickar tillbaka som svar
+# - PrivacyRequestUpdate: För att updatera datan
+# - MessageRead: för att läsa/svara med sparade meddelanden (AI-integrering)
+# - GenerateMessageRequest: för payloaden som skickas in när frontend vill generera ett meddelande (AI-integrering)
+# - GenerateMessageResponse: för svaret som backend skickar tillbaka efter AI-generering (AI-integrering)
 from schemas import (
-    GenerateMessageRequest,  # AI-integrering 
-    GenerateMessageResponse,  # AI-integrering 
-    MessageRead,  # AI-integrering 
+    GenerateMessageRequest,
+    GenerateMessageResponse,
+    MessageRead,
     PrivacyRequestCreate,
     PrivacyRequestRead,
     PrivacyRequestUpdate,
 )
+
+# Importerar själva funktionen som bygger GDPR-meddelandet
+# Den här funktionen ska skapa subject och body baserat på requestens data
+# TODO: from services.ai_generator import generate_gdpr_message <- add this later
 
 # - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
 from sqlalchemy import select
@@ -48,15 +57,13 @@ async def create_privacy_request(
 
     # Skapar en SQLAlchemy-rad (objekt) som matchar DB-tabellen
     new_row = PrivacyRequest(
-        company_name=payload.company_name,  # tar värdet från payload
+        company_name=payload.company_name,         # tar värdet från payload
         company_email=str(payload.company_email),  # EmailStr -> str för DB (funkar fint)
-        full_name=payload.full_name,  # matchar modellen
-        city=payload.city,  # kan vara None
+        full_name=payload.full_name,               # matchar modellen
+        city=payload.city, # kan vara None
         profile_url=payload.profile_url,  # kan vara None
-        tone=payload.tone, # AI-integrering 
-        # status defaultar till "draft" i modellen, så vi behöver inte skicka den här <- fixade detta (ta bort denna kommentar sen)
-        # 
-        status="draft"
+        tone=payload.tone, # Sparar användarens valda ton/stil redan när request skapas (AI-integrering)
+        status="draft"     # Sätter första statusen till "draft". Det betyder att requestet finns i databasen, men att inget AI-meddelande har genererats ännu
     )
     # Lägger till objektet i sessionen (som en "pending insert")
     session.add(new_row)
@@ -186,14 +193,66 @@ async def delete_privacy_request(
 
 
 # ~ CREATE ENDPOINT - AI-generate-endpoint
+# Skapar en POST-endpoint på /{request_id}/generate
+# Exempel: /api/privacy-requests/5/generate
 @router.post(
     "/{request_id}/generate",
-    response_model = GenerateMessageResponse,
+    response_model = GenerateMessageResponse, # Talar om att svaret från endpointen ska följa detta schema
 )
 async def generate_request_message(
-    request_id: int,
-    payload: GenerateMessageRequest,
-    session: AsyncSession = Depends(get_session),
+    request_id: int,                              # request_id hämtas från URL:en
+    payload: GenerateMessageRequest,              # payload kommer från frontendens request body, här finns t.ex. tone och message_type
+    session: AsyncSession = Depends(get_session), # Hämtar en databassession via Depends
 ):
-    # Hämta requesten från databasen
-    pass
+    # Bygger en SQL-fråga som letar efter rätt PrivacyRequest via id (hämtar requesten från databasen)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    # Kör SQL-frågan mot databasen
+    result = await session.execute(stmt)
+    # Hämtar ut ett objekt om det finns, annars None
+    request_row = result.scalar_one_or_none()
+
+    # Kasta 404 statuskod om requesten inte finns
+    if request_row is None:
+        raise HTTPException(status_code=404, detail="Privacy request not found")
+    
+    # Anropar AI-funktionen som bygger subject + body
+    # Den får all info den behöver från requestet och payloaden
+    generated = generate_gdpr_message( # TODO: fixa klart generate_gdpr_message funktionen
+        # Relevant information från databasen nedan
+        company_name=request_row.company_name,
+        company_email=request_row.company_email,
+        full_name=request_row.full_name,
+        city=request_row.city,
+        profile_url=request_row.profile_url,
+        tone=payload.tone,                 # Tone som frontend skickade in vid genereringen
+        message_type=payload.message_type, # Typ av meddelande, t.ex. initial_request eller follow_up
+    )
+
+    # Skapar ett nytt Message-objekt som ska sparas i message-tabellen
+    new_message = Message(
+        privacy_request_id=request_row.id, # Kopplar meddelandet till rätt privacy request
+        message_type=payload.message_type, # Sparar vilken typ av meddelande det är
+        source="ai",                       # Visar att detta meddelande skapades av AI
+        subject=generated["subject"],      # Sparar ämnesraden som AI-funktionen genererat
+        message_body=generated["message_body"], # Sparar själva meddelandetexten
+        tone=payload.tone,                 # Sparar tonen som användes vid genereringen
+    )
+    # Lägger till det nya Message-objektet i databassessionen
+    session.add(new_message)
+
+    # Uppdaterar requestets tone till den senaste tonen som användes
+    request_row.tone = payload.tone 
+    # Ändrar status från exempelvis "draft" till "generated"
+    # Det betyder att ett AI-meddelande nu har skapats för requestet
+    request_row.status = "generated"
+
+    await session.commit()              # Sparar alla ändringar i databasen
+    await session.refresh(new_message)  # Uppdaterar new_message från databasen så att vi får t.ex. id och created_at
+
+    # Returnerar svaret till frontend enligt GenerateMessageResponse
+    return GenerateMessageResponse(
+        subject=new_message.subject,            # Skickar tillbaka subject
+        message_body=new_message.message_body,  # Skickar tillbaka meddelandetexten
+        message_type=new_message.message_type,  # Skickar tillbaka typen av meddelande
+        tone=new_message.tone,                  # Skickar tillbaka tonen
+    )
