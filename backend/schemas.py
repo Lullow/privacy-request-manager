@@ -6,6 +6,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
+# ~ PRIVACY REQUEST - CREATE ~
 # Vad frontend skickar in när den skapar ett nytt ärende
 class PrivacyRequestCreate(BaseModel):
     # Företagsnamn: (obligatoriskt)
@@ -23,6 +24,10 @@ class PrivacyRequestCreate(BaseModel):
     # Profil-länk (valfritt).  #menar du profile URL? #TODO Ja, ändrat den nu, tack!
     profile_url: str | None = None
 
+    # Tone för AI anvädning
+    # Om frontend inte skickar tone så är request "neutral" som standard
+    tone: str = "neutral"
+
 
 # Vad API:t skickar tillbaka (inkl id och created_at)
 class PrivacyRequestRead(BaseModel):
@@ -32,6 +37,7 @@ class PrivacyRequestRead(BaseModel):
     full_name: str
     city: str | None
     profile_url: str | None
+    tone: str
     status: str
     created_at: datetime
 
@@ -39,6 +45,7 @@ class PrivacyRequestRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# ~ PRIVACY REQUEST - UPDATE
 # för PUT, status är den enda som uppdateras
 class PrivacyRequestUpdate(BaseModel):
     status: str
@@ -63,3 +70,35 @@ class UserRead(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
+
+# ~ MESSAGE - READ ~
+class MessageRead(BaseModel):
+    id: int
+    privacy_request_id: int
+    message_type: str
+    source: str
+    subject: str
+    message_body: str
+    tone: str 
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ~ AI GENERATE - REQUEST ~
+class GenerateMessageRequest(BaseModel):
+    # Om användaren väljer att ändra läge (tone)
+    tone: str = "neutral"
+
+    # Vilken typ av text som ska genereras, exempelvis: initial_request eller follow_up
+    message_type: str = "initial_request"
+
+
+# ~ AI GENERATE - RESPONSE ~
+class GenerateMessageResponse(BaseModel):
+    subject: str
+    message_body: str
+    message_type: str
+    tone: str
+    
