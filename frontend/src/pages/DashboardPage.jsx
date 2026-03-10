@@ -67,12 +67,13 @@ useEffect(() => {
     const totalCount = document.querySelectorAll(".status").length;
 
     const animateCenter = () => {
+    if (total < totalCount) {
         total++;
         center.firstChild.textContent = total;
-        if(total < totalCount) {
-            setTimeout(animateCenter, 1000 / totalCount);
-        }
-    };
+        setTimeout(animateCenter, 1000 / totalCount);
+    }
+};
+
     animateCenter();
 }, [])
 
