@@ -71,7 +71,7 @@ class PrivacyRequest(Base):
     profile_url: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     # kopplar varje ärende till en specifik användare.
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"), nullable=True)
 
     # Status för ärende (MVP: bara text)
     # status är en enkel status-sträng.
