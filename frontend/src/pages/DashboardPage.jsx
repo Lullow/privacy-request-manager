@@ -1,19 +1,40 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 
-
+// function DashboardPage() är själva komponenten — 
+// det är React-sättet att skapa en återanvändbar bit av UI.
+// Utan funktionen har React ingenting att importera eller visa. Det är funktionen som:
+// Håller all logik (useState, useEffect, fetch)
+// Returnerar JSX (det som syns på skärmen)
 function DashboardPage(){
 
+// ref används för att peka på donut-diven i JSX så att animationen kan ändra dess CSS.
+// useRef — skapar en referens till ett DOM-element. Utan den vet inte JavaScript vilken div det handlar om
 const ref = useRef(null)
 
 
+    const [requests, setRequests] = useState([])  // tom lista från start
+    // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
+
+// Hämta datan 
 useEffect(() => {
+    // fetch = webbläsarens inbyggda funktion för att hämta data från en URL. Den skickar en HTTP-request till din backend
+    fetch("http://localhost:8000/api/privacy-requests")
+    // svaret kommer tillbaka som råtext → gör om till ett JavaScript-objekt.
+        .then(res => res.json())
+        // stoppa in datan i state. React ritar om.
+        .then(data => setRequests(data))
+        // useEffect med [] = kör en gång när komponenten visas.
+}, [])
 
 
+useEffect(() => { 
 // Animation JS 
 
     const donut = ref.current
+    // Finds child-element och donut-center class
     const center = donut.querySelector(".donut-center");
 
+    // string to int
     const complete = parseInt(donut.dataset.complete);
     const waiting = parseInt(donut.dataset.waiting);
     const denied = parseInt(donut.dataset.denied);
@@ -117,35 +138,34 @@ return(
             <div className="cell">Åtgärder</div>
         </div>
 
-        {/* Case Rows */} 
-        <div className="case-row">
-            <div className="cell"><a href="https://www.merinfo.se">Merinfo</a></div>
-            <div className="cell status waiting">Pågående</div>
-            <div className="cell case-actions">
-                <button className="btn-dashboard">Visa</button>
-                <button className="btn-dashboard">Skicka påminnelse</button>
-            </div>
-        </div>
-
-        <div className="case-row">
-            <div className="cell"><a href="https://www.ratsit.se">Ratsit</a></div>
-            <div className="cell status complete">Avslutad</div>
-            <div className="cell case-actions">
-                <button className="btn-dashboard">Visa</button>
-                <button className="btn-dashboard">Skicka påminnelse</button>
-            </div>
-        </div>
-
-        <div className="case-row">
-            <div className="cell"><a href="https://mrkoll.se">MrKoll</a></div>
-            <div className="cell status complete">+ 30 dagar</div>
-            <div className="cell case-actions">
-                <button className="btn-dashboard">Visa</button>
-                <button className="btn-dashboard">Skicka påminnelse</button>
-            </div>
+{/* requests = listan vi hämtar från backend */} 
+{/* .map = gå igenom varje ärende i listan och gör om till jsx */}
+{/* one = ett ärende i taget */} 
+{requests.map((one) => (
+    <div className="case-row" key={one.id}>
+        {/* Skapar en rad för varje ärende.
+        key={one.id} = React kräver en unik nyckel på varje element
+        i en lista så den vet vilken rad som är vilken. 
+        one.id kommer från backend. */}
+        {/* Visar företagsnamnet. one.company_name är fältet från backend (snake_case). */}
+        <div className="cell">{one.company_name}</div>
+        {/* className={...} — sätter CSS-klassen dynamiskt.
+            Backticks   `` används för att mixa fast text och variabler:
+            `cell status ${one.status}`
+            Om one.status är "waiting" → blir klassen "cell status waiting"
+            Om one.status är "complete" → blir klassen "cell status complete"
+            Det gör att CSS:en kan styla varje status olika med .status.waiting och .status.complete*/}
+        <div className={`cell status ${one.status}`}>{one.status}</div>
+        <div className="cell case-actions">
+            <button className="btn-dashboard">Visa</button>
+            <button className="btn-dashboard">Skicka påminnelse</button>
         </div>
     </div>
+))}
+
+        </div>
     </div>
+
 
         {/* Question section */} 
 <section className="dashboard-under-panel">
