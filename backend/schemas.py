@@ -37,6 +37,7 @@ class PrivacyRequestRead(BaseModel):
     full_name: str
     city: str | None
     profile_url: str | None
+    tone: str
     status: str
     created_at: datetime
 
