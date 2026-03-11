@@ -27,7 +27,7 @@ from schemas import (
 
 # Importerar själva funktionen som bygger GDPR-meddelandet
 # Den här funktionen ska skapa subject och body baserat på requestens data
-# TODO: from services.ai_generator import generate_gdpr_message <- add this later
+from services.ai_generator import generate_gdpr_message  # <- add this later
 
 # - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
 from sqlalchemy import select
@@ -256,3 +256,46 @@ async def generate_request_message(
         message_type=new_message.message_type,  # Skickar tillbaka typen av meddelande
         tone=new_message.tone,                  # Skickar tillbaka tonen
     )
+
+# Skapa GET-endpoint på /{request_id}/messages
+# Exempel: /api/privacy-request/5/messages
+@router.get(
+    "/{request_id}/messages",
+    # Talar om att endpoint ska returnera en lista av MessageRead-objektet (alltså flera messages, inte bara en enda)
+    response_model=list[MessageRead]
+)
+async def list_request_messages(
+    #request_id hämtas från URL:en
+    request_id: int,
+    # Hämtar databassessionen via Depends
+    session: AsyncSession=Depends(get_session),
+):
+    # Bygger en SQL-fråga för att först kontrollera om privacy requestet finns i databasen
+    stmt_request = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+
+    # Kör SQL-frågan
+    result_request = await session.execute(stmt_request)
+
+    # Hämtar ut objektet om det finns, annars None
+    request_row = result_request.scalar_one_or_none()
+
+    # Om request inte finns, skicka tillbaka 404
+    if request_row is None:
+        raise HTTPException(status_code=404, detail="Privacy request not found")
+    
+    # Bygger en ny SQL-fråga som hämtar alla messages som hör till just detta privacy request
+    stmt_messages = (
+        # Filtrera så att bara messages med rätt privacy_request_id hämtas
+        # Sortera resultat i fallande ordning så de senaste messages kommer först
+        select(Message).where(Message.privacy_request_id == request_id).order_by(Message.id.desc())
+    )
+
+    # Kör frågan mot databasen
+    result_message = await session.execute(stmt_messages)
+
+    # Hämta ut alla Message objekt som en lista
+    rows = result_message.scalars.all()
+
+    # Returna listan med messages
+    # FastAPI omvandlar den till response_model=list[MessageRead]
+    return list(rows)
