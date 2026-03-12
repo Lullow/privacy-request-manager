@@ -48,14 +48,14 @@ def generate_gdpr_message(
         body = f"""
 {greeting}
 
-Detta är en uppföljning på min tidigare GDPR-begäran.BaseException
+Detta är en uppföljning på min tidigare GDPR-begäran.
 
 {intro}
 
 Mina uppgifter:
 Namn: {full_name}
 Ort: {safe_city}
-Profil / länk: {""}
+Profil / länk: {profile_url}
 
 Jag önskar en bekräftelse på att min tidigare begäran har mottagits och hanteras inom lagstadgad tid.
 
@@ -63,9 +63,27 @@ Jag önskar en bekräftelse på att min tidigare begäran har mottagits och hant
 {full_name}
 """.strip()
 
+    else:
+        subject = f"GDPR-begäran - {full_name}"
+        body = f"""
+{greeting}
+
+{intro}
+
+Mina uppgifter:
+Namn: {full_name}
+Ort: {safe_city}
+Profil / länk: {profile_url}
+
+Vänligen bekräfta att min begäran har mottagits och åtgärdas inom 30 dagar enligt GDPR artikel 12.
+
+{closing},
+{full_name}
+""".strip()
+
     return {
         "subject": subject,
-        "body": body,
+        "message_body": body,
     }
 
 
