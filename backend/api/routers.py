@@ -226,6 +226,7 @@ async def generate_request_message(
         profile_url=request_row.profile_url,
         tone=payload.tone,                 # Tone som frontend skickade in vid genereringen
         message_type=payload.message_type, # Typ av meddelande, t.ex. initial_request eller follow_up
+        request_types=payload.request_types,
     )
 
     # Skapar ett nytt Message-objekt som ska sparas i message-tabellen
@@ -294,7 +295,7 @@ async def list_request_messages(
     result_message = await session.execute(stmt_messages)
 
     # Hämta ut alla Message objekt som en lista
-    rows = result_message.scalars.all()
+    rows = result_message.scalars().all()
 
     # Returna listan med messages
     # FastAPI omvandlar den till response_model=list[MessageRead]

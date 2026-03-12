@@ -3,7 +3,7 @@ from datetime import datetime
 
 # Basemodel: basen för pydantic-modeller
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 # ~ PRIVACY REQUEST - CREATE ~
@@ -93,6 +93,9 @@ class GenerateMessageRequest(BaseModel):
 
     # Vilken typ av text som ska genereras, exempelvis: initial_request eller follow_up
     message_type: str = "initial_request"
+
+    # Field(default_factory=list) är säkrare än att använda en tom lista direkt som default.
+    request_types: list[str] = Field(default_factory=list)
 
 
 # ~ AI GENERATE - RESPONSE ~
