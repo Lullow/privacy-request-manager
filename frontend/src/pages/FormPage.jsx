@@ -1,202 +1,268 @@
 import React, { useState } from "react";
 import TopBar from "../components/TopBar";
 
-// CHIPS - GDPR alternatives that user can choose from
-// Outside components because it's hardwired and should not change
+// Base URL for backend API
+const API_BASE = "http://127.0.0.1:8000/api";
+
+// GDPR request types shown as selectable chips
 const REQUEST_TYPES = [
-    { id: "delete", label: "Radering (Art. 17?)"},
-    { id: "access", label: "Registerutdrag (Art. 15?)"},
-    { id: "rectify", label: "Rättelse (Art. 16?)"},
-    { id: "restrict", label: "Begränsningar (Art. 18?)"},
-    { id: "object", label: "Invändningar (Art. 21?)"},
-    { id: "portability", label: "Dataportabilitet (Art. 20?)"},
+    { id: "delete", label: "Radering" },
+    { id: "access", label: "Registerutdrag" },
+    { id: "rectify", label: "Rättelse" },
+    { id: "restrict", label: "Begränsning" },
+    { id: "object", label: "Invändning" },
+    { id: "portability", label: "Dataportabilitet" },
 ];
 
+function FormPage({ onBack }) {
+    // Main form state
+    const [form, setForm] = useState({
+        companyName: "",
+        companyEmail: "",
+        fullName: "",
+        city: "",
+        profileUrl: "",
+        requestTypes: ["delete"],
+        tone: "neutral",
+    });
 
-// Creates the component
-function FormPage({ onBack }){ // onBack recives prop from App.jsx
+    // Saved request id from backend
+    const [savedRequestId, setSavedRequestId] = useState(null);
 
-// All the values from the form gets saved here
-const [form, setForm] = useState({
-    companyName: "",
-    companyEmail: "",
-    fullName: "",
-    city: "",
-    profileUrl: "",
-    requestTypes: ["delete"],
-});
+    // AI generated result
+    const [generatedSubject, setGeneratedSubject] = useState("");
+    const [generatedBody, setGeneratedBody] = useState("");
 
-// UI-state - Used to display "Kopierat" temporarily
-const [copied, setCopied] = useState(false);
+    // UI state
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [copied, setCopied] = useState(false);
 
-
-// Helper-function: updates a field in the form-state without having to write the object multiple times
-// prev = earlier state / ...prev copies all the old fields / [key]: value overwrites the fields that we wanna change
-// This is the standard-pattern to update objects in React
-function updateField(key, value) {
-    setForm((prev) => ({
-        ...prev, 
-        [key]: value,
-    }));
-}
-
-
-// TOGGLE requestType - Adds or deletes a GDPR type in the array
-function toggleRequestType(id) {
-    setForm((prev) => {
-        const exists = prev.requestTypes.includes(id);
-
-    return {
-        ...prev,
-        requestTypes: exists 
-        ? prev.requestTypes.filter((x) => x !== id) // Deletes
-        : [...prev.requestTypes, id], // Adds
-    };
-});
-}
-
-// Fetches labels that matches the user choices (Derived values)
-const selectedRequests = REQUEST_TYPES
-.filter((t) => form.requestTypes.includes(t.id)) // Keeps what the user choosen
-.map((t) => `- ${t.label}`) // Changes to textrows
-.join("\n"); // Makes them to a "list"
-
-// Creates the GDPR-template message
-const template = `
-Ämne: GDPR-begäran - ${form.fullName || "Ditt namn"}
-
-Hej ${form.companyName || ""},
-
-Jag önskar härmed att utöva mina rättigheter enligt GDPR.
-
-Jag begär följande:
-
-${selectedRequests || "- (Ingen vald begäran)"}
-
-Mina uppgifter:
-Namn: ${form.fullName}
-Ort: ${form.city}
-Profil / Länk: ${form.profileUrl}
-
-Vänligen bekräfta mottagandet av denna begäran och återkom inom lagstadgad tid.
-
-Med vänliga hälsningar,
-${form.fullName || ""}
-`.trim();
-
-// Basic validation to control missing fields TODO: Make this more advanced 
-const errors = {
-    companyName: form.companyName.trim() ? "" : "Fyll i företagets namn.",
-    companyEmail: form.companyEmail.trim() ? "" : "Fyll i företagets e-post.",
-    fullName: form.fullName.trim() ? "" : "Fyll i ditt namn.",
-};
-
-// Valid if there's no empty strings
-const isValid = !errors.companyName && !errors.companyEmail && !errors.fullName;
-
-
-// Copies the template to clipboard
-async function copyToClipboard() {
-    try {
-        await navigator.clipboard.writeText(template);
-        setCopied(true);
-
-        // Restore after 1.2 seconds
-        setTimeout(() => setCopied(false), 1200);
-    } catch (err) {
-        console.error(err); // Logs the error to aviod ESLint unused-vars
-        alert("Kunde inte kopiera automatiskt. Markera texten och kopiera den manuellt.")
+    // Update one field in the form state
+    function updateField(key, value) {
+        setForm((prev) => ({
+            ...prev,
+            [key]: value,
+        }));
     }
-}
 
+    // Add/remove GDPR request types
+    function toggleRequestType(id) {
+        setForm((prev) => {
+            const exists = prev.requestTypes.includes(id);
 
-// DOESNT WORK AS INTENDED DELETE?
-// CRLF linebreak to insert form message to e-mail program
-const bodyForMail = template.replaceAll("\n", "\r\n");
+            return {
+                ...prev,
+                requestTypes: exists
+                    ? prev.requestTypes.filter((x) => x !== id)
+                    : [...prev.requestTypes, id],
+            };
+        });
+    }
 
-// DOESNT WORK AS INTENDED DELETE?
-// Create mailto-link based on the form
-const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
-    `GDPR-begäran - ${form.fullName}`
-)}&body=${encodeURIComponent(bodyForMail)}`;
+    // Basic validation
+    const errors = {
+        companyName: form.companyName.trim() ? "" : "Fyll i företagets namn.",
+        companyEmail: form.companyEmail.trim() ? "" : "Fyll i företagets e-post.",
+        fullName: form.fullName.trim() ? "" : "Fyll i ditt namn.",
+    };
 
-// JSX (UI) - The visual representation of the state and functions above
+    const isValid =
+        !errors.companyName &&
+        !errors.companyEmail &&
+        !errors.fullName;
+
+    // Save request in backend
+    async function saveRequest() {
+        setError("");
+
+        if (!isValid) {
+            setError("Fyll i alla obligatoriska fält först.");
+            return null;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/privacy-requests`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    company_name: form.companyName,
+                    company_email: form.companyEmail,
+                    full_name: form.fullName,
+                    city: form.city || null,
+                    profile_url: form.profileUrl || null,
+                    tone: form.tone,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Kunde inte skapa ärendet.");
+            }
+
+            const data = await response.json();
+
+            setSavedRequestId(data.id);
+            return data.id;
+        } catch (err) {
+            setError(err.message || "Något gick fel vid sparning.");
+            return null;
+        }
+    }
+
+    // Generate AI message from backend
+    async function generateWithAI() {
+        setLoading(true);
+        setError("");
+
+        try {
+            let requestId = savedRequestId;
+
+            // Create request first if it does not already exist
+            if (!requestId) {
+                requestId = await saveRequest();
+            }
+
+            if (!requestId) {
+                return;
+            }
+
+            const response = await fetch(
+                `${API_BASE}/privacy-requests/${requestId}/generate`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        tone: form.tone,
+                        message_type: "initial_request",
+                        request_types: form.requestTypes,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Kunde inte generera AI-text.");
+            }
+
+            const data = await response.json();
+
+            setGeneratedSubject(data.subject || "");
+            setGeneratedBody(data.body || "");
+        } catch (err) {
+            setError(err.message || "Något gick fel vid AI-generering.");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // Copy generated AI result to clipboard
+    async function copyToClipboard() {
+        try {
+            const textToCopy = `${generatedSubject}\n\n${generatedBody}`;
+            await navigator.clipboard.writeText(textToCopy);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1200);
+        } catch (err) {
+            console.error(err);
+            alert("Kunde inte kopiera automatiskt.");
+        }
+    }
+
     return (
-        <div className="page"> {/* The outer wrapper for the entire page */}
-            {/* Topbar navigaton bar - separate component 
-            The onBack prop allows this component to navigate back to FirstPage.*/}
+        <div className="page">
             <TopBar onBack={onBack} />
 
-            {/* Main content */}
-            <main className="container">        {/* Main content area */}
-                <div className="card">          {/* Card wrapper for visual grouping of the form */}
-                    <div className="grid-2">    {/* Grid wrapper for form inputs (currently single column layout) */}
+            <main className="container">
+                <div className="card">
+                    <div className="grid-2">
                         <h1>Skapa GDPR-begäran</h1>
                         <p>Fyll i dina uppgifter nedan för att skapa din begäran.</p>
 
-                        {/* FORM: company names (required) */}
                         <div className="field">
                             <label>Företag *</label>
-                            <input 
-                            type="text" 
-                            placeholder="Ex: Google, Mrkoll.." 
-                            value={form.companyName} // Reads the value from React state
-                            onChange={(e) => updateField ("companyName", e.target.value)} // When user types -> update state                           
+                            <input
+                                type="text"
+                                placeholder="Ex: Google, Mrkoll..."
+                                value={form.companyName}
+                                onChange={(e) =>
+                                    updateField("companyName", e.target.value)
+                                }
                             />
-                            {/* Display validation error if field is empty */}
-                            {errors.companyName && <small className="hint">{errors.companyName}</small>}
+                            {errors.companyName && (
+                                <small className="hint">{errors.companyName}</small>
+                            )}
                         </div>
 
-                        {/* FORM: company email */}
                         <div className="field">
                             <label>Företagets e-post *</label>
-                            <input 
-                            type="email"
-                            placeholder="Exempel@live.se"
-                            value={form.companyEmail}
-                            onChange={(e) => updateField ("companyEmail", e.target.value)}
+                            <input
+                                type="email"
+                                placeholder="exempel@foretag.se"
+                                value={form.companyEmail}
+                                onChange={(e) =>
+                                    updateField("companyEmail", e.target.value)
+                                }
                             />
-                            {errors.companyEmail && <small className="hint">{errors.companyEmail}</small>}
+                            {errors.companyEmail && (
+                                <small className="hint">{errors.companyEmail}</small>
+                            )}
                         </div>
 
-                        {/* FORM: name */}
                         <div className="field">
                             <label>Ditt namn *</label>
                             <input
-                            type="text"
-                            placeholder="För- efternamn"
-                            value={form.fullName}
-                            onChange={(e) => updateField ("fullName", e.target.value)}
+                                type="text"
+                                placeholder="För- och efternamn"
+                                value={form.fullName}
+                                onChange={(e) =>
+                                    updateField("fullName", e.target.value)
+                                }
                             />
-                            {errors.fullName && <small className="hint">{errors.fullName}</small>}
+                            {errors.fullName && (
+                                <small className="hint">{errors.fullName}</small>
+                            )}
                         </div>
 
-                        {/* FORM: city */}
                         <div className="field">
                             <label>Ort</label>
                             <input
-                            type="text"
-                            placeholder="Ex: Sollentuna"
-                            value={form.city}
-                            onChange={(e) => updateField ("city", e.target.value)}
+                                type="text"
+                                placeholder="Ex: Stockholm"
+                                value={form.city}
+                                onChange={(e) => updateField("city", e.target.value)}
                             />
                         </div>
 
-                        {/* FORM: profile URL */}
                         <div className="field">
                             <label>Länk (valfritt)</label>
                             <input
-                            type="url"
-                            placeholder="Ex: https://exempel.com/profil/..."
-                            value={form.profileUrl}
-                            onChange={(e) => updateField ("profileUrl", e.target.value)}
+                                type="url"
+                                placeholder="Ex: https://exempel.se/profil/..."
+                                value={form.profileUrl}
+                                onChange={(e) =>
+                                    updateField("profileUrl", e.target.value)
+                                }
                             />
+                        </div>
+
+                        <div className="field">
+                            <label>Tonalitet</label>
+                            <select
+                                value={form.tone}
+                                onChange={(e) => updateField("tone", e.target.value)}
+                            >
+                                <option value="neutral">Neutral</option>
+                                <option value="formal">Formell</option>
+                                <option value="firm">Bestämd</option>
+                            </select>
                         </div>
                     </div>
 
                     <hr className="divider" />
 
-                    {/* GDPR-type chips - Render GDPR options dynamically from REQUEST_TYPES */}
                     <div className="block">
                         <h2>Vad vill du begära?</h2>
                         <p className="muted">Välj en eller flera.</p>
@@ -204,65 +270,77 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
                         <div className="chip-grid">
                             {REQUEST_TYPES.map((t) => (
                                 <label className="chip" key={t.id}>
-                                    <input 
-                                    type="checkbox"
-                                    checked={form.requestTypes.includes(t.id)} // Checkbox is checked if its id exists in form.requestTypes
-                                    onChange={() => toggleRequestType(t.id)} // Toggle selection on click
+                                    <input
+                                        type="checkbox"
+                                        checked={form.requestTypes.includes(t.id)}
+                                        onChange={() => toggleRequestType(t.id)}
                                     />
-                                    <span>{t.label}</span> {/* Display the readable label */} 
+                                    <span>{t.label}</span>
                                 </label>
                             ))}
                         </div>
                     </div>
-                    
+
                     <hr className="divider" />
 
                     <div className="field">
-                        <label>Förhandsvisning av GDPR-begäran</label>
-                        <textarea // Textarea displays dynamically generated template
+                        <label>Förhandsvisning av AI-genererad GDPR-begäran</label>
+                        <textarea
                             readOnly
-                            value={template}
-                            style={{ minHeight: 265, width: "100%" }} // TODO: Can minWidth cause problems? Seems like it
+                            value={
+                                generatedBody
+                                    ? `Ämne: ${generatedSubject}\n\n${generatedBody}`
+                                    : ""
+                            }
+                            style={{ minHeight: 265, width: "100%" }}
                         />
                     </div>
 
-                    {/* Navigate back */}
+                    {error && (
+                        <div style={{ marginTop: 12 }}>
+                            <small className="hint">{error}</small>
+                        </div>
+                    )}
+
                     <div className="actions">
-                        <button className="btn btn-secondary" type="button" onClick={onBack}>
+                        <button
+                            className="btn btn-secondary"
+                            type="button"
+                            onClick={onBack}
+                        >
                             Tillbaka
                         </button>
-                        
-                        {/* Copy generated template to clipboard */}
-                        <button className="btn" 
-                        type="button" 
-                        onClick={copyToClipboard} 
-                        disabled={!isValid}
-                        style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}
-                        >
-                        {copied ? "Kopierat" : "Kopiera text"}
-                        </button>
 
-                        {/* DOESNT WORK AS INTENDED DELETE? */}
-                        <button className="btn"
+                        <button
+                            className="btn"
                             type="button"
-                            onClick={() => window.location.href = mailtoLink}
-                            disabled={!isValid}
-                            style={!isValid ? { opacity: 0.6, cursor: "not-allowed"} : undefined}
-                            >
-                            Öppna i mail
+                            onClick={saveRequest}
+                            disabled={loading}
+                        >
+                            Spara ärende
                         </button>
 
-                        {/* DOESNT WORK AS INTENDED DELETE?*/}                        
-                        <small className="hint">
-                        Om texten inte följer med i din mailklient, använd Kopiera text. Klicka <b>Kopiera text</b> och klistra in i mailet.
-                        </small>
+                        <button
+                            className="btn"
+                            type="button"
+                            onClick={generateWithAI}
+                            disabled={loading}
+                        >
+                            {loading ? "Genererar..." : "Generera med AI"}
+                        </button>
 
+                        <button
+                            className="btn"
+                            type="button"
+                            onClick={copyToClipboard}
+                            disabled={!generatedBody}
+                        >
+                            {copied ? "Kopierat" : "Kopiera text"}
+                        </button>
                     </div>
 
-                    {/* DEBUG: shows entire form state object */}
                     <pre style={{ marginTop: 16 }}>
-                    {JSON.stringify(form, null, 2)}
-
+                        {JSON.stringify(form, null, 2)}
                     </pre>
                 </div>
             </main>
@@ -270,19 +348,4 @@ const mailtoLink = `mailto:${form.companyEmail}?subject=${encodeURIComponent(
     );
 }
 
-// Export the component
 export default FormPage;
-
-
-/* 
-
-När användaren klickar “Skicka begäran”:
-
-- UI får direkt “Skickas…”
-- Backend lägger jobbet i kö
-- Jobbet kör i bakgrunden
-- Status uppdateras efteråt 
-
-celery / rabbit / FastAPI background tasks?
-
-*/
