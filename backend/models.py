@@ -116,7 +116,7 @@ class Message(Base):
 
     # Foregin-key till den privacy_request som meddelandet hör till (kopplar detta message till ett visst PrivacyRequest)
     # Det betyder att varje message tillhör ett specifikt request.
-    id: Mapped[int] = mapped_column(ForeignKey=("privacy_request.id"))
+    privacy_resuest_id: Mapped[int] = mapped_column(ForeignKey("privacy_request.id"))
 
     # Vilken typ av message är detta, exempelvis: initial_request, follow-up
     # Kan t.ex. användas för att skilja på olika slags meddelanden,
@@ -135,7 +135,7 @@ class Message(Base):
 
     # Tone sparas för att veta hur AI genererade texten
     # Standard blir "neutral" om inget värde skickas in
-    tone: Mapped[str] = mapped_column(str(50), default="neutral")
+    tone: Mapped[str] = mapped_column(String(50), default="neutral")
 
     # När meddelandet skapades
     # datetime.utcnow används för att automatiskt sätta tiden vid skapande TODO: Varför blir utcnow överstrykt? testa om det funkar

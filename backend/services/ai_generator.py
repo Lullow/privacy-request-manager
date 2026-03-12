@@ -14,7 +14,7 @@ När det funkar kan vi bytauyt innehållet i generate_gdpy_message() till riktig
 
 """
 
-def generate_gdpy_message(
+def generate_gdpr_message(
     company_name: str,
     company_email: str,
     full_name: str,
