@@ -1,31 +1,56 @@
 import { useRef, useState, useEffect } from "react";
 
+
+
+// De tre är props — värden som skickas in till komponenten utifrån (från App.jsx).
+// FirstPage vet inte själv hur man byter sida. Den säger bara: "ge mig en funktion att anropa när knappen trycks."
+// App.jsx bestämmer vad som händer: FirstPage tar emot och använder dem:
 function FirstPage({ goToForm, goToLogin, goToDashboard }) {
 
+// if (goToForm) kollar om funktionen faktiskt skickades in innan den anropas. Om ingen skickade in goToForm → 
+// gör ingenting istället för att krascha med ett fel.
+// kan förenklas med onclick?
 const goToTemplate = () => {
     if (goToForm) {
     goToForm(); // kopplar till App utan att ändra din struktur
-
 }
 }
 
 
-// Point to div
+// Skapar en tom referens för att peka på en div (pekar ännu inte pga null)
+// ref={ref1} i JSX → React kopplar diven till referensen
+// observer.observe(ref1.current) → nu vet observatören exakt vilken div den ska bevaka
 const ref1 = useRef(null)
 const ref2 = useRef(null)
 const ref3 = useRef(null)
 
+// Tre separata state-variabler, en per feature-div.
+// useState(false) — startar som false (osynlig) för alla tre.
+// Varför false som startvärde? För att när sidan laddas är divarna inte synliga ännu — de är längre ner på sidan och användaren har inte scrollat dit.
 // isVisible = false, setIsVisible function will change value to True
+// isVisible1 är false → className = "feature" (ingen animation)
+// isVisible1 är true → className = "feature visible" (animation startar)
 const [isVisible1, setIsVisible1] = useState(false)
 const [isVisible2, setIsVisible2] = useState(false)
 const [isVisible3, setIsVisible3] = useState(false)
 
+// useEffect(() => { Kör koden inuti en gång när sidan laddas ([] i slutet).
 useEffect(() => {
     // new IntersectionObserver to observe what element is visible in window
+    // const observer = new IntersectionObserver((entries) => {
+    // Skapar en "bevakare" — ett inbyggt webb-API som automatiskt kollar vilka element som är synliga i fönstret. entries = en lista av alla element den bevakar.
     const observer = new IntersectionObserver((entries) => {
+        // entries.forEach((entry) => {
+        // Går igenom varje bevakat element ett i taget. entry = ett element.
         entries.forEach((entry) => {
             // isIntersecting checking if ref in window
+            // if (entry.isIntersecting) {
+            // isIntersecting är true när elementet är synligt i webbläsarfönstret. Utan den här checken skulle koden köras även när elementen är utanför skärmen.
             if (entry.isIntersecting) {
+                // if (entry.target === ref1.current) setIsVisible1(true)
+                // entry.target = vilket element som scrollades in.
+                // Kollar: är det ref1:s div? → sätt isVisible1 till true → animation startar.
+                //Samma för ref2 och ref3.
                 if (entry.target === ref1.current) setIsVisible1(true)
                 if (entry.target === ref2.current) setIsVisible2(true)
                 if (entry.target === ref3.current) setIsVisible3(true)
@@ -33,7 +58,10 @@ useEffect(() => {
         })
     })
 
-    // Point IntersectionObserver to the div ref points to
+    // Point IntersectionObserver to the div useRef points to
+    // observer.observe(ref1.current)
+    // Talar om för observatören vilka element den ska bevaka. Utan dessa rader vet den ingenting — den är skapad men lyssnar inte på något.
+    // ref1.current = den faktiska div-noden som ref1 pekar på (kopplingen sker i JSX via ref={ref1}).
     observer.observe(ref1.current)
     observer.observe(ref2.current)
     observer.observe(ref3.current)
@@ -133,3 +161,4 @@ return(
 }
 
 export default FirstPage
+

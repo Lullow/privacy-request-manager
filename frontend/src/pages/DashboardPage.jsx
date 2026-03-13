@@ -11,41 +11,65 @@ function DashboardPage(){
 // useRef — skapar en referens till ett DOM-element. Utan den vet inte JavaScript vilken div det handlar om
 const ref = useRef(null)
 
+    // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
+    // requests — själva listan med ärenden (börjar som [])
+    // requests fylls med det backend skickar tillbaka — en lista av objekt. Varje objekt är ett ärende:
+    // setRequests — funktionen som ersätter listan med ny data
 
     const [requests, setRequests] = useState([])  // tom lista från start
-    // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
 
 // Hämta datan 
 useEffect(() => {
     // fetch = webbläsarens inbyggda funktion för att hämta data från en URL. Den skickar en HTTP-request till din backend
     fetch("http://localhost:8000/api/privacy-requests")
     // svaret kommer tillbaka som råtext → gör om till ett JavaScript-objekt.
+    // .then( — "när fetch är klar, gör detta"
+    // res = response, svaret från backend
+    // res.json res.json() — en inbyggd metod på svaret som läser råtexten och gör om den till ett JavaScript-objekt
         .then(res => res.json())
         // stoppa in datan i state. React ritar om.
+        // .then( — "när res.json() är klar, gör detta"
+        // data — datan vi fick tillbaka, alltså JavaScript-listan med ärenden
+        // setRequests(data) — stoppar in listan i state. React ser att requests ändrats → ritar om sidan → .map() körs → ärenden visas.
         .then(data => setRequests(data))
         // useEffect med [] = kör en gång när komponenten visas.
 }, [])
 
 
-useEffect(() => { 
 // Animation JS 
+useEffect(() => { 
 
+    // ref pekar på donut-diven i JSX (<div className="donut" ref={ref}>). 
+    // .current hämtar ut den faktiska div-noden.
     const donut = ref.current
     // Finds child-element och donut-center class
+    // querySelector är ett inbyggt webb-API — letar efter ett child-element inuti donut-diven med klassen .donut-center. 
+    // Det är den lilla cirkeln i mitten med siffran.
+    // Alltså: donut = hela donut-diven, center = siffran i mitten av donuten.
     const center = donut.querySelector(".donut-center");
 
     // string to int
+    // donut.dataset — hämtar data-* attributen från donut-diven i JSX:
+    // parseInt(...) — gör om textsträngen till ett heltal.
+    // Varför? För att data-* attribut alltid är text i HTML. Utan parseInt kan du inte göra matematik på dem.
     const complete = parseInt(donut.dataset.complete);
     const waiting = parseInt(donut.dataset.waiting);
     const denied = parseInt(donut.dataset.denied);
-
+    // currentComplete är den variabeln som håller koll på "hur stor är complete-delen just nu". 
+    // Den börjar på 0 och ökar lite för varje frame tills den når 30.
     let currentComplete = 0;
     let currentWaiting = 0;
     let currentDenied = 0;
-
+    // Animationen delas upp i 100 steg totalt.
     const animationSteps = 100;
+    // Räknaren som håller koll på vilket steg vi är på just nu. Börjar på 0, ökar med 1 för varje frame.
+    // En frame är en bild som webläsaren ritar - precis som en film består av många bilder/sek
+    // Webbläsaren ritar 60 frames per sekund normalt. Varje gång den ritar en ny bild = en frame.
+    // requestAnimationFrame(animateDonut) i koden säger: "nästa gång webbläsaren ritar en frame, kör animateDonut igen."
+    // Så animationen körs 60 gånger per sekund, och varje gång ökas step med 1 tills den når 100.
     let step = 0;
 
+    // Varje frame: step ökar → alla tre beräknas om → donuten uppdateras → ser ut som smooth animation.
     const animateDonut = () => {
         step++;
         currentComplete = (complete / animationSteps) * step;
@@ -56,20 +80,35 @@ useEffect(() => {
         donut.style.setProperty('--waiting', `${currentComplete + currentWaiting}%`);
         donut.style.setProperty('--denied', `${currentComplete + currentWaiting + currentDenied}%`);
 
+        // Kollar om animationen är klar. animationSteps = 100, så den fortsätter bara om step är mindre än 100.
         if (step < animationSteps) {
+            // Säger till webbläsaren: "nästa frame, kör animateDonut igen." Det är så loopen fungerar 
+            // — funktionen anropar sig själv om och om igen tills step når 100.
             requestAnimationFrame(animateDonut);
         }
     };
-
+    // Startar donut-animationen. Utan den här raden sker ingenting 
+    // funktionen är definierad och anropas här
     animateDonut();
-
+    // Räknaren för siffran i donut-centern. Börjar på 0 och räknas upp mot slutvärdet.
     let total = 0;
+    // Letar efter alla element med klassen status i hela sidan — det är statusdivarna i ärendelistan:
     const totalCount = document.querySelectorAll(".status").length;
 
+
+    // const animateCenter = () => { Definierar animationsfunktionen för siffran i donut-centern.
     const animateCenter = () => {
+    // if (total < totalCount) Kollar om animationen är klar. 
+    // Fortsätter bara om total är mindre än antalet ärenden. 
     if (total < totalCount) {
+        // ökar räknaren med 1
         total++;
+        // center.firstChild.textContent = total
+        // Uppdaterar siffran som syns i donut-centern till det nya värdet. center är donut-center-diven, firstChild är textnoden inuti den (siffran 0 i JSX).
         center.firstChild.textContent = total;
+        // setTimeout(animateCenter, 1000 / totalCount)
+        //Väntar en liten stund och anropar sedan sig själv igen. 
+        // 1000 / totalCount = hur många millisekunder mellan varje steg.
         setTimeout(animateCenter, 1000 / totalCount);
     }
 };
