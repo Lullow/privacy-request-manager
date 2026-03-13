@@ -116,7 +116,7 @@ class Message(Base):
 
     # Foregin-key till den privacy_request som meddelandet hör till (kopplar detta message till ett visst PrivacyRequest)
     # Det betyder att varje message tillhör ett specifikt request.
-    privacy_reqsuest_id: Mapped[int] = mapped_column(ForeignKey("privacy_request.id"))
+    privacy_request_id: Mapped[int] = mapped_column(ForeignKey("privacy_request.id"))
 
     # Vilken typ av message är detta, exempelvis: initial_request, follow-up
     # Kan t.ex. användas för att skilja på olika slags meddelanden,
