@@ -26,6 +26,7 @@ function LoginPage({ onBack }) {
     password: "",
 });
 
+//TODO Skapa funktion för att skicka data till backend när man trycker logga in/skapa konto.
     //När användaren klickar "Logga in" eller "Skapa konto" ska en funktion köras som:
     // Sätter loading till true
     // Skickar formulärdata (form.email, form.password osv) till backend via fetch
@@ -33,16 +34,39 @@ function LoginPage({ onBack }) {
     // Om lyckat → navigera till Dashboard
     // Om fel → sätt error med ett felmeddelande
     // Sätter loading till false
+    //TODO felmeddelande för (epost finns/fel lösenord eller epost)
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    // updatefiled tar emot två saker
+    // key - vilka fält som ska uppdateras t.ex email 
+    // value - det nya värdet t.ex bella@gmail.com
+    // intui anropas setform med en funktion istället för ett värde direkt 
     function updateField(key, value) {
+        // ...prev — kopiera alla befintliga fält som de är
+        // [key]: value — skriv över just det fältet med det nya värdet
+        // Så om form är: { name: "", email: "", password: "" }
+        // Och användaren skriver "b" i e-postfältet: updateField("email", "b")
+        // setForm  är inbyggd i useState och gör alltid samma sak: tar emot ett nytt värde, ersätter det gamla, och berättar för React att rita om.
+        // setForm körs → form.email blir "b"
+        // React ser att state ändrades → ritar om
+        // Inputfältet visar nu "b"
         setForm((prev) => ({ ...prev, [key]: value }));
     }
 
+    // switchMode tar emot ett argument:
+    // newMode — antingen "login" eller "register", beroende på vad användaren klickade
     function switchMode(newMode) {
+        // setMode(newMode); Byter läge — t.ex. från "login" till "register". Gör att h1, knappen och toggle-texten byter text.
         setMode(newMode);
+        // Nollställer alla fält. Om användaren skrivit in sin e-post i login-läget och sen byter till register 
+        // — ska fälten vara tomma, inte behålla det gamla.
         setForm({ name: "", email: "", password: "" });
+        // setError("") i switchMode rensar bort eventuellt felmeddelande när man byter mellan login och register.
+        // Om vi inte rensar bort felmeddelanden
+        //Användaren försöker logga in → fel lösenord → "Fel lösenord" visas
+        // Användaren klickar "Skapa ett" för att byta till register-läget
+        // Felmeddelandet "Fel lösenord" sitter fortfarande kvar under formuläret
         setError("");
     }
 
