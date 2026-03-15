@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import TopBar from "../components/TopBar";
 
 // Base URL for backend API
-const API_BASE = "http://127.0.0.1:8000/api";
+const API_BASE = "/api";
 
 // GDPR request types shown as selectable chips
 const REQUEST_TYPES = [
@@ -150,7 +150,7 @@ function FormPage({ onBack }) {
             const data = await response.json();
 
             setGeneratedSubject(data.subject || "");
-            setGeneratedBody(data.body || "");
+            setGeneratedBody(data.message_body || "");
         } catch (err) {
             setError(err.message || "Något gick fel vid AI-generering.");
         } finally {
