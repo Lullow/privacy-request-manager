@@ -15,7 +15,8 @@ if (page === "form"){
 
 // LOGIN PAGE
 if (page == "login"){
-  return <LoginPage onBack={() => setPage("home")} />;
+  return <LoginPage onBack={() => setPage("home")} onLogin={() => setPage("dashboard")} />;
+
 }
 
 // DASHBOARD PAGE
