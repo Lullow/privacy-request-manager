@@ -34,6 +34,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(200))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
 
 # __tablename__ berättar vilket namn tabellen ska ha i databasen.
 # Viktigt: måste matcha om du redan skapat tabellen i DB.
@@ -145,6 +147,15 @@ class Message(Base):
     # Det gör att man från ett Message-objekt kan nå requestet det tillhör.
     privacy_request: Mapped["PrivacyRequest"] = relationship(back_populates="messages")
 
+class Token(Base):
+    __tablename__ = "token"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(255), unique=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship(back_populates="tokens")
 
 """
 Snabba “bra-att-veta” notes
