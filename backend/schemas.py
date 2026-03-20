@@ -104,4 +104,8 @@ class GenerateMessageResponse(BaseModel):
     message_body: str
     message_type: str
     tone: str
-    
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
