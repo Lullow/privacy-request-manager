@@ -114,3 +114,8 @@ async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)
         "access_token": token_str,
         "token_type": "bearer",
     }
+
+
+@router.get("/me", response_model=UserRead)
+async def me(current_user: User = Depends(get_current_user)):
+    return current_user
