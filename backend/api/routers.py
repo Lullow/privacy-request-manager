@@ -3,12 +3,13 @@
 # - HTTPException: kasta ett kontrollerat fel (t.ex. 404) som API:t returnerar som JSON
 # - status: färdiga HTTP-statuskoder (201, 404 osv)
 # get_session: vår egen dependency som skapar/stänger DB-session per request
+from auth.dependencies import get_current_user
 from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
 
 # PrivacyRequest: SQLAlchemy-modellen (tabellen) vi sparar/läser i DB
 # Message för att kunna spara AI-genererade meddelande i databasen
-from models import Message, PrivacyRequest
+from models import Message, PrivacyRequest, User
 
 # - PrivacyRequestCreate: datan vi förväntar oss från frontend när man skapar
 # - PrivacyRequestRead: datan vi skickar tillbaka som svar
@@ -53,6 +54,7 @@ router = APIRouter(prefix="/privacy-requests", tags=["Privacy Requests"])
 async def create_privacy_request(
     payload: PrivacyRequestCreate,  # payload = request body (JSON) som måste matcha PrivacyRequestCreate
     session: AsyncSession = Depends(get_session),  # session injiceras automatiskt via Depends
+    current_user: User = Depends(get_current_user)
 ):
 
     # Skapar en SQLAlchemy-rad (objekt) som matchar DB-tabellen
@@ -63,7 +65,8 @@ async def create_privacy_request(
         city=payload.city, # kan vara None
         profile_url=payload.profile_url,  # kan vara None
         tone=payload.tone, # Sparar användarens valda ton/stil redan när request skapas (AI-integrering)
-        status="draft"     # Sätter första statusen till "draft". Det betyder att requestet finns i databasen, men att inget AI-meddelande har genererats ännu
+        status="draft",     # Sätter första statusen till "draft". Det betyder att requestet finns i databasen, men att inget AI-meddelande har genererats ännu
+        user_id=current_user.id,
     )
     # Lägger till objektet i sessionen (som en "pending insert")
     session.add(new_row)
@@ -86,9 +89,10 @@ async def create_privacy_request(
 async def list_privacy_requests(
     session: AsyncSession = Depends(get_session),  # DB-session injiceras
     status: str | None = None,
+    current_user: User = Depends(get_current_user),
 ):
     # Bygger en SELECT query som sorterar senaste först (högst id)
-    stmt = select(PrivacyRequest).order_by(PrivacyRequest.id.desc())
+    stmt = select(PrivacyRequest).where(PrivacyRequest.user_id == current_user.id).order_by(PrivacyRequest.id.desc())
 
     # Om användaren skickade med ?status=draft i URL:en — alltså om status inte är None.
     # Med if status filtrerar den på det värdet användaren skickade in.
@@ -115,9 +119,10 @@ async def list_privacy_requests(
 async def get_privacy_request(
     request_id: int,  # FastAPI plockar den från URL:en och gör en int-konvertering
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     # Bygger en query som letar efter exakt id
-    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id == current_user.id)
 
     # kör queryn
     result = await session.execute(stmt)
@@ -129,7 +134,7 @@ async def get_privacy_request(
 
     # Om raden inte hittas -> returnera 404
     if row is None:
-        raise HTTPException(status_code=404, detail="Privacy request not found")
+        raise HTTPException(status_code=404, detail="Privacy request not found") # TODO: Ändra status_code till mer beskrivande?
 
     # ANnars returneras objektet som JSON
     return row
@@ -148,9 +153,10 @@ async def update_privacy_request(
     payload: PrivacyRequestUpdate,
     # Depends(get_session) talar om för FastAPI att köra get_session() automatiskt och ge resultatet till session.
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
 ):
     # SELECT * FROM privacy_request WHERE id = 3, bygger denna men kör den inte än.
-    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id == current_user.id)
 
     # session.execute(stmt) Skickar SQL-queryn (stmt) till databasen och kör den.
     # await väntar på att databasen svarar innan koden fortsätter
@@ -172,9 +178,10 @@ async def update_privacy_request(
 async def delete_privacy_request(
     request_id: int,
     session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     # Det är som att säga: "Bygg en SQL-query som letar upp raden där id = det nummer användaren skickade in."
-    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id == current_user.id)
     # result = råsvaret från databasen (inte ett rent Python-objekt än)
     # await = vänta tills databasen svarar innan koden fortsätter
     # session.execute(stmt) = skickar den till databasen och kör den
@@ -203,9 +210,10 @@ async def generate_request_message(
     request_id: int,                              # request_id hämtas från URL:en
     payload: GenerateMessageRequest,              # payload kommer från frontendens request body, här finns t.ex. tone och message_type
     session: AsyncSession = Depends(get_session), # Hämtar en databassession via Depends
+    current_user: User = Depends(get_current_user),
 ):
     # Bygger en SQL-fråga som letar efter rätt PrivacyRequest via id (hämtar requesten från databasen)
-    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id.id == current_user.id)
     # Kör SQL-frågan mot databasen
     result = await session.execute(stmt)
     # Hämtar ut ett objekt om det finns, annars None
@@ -269,10 +277,11 @@ async def list_request_messages(
     #request_id hämtas från URL:en
     request_id: int,
     # Hämtar databassessionen via Depends
-    session: AsyncSession=Depends(get_session),
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user)
 ):
     # Bygger en SQL-fråga för att först kontrollera om privacy requestet finns i databasen
-    stmt_request = select(PrivacyRequest).where(PrivacyRequest.id == request_id)
+    stmt_request = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id == current_user.id)
 
     # Kör SQL-frågan
     result_request = await session.execute(stmt_request)
