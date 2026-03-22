@@ -1,3 +1,5 @@
+import { getPrivacyRequests } from "../api/privacyRequestsApi";
+
 import { useEffect, useRef, useState } from "react"
 
 // function DashboardPage() är själva komponenten — 
@@ -18,22 +20,21 @@ const ref = useRef(null)
 
     const [requests, setRequests] = useState([])  // tom lista från start
 
-// Hämta datan 
+
+// getPrivacyRequests anropar apiFetch som automatiskt skickar token i headern → backend godkänner → ärenden hämtas och visas.
+// Innan hade vi ingen token, backend nekade 
 useEffect(() => {
-    // fetch = webbläsarens inbyggda funktion för att hämta data från en URL. Den skickar en HTTP-request till din backend
-    fetch("http://localhost:8000/api/privacy-requests")
-    // svaret kommer tillbaka som råtext → gör om till ett JavaScript-objekt.
-    // .then( — "när fetch är klar, gör detta"
-    // res = response, svaret från backend
-    // res.json res.json() — en inbyggd metod på svaret som läser råtexten och gör om den till ett JavaScript-objekt
-        .then(res => res.json())
-        // stoppa in datan i state. React ritar om.
-        // .then( — "när res.json() är klar, gör detta"
-        // data — datan vi fick tillbaka, alltså JavaScript-listan med ärenden
-        // setRequests(data) — stoppar in listan i state. React ser att requests ändrats → ritar om sidan → .map() körs → ärenden visas.
-        .then(data => setRequests(data))
-        // useEffect med [] = kör en gång när komponenten visas.
+    async function load() {
+        try {
+            const data = await getPrivacyRequests();
+            setRequests(data);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    load();
 }, [])
+
 
 
 // Animation JS 
@@ -182,6 +183,7 @@ return(
 {/* .map = gå igenom varje ärende i listan och gör om till jsx */}
 {/* one = ett ärende i taget */} 
 {requests.map((one) => (
+
     <div className="case-row" key={one.id}>
         {/* Skapar en rad för varje ärende.
         key={one.id} = React kräver en unik nyckel på varje element
@@ -202,6 +204,11 @@ return(
         </div>
     </div>
 ))}
+    {/* Kolla om listan är tom. Om den är det = "Du har inga ärenden ännu"  */}
+
+    {requests.length === 0 && (
+    <p className="muted">Du har inga ärenden ännu.</p>
+)}
 
         </div>
     </div>

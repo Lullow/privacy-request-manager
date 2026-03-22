@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import TopBar from "../components/TopBar";
 
-// Base URL for backend API
-const API_BASE = "/api";
+
+import { createPrivacyRequest, generateMessage } from "../api/privacyRequestsApi";
 
 // GDPR request types shown as selectable chips
 const REQUEST_TYPES = [
@@ -80,28 +80,19 @@ function FormPage({ onBack }) {
             setError("Fyll i alla obligatoriska fält först.");
             return null;
         }
-
+// Innan skickades fetch utan token. Backend krävde token, svarade med 401, funkade inte för att backend-endpointsen för att skapa ärenden är skyddad med get_current_user.
+// get_current_user(en skyddad enpoint(skyddad endpoint = du måste vara inloggad för att använda den)). Backend kontrollerar token i headern innan den gör något, om inte token gittas svarar backend direkt med 401
+// createPrivacyRequest skickar token automatiskt i headern — utan det hade backend nekat med 401 eftersom ärendet kräver inloggad användare.
+// createPrivacyRequest anropar apiFetch → apiFetch hämtar token från localStorage och lägger till den automatiskt:
         try {
-            const response = await fetch(`${API_BASE}/privacy-requests`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    company_name: form.companyName,
-                    company_email: form.companyEmail,
-                    full_name: form.fullName,
-                    city: form.city || null,
-                    profile_url: form.profileUrl || null,
-                    tone: form.tone,
-                }),
+            const data = await createPrivacyRequest({
+                company_name: form.companyName,
+                company_email: form.companyEmail,
+                full_name: form.fullName,
+                city: form.city || null,
+                profile_url: form.profileUrl || null,
+                tone: form.tone,
             });
-
-            if (!response.ok) {
-                throw new Error("Kunde inte skapa ärendet.");
-            }
-
-            const data = await response.json();
 
             setSavedRequestId(data.id);
             return data.id;
@@ -127,27 +118,15 @@ function FormPage({ onBack }) {
             if (!requestId) {
                 return;
             }
+// Innan - fetch skickades direkt utan token
+// generateMessage (från privacyRequestsApi) skickar token automatiskt.
+// generateMessage anropar apiFetch som automatiskt lägger till token i headern — backend godkänner och genererar AI-text.
+            const data = await generateMessage(requestId, {
+                tone: form.tone,
+                message_type: "initial_request",
+                request_types: form.requestTypes,
+            });
 
-            const response = await fetch(
-                `${API_BASE}/privacy-requests/${requestId}/generate`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        tone: form.tone,
-                        message_type: "initial_request",
-                        request_types: form.requestTypes,
-                    }),
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Kunde inte generera AI-text.");
-            }
-
-            const data = await response.json();
 
             setGeneratedSubject(data.subject || "");
             setGeneratedBody(data.message_body || "");

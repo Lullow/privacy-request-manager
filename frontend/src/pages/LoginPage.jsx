@@ -1,3 +1,6 @@
+// LoginPage behöver funktionerna från authApi.js för att prata med backend.
+import { registerUser, loginUser } from "../api/authApi";
+
 import React, { useState } from "react"
 // topbar återanvändbar component
 import TopBar from "../components/TopBar"
@@ -69,71 +72,30 @@ function LoginPage({ onBack, onLogin }) {
         setError("");
     }
 
-    // async behövs för att fetch tar tid — den måste vänta på svar från backend. async + await gör att koden pausar och väntar på svaret innan den fortsätter 
-    // istället för att bara köra vidare.
-    // Utan async/await hade koden försökt läsa data innan backend hunnit svara.
-    // Vad handleSubmit gör i ordning (kedjan)
-    // 1. Sätt loading=true, rensa felmeddelande
-    // 2. Välj rätt URL beroende på om man loggar in eller registrerar
-    // 3. Skicka email + lösenord till backend via fetch (POST)
-    // 4. Vänta på svar
-    // 5. Om fel (t.ex. fel lösenord) → visa felmeddelande
-    // Om lyckat → spara token + gå till Dashboard
-    // 6. Sätt loading=false
-    async function handleSubmit() {
-        // setLoading(true) — sätter loading till true, vilket gör att knappen visar "Laddar..." 
-        // och är inaktiverad så användaren inte kan klicka flera gånger.
+    // Innan: // Skickade fetch direkt med fel URL och sparade token även efter register
+    // Register gav ingen token — backend returnerar bara användarinfo vid register, inte token. Så vi visar "konto skapat" och byter till login istället
+    // Efter: loginUser sparar token automatiskt — via setToken i authApi.js
+
+    // Flödet: 
+    // Register → anropar registerUser → visar "konto skapat" → byter till login-läget (sparar ingen token eftersom backend inte ger någon vid register)
+    // Login → anropar loginUser → token sparas automatiskt → navigerar till Dashboard via onLogin()
+async function handleSubmit() {
     setLoading(true);
-    // setError("") — rensar bort eventuellt gammalt felmeddelande (t.ex. om användaren försökte logga in fel förra gången).
-    //Alltså: förberedelser innan fetch-anropet skickas.
     setError("");
 
-    // väljer rätt url beroende på vilket läge formulärtet är i.
-    // mode === "login"  →  använd /auth/login
-    // mode === "register"  →  använd /auth/register
-    // ? och : är en ternary operator — samma sak som en if/else fast kortare:
-    const url = mode === "login"
-        ? "http://localhost:8000/auth/login"
-        : "http://localhost:8000/auth/register";
-
-    // själva utskicket till backend
-    // fetch(url, {...}) — skickar en HTTP-request till backend-URL:en som valdes ovan.
-    // await — väntar på att fetch är klar innan koden fortsätter. 
-    // const res = — sparar svaret från backend i variabeln res (response). Svaret innehåller två saker:
-    // res.ok — om det gick bra (true/false)
-    // res.json() — datan backend skickade tillbaka
-    const res = await fetch(url, {
-        // method: "POST" — talar om att vi skickar data 
-        method: "POST",
-        // headers: { "Content-Type": "application/json" } — talar om för backend att datan kommer i JSON-format
-        headers: { "Content-Type": "application/json" },
-        // body: JSON.stringify({ email: form.email, password: form.password }) — det här är själva datan vi skickar
-        // form.email och form.password är värdena användaren skrivit i formuläret
-        // JSON.stringify gör om JavaScript-objektet till en JSON-sträng, för man kan bara skicka text över nätet
-        body: JSON.stringify({ email: form.email, password: form.password })
-    });
-    // res.json() — läser svaret från backend och gör om det från JSON-text till ett JavaScript-objekt.
-    // const data = — sparar det omgjorda objektet i data.
-    const data = await res.json();
-
-    // .ok är inbyggt i fetch — webbläsaren sätter det automatiskt baserat på statuskoden backend skickar tillbaka.
-    // ! vänder på uttrycket så "om det INTE gick bra (ok)" - skicka meddelandet från backend
-    if (!res.ok) {
-        // detail kommer från FastAPI — det är FastAPIs standardfält för felmeddelanden.
-        // ex från backend raise HTTPException(status_code=400, detail="Email already registered"
-        setError(data.detail); // t.ex. "Email already registered"
-    } else {
-        // localStorage.setItem("token", data.access_token) — sparar JWT-tokenen i webbläsarens minne.
-        // localStorage är som en låda i webbläsaren där du kan spara text. Den finns kvar även om du laddar om sidan.
-        // data.access_token → värdet (den långa JWT-strängen)
-        localStorage.setItem("token", data.access_token); // spara token
-        // navigera till Dashboard
-        onLogin();
-
+    try {
+        if (mode === "register") {
+            await registerUser({ email: form.email, password: form.password });
+            setError("Konto skapat! Logga in.");
+            switchMode("login");
+        } else {
+            await loginUser({ email: form.email, password: form.password });
+            onLogin();
+        }
+    } catch (err) {
+        setError(err.message);
     }
 
-    // setLoading(false) — sätter tillbaka loading till false när allt är klart.
-    //Det körs oavsett om det gick bra eller fel, så knappen alltid går tillbaka till normalt läge:
     setLoading(false);
 }
 
