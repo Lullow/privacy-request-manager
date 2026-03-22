@@ -1,16 +1,29 @@
-export default function TopBar({ onBack }){
-    return(
-        <header className="topbar">
-            <button className="brand" type="button" onClick={onBack}>
-                <span className="brand-dot"></span>
-                Privacy Request Manager
-            </button>
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 
 
-            <button className="btn btn-secondary" type="button" onClick={onBack}>
-                Tillbaka
-            </button>
+export default function TopBar() {
+    const { isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
+
+    function handleLogout() {
+        logout();
+        navigate("/");
+    }
+
+    return (
+        <div>
+            <button onClick={() => navigate("/")}>Hem</button>
             
-        </header>
+            { isAuthenticated ? (
+                <>
+                    <button onClick={() => navigate("/create-request")}>Skapa begäran</button>
+                    <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+                    <button onClick={handleLogout}Logga ut></button>            
+                </>
+            ) : (
+                <button onClick={() => navigate("/login")}Logga in></button>
+            )}
+        </div>
     );
 }
