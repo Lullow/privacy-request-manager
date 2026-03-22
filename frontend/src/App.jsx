@@ -1,41 +1,49 @@
-import { useState } from 'react';
+// Importera sidorna i appen
 import FirstPage from './pages/FirstPage'
 import FormPage from './pages/FormPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 
+// Importerar ProtectedRoute som skyddar sidor för inloggade användare
+import ProtectedRoute from './components/ProtectedRoute';
 
-function App() {
-  const [page, setPage] = useState("home");
+// Importerar nödvändigheter från react-router-dom
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-// FORM PAGE
-if (page === "form"){
-  return <FormPage onBack={() => setPage("home")} />;
-}
 
-// LOGIN PAGE
-if (page == "login"){
-  return <LoginPage onBack={() => setPage("home")} onLogin={() => setPage("dashboard")} />;
-
-}
-
-// DASHBOARD PAGE
-if (page === "dashboard") {
-  return <DashboardPage/>}
-
-// FIRST PAGE (HOME)
+// Huvudkomponenten App
+export default function App() {
   return (
-  <FirstPage 
-  goToForm={() => setPage("form")} 
-  goToLogin={() => setPage("login")}
-  goToDashboard={() => setPage("dashboard")}
-  />
+    // BrowserRouter måste wrappa hela appen som använder Routes
+    <BrowserRouter>
+      <Routes>
+        {/* Hemsidan - ska alltid vara tillgänglig */}
+        <Route path="/" element={<FirstPage />} />
+        {/* Loginsidan - ska alltid vara tillgänglig */}
+        <Route path="/login" element={<LoginPage />} />
+        {/* Skapa en skyddad request-sida */}
+        <Route 
+          path="/create-request"
+          element={
+            <ProtectedRoute>
+              <FormPage />
+            </ProtectedRoute>
+          }
+          />
+          {/* Skapa en skyddad dashboard-sida */}
+          <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* Catch-all OM användaren går till en okänd route och skicka tillbaka "/" (FirstPage) */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-
-
-
-export default App;
 
 
