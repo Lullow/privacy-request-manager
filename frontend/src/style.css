@@ -456,13 +456,16 @@ body {
 }
 
 .filters label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 14px;
     color: rgba(16, 32, 86, 0.892);
     cursor: pointer;
 }
 
 .filters input {
-    margin-right: 6px;
+    margin: 0;
 }
 
 /* ---------- Case List ---------- */

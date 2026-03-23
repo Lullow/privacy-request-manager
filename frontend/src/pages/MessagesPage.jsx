@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
 import { getPrivacyRequests, getRequestMessages } from "../api/privacyRequestsApi";
 
@@ -46,6 +46,7 @@ function translateStatus(status) {
 
 function MessagesPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [requests, setRequests] = useState(dummyRequests);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -65,6 +66,16 @@ function MessagesPage() {
         }
         load();
     }, []);
+
+    // Auto-välj ärende om ?id= finns i URL:en
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const id = parseInt(params.get("id"));
+        if (id) {
+            const req = requests.find((r) => r.id === id);
+            if (req) handleSelectRequest(req);
+        }
+    }, [location.search, requests]);
 
     // Hämtar meddelanden när användaren väljer ett ärende
     async function handleSelectRequest(request) {

@@ -10,6 +10,17 @@ import { useEffect, useRef, useState } from "react"
 // Utan funktionen har React ingenting att importera eller visa. Det är funktionen som:
 // Håller all logik (useState, useEffect, fetch)
 // Returnerar JSX (det som syns på skärmen)
+function translateStatus(status) {
+    const statuses = {
+        draft: "Utkast",
+        generated: "Besvarad",
+        waiting: "Väntar",
+        complete: "Mottaget",
+        denied: "Nekat",
+    };
+    return statuses[status] || status;
+}
+
 function DashboardPage(){
 
 // ref används för att peka på donut-diven i JSX så att animationen kan ändra dess CSS.
@@ -23,7 +34,12 @@ const navigate = useNavigate();
     // requests fylls med det backend skickar tillbaka — en lista av objekt. Varje objekt är ett ärende:
     // setRequests — funktionen som ersätter listan med ny data
 
-    const [requests, setRequests] = useState([])  // tom lista från start
+// DUMMY DATA — visas om backend inte returnerar några ärenden
+const dummyRequests = [
+    { id: 1, company_name: "Merinfo", status: "generated" },
+];
+
+    const [requests, setRequests] = useState(dummyRequests)
 
 
 // getPrivacyRequests anropar apiFetch som automatiskt skickar token i headern → backend godkänner → ärenden hämtas och visas.
@@ -31,14 +47,14 @@ const navigate = useNavigate();
 // Återställ notiser varje gång dashboarden laddas (för demo)
 useEffect(() => {
     localStorage.removeItem("dismissedNotifications");
-    localStorage.removeItem("unreadRequests");
+    localStorage.setItem("unreadRequests", JSON.stringify([1]));
 }, []);
 
 useEffect(() => {
     async function load() {
         try {
             const data = await getPrivacyRequests();
-            setRequests(data);
+            if (data.length > 0) setRequests(data);
         } catch (err) {
             console.error(err);
         }
@@ -204,9 +220,9 @@ return(
             Om one.status är "waiting" → blir klassen "cell status waiting"
             Om one.status är "complete" → blir klassen "cell status complete"
             Det gör att CSS:en kan styla varje status olika med .status.waiting och .status.complete*/}
-        <div className={`cell status ${one.status}`}>{one.status}</div>
+        <div className={`cell status ${one.status}`}>{translateStatus(one.status)}</div>
         <div className="cell case-actions">
-            <button className="btn-dashboard">Visa</button>
+            <button className="btn-dashboard" onClick={() => navigate(`/messages?id=${one.id}`)}>Visa</button>
             <button className="btn-dashboard">Skicka påminnelse</button>
         </div>
     </div>
