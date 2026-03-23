@@ -1,14 +1,19 @@
 // LoginPage behöver funktionerna från authApi.js för att prata med backend.
 import { registerUser, loginUser } from "../api/authApi";
 
+import { useAuth } from "../context/useAuth";
+
+
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom";
 // topbar återanvändbar component
 import TopBar from "../components/TopBar"
 
 // Så kedjan är: användaren klickar bakåt → TopBar anropar onBack → 
 // onLogin — anropas när inloggningen lyckas → byter sida till Dashboard
-function LoginPage({ onBack, onLogin }) {
-
+    function LoginPage() {
+    const navigate = useNavigate();
+    const { login } = useAuth();
     //Toggles between login and register account
     // useState skapar en state-variabel — ett värde som React håller koll på och som kan ändras.
     // mode — själva värdet, börjar som "login"
@@ -89,8 +94,10 @@ async function handleSubmit() {
             setError("Konto skapat! Logga in.");
             switchMode("login");
         } else {
-            await loginUser({ email: form.email, password: form.password });
-            onLogin();
+            const res = await loginUser({ email: form.email, password: form.password });
+            login(res.access_token);
+            navigate("/dashboard");
+
         }
     } catch (err) {
         setError(err.message);
@@ -102,7 +109,7 @@ async function handleSubmit() {
     
     return (
         <div className="page">
-            <TopBar onBack={onBack}/>
+            <TopBar />
 
             <main className="container">
                 <div className="card">

@@ -1,3 +1,6 @@
+import { useNavigate } from "react-router-dom";
+import NotificationBell from "../components/NotificationBell";
+
 import { getPrivacyRequests } from "../api/privacyRequestsApi";
 
 import { useEffect, useRef, useState } from "react"
@@ -12,6 +15,8 @@ function DashboardPage(){
 // ref används för att peka på donut-diven i JSX så att animationen kan ändra dess CSS.
 // useRef — skapar en referens till ett DOM-element. Utan den vet inte JavaScript vilken div det handlar om
 const ref = useRef(null)
+const navigate = useNavigate();
+
 
     // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
     // requests — själva listan med ärenden (börjar som [])
@@ -23,6 +28,12 @@ const ref = useRef(null)
 
 // getPrivacyRequests anropar apiFetch som automatiskt skickar token i headern → backend godkänner → ärenden hämtas och visas.
 // Innan hade vi ingen token, backend nekade 
+// Återställ notiser varje gång dashboarden laddas (för demo)
+useEffect(() => {
+    localStorage.removeItem("dismissedNotifications");
+    localStorage.removeItem("unreadRequests");
+}, []);
+
 useEffect(() => {
     async function load() {
         try {
@@ -129,14 +140,10 @@ return(
 
    {/* Notification icon. Scalable vector graphics (svg) from heroicons */} 
         <div className="header-icons">
-            <button className="notification-btn">
-                    <svg className="bell-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-                    </svg>
-            </button>
+            <NotificationBell />
 
     {/* Message icon. Scalable vector graphics (svg) from heroicons */}  
-            <button className="message-btn">
+            <button className="message-btn" onClick={() => navigate("/messages")}>
                 <svg className="message-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                 </svg>

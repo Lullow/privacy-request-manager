@@ -57,3 +57,9 @@ export function generateMessage(id, data) {
         body: data,
     });
 }
+
+
+// Hämtar alla meddelanden för ett specifikt ärende
+export function getRequestMessages(id) {
+    return apiFetch(`/privacy-requests/${id}/messages`);
+}

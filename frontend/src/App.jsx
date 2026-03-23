@@ -3,6 +3,8 @@ import FirstPage from './pages/FirstPage'
 import FormPage from './pages/FormPage';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import MessagesPage from './pages/MessagesPage';
+
 
 // Importerar ProtectedRoute som skyddar sidor för inloggade användare
 import ProtectedRoute from './components/ProtectedRoute';
@@ -39,6 +41,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+        path="/messages"
+        element={
+          <ProtectedRoute>
+            <MessagesPage />
+          </ProtectedRoute>
+        }
+      />
+
         {/* Catch-all OM användaren går till en okänd route och skicka tillbaka "/" (FirstPage) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

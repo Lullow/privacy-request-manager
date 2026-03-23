@@ -668,3 +668,167 @@ body {
     color: white;
 }
 
+/* ---------- Messages Page ---------- */
+.messages-page {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    background-color: rgba(180, 188, 187, 0.095);
+    font-family: "Inter", sans-serif;
+}
+
+.messages-main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Vänster sidopanel med ärendelista */
+.messages-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: white;
+    border-right: 1px solid #e2e8f0;
+    padding: 40px 24px;
+}
+
+.messages-sidebar h2 {
+    color: rgba(16, 32, 86, 0.892);
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.messages-request-item {
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: background 0.2s ease;
+}
+
+.messages-request-item:hover {
+    background: rgba(16, 32, 86, 0.06);
+}
+
+.messages-request-item.active {
+    background: rgba(16, 32, 86, 0.10);
+}
+
+.messages-company {
+    margin: 0 0 4px 0;
+    font-weight: 600;
+    color: rgba(16, 32, 86, 0.892);
+    font-size: 14px;
+}
+
+/* Höger panel med meddelandetråd */
+.messages-thread {
+    flex: 1;
+    padding: 40px 48px;
+    overflow-y: auto;
+}
+
+.messages-thread h2 {
+    color: rgba(16, 32, 86, 0.892);
+    font-size: 22px;
+    margin-bottom: 24px;
+}
+
+/* Enskilt meddelande */
+.message-bubble {
+    background: white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(2, 6, 23, 0.06);
+}
+
+.message-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.message-type {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: rgba(16, 32, 86, 0.6);
+    background: rgba(16, 32, 86, 0.07);
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.message-date {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.message-subject {
+    margin: 0 0 8px 0;
+    color: rgba(16, 32, 86, 0.892);
+    font-size: 15px;
+}
+
+.message-body {
+    margin: 0;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* ---------- Notification Bell ---------- */
+.notification-wrapper {
+    position: relative;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 48px;
+    right: 0;
+    width: 260px;
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
+    padding: 16px;
+    z-index: 100;
+}
+
+.notification-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+    color: rgba(16, 32, 86, 0.892);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.messages-company-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.unread-dot {
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+}
+
