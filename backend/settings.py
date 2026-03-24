@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     # Om den saknas får du ett validation error när Settings() skapas.
     DATABASE_URL: str  # type annotation
     SECRET_KEY: str
+    ANTHROPIC_API_KEY: str
 
     # Den här raden betyder: om CORS_ORIGIONS inte finns i .env så används defaulten.
     # Din frontend kör på http://localhost:5173 och din backend på http://localhost:8000. Webbläsaren blockerar som standard requests mellan olika "origins" (adresser).
