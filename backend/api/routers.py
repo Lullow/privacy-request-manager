@@ -28,7 +28,7 @@ from schemas import (
 
 # Importerar själva funktionen som bygger GDPR-meddelandet
 # Den här funktionen ska skapa subject och body baserat på requestens data
-from services.ai_generator import generate_gdpr_message  # <- add this later
+from services.ai_generator import generate_gdpr_message, generate_legal_gdpr_message
 
 # - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
 from sqlalchemy import select
@@ -213,7 +213,7 @@ async def generate_request_message(
     current_user: User = Depends(get_current_user),
 ):
     # Bygger en SQL-fråga som letar efter rätt PrivacyRequest via id (hämtar requesten från databasen)
-    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id.id == current_user.id)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.id == request_id, PrivacyRequest.user_id == current_user.id)
     # Kör SQL-frågan mot databasen
     result = await session.execute(stmt)
     # Hämtar ut ett objekt om det finns, annars None
@@ -223,19 +223,27 @@ async def generate_request_message(
     if request_row is None:
         raise HTTPException(status_code=404, detail="Privacy request not found")
     
-    # Anropar AI-funktionen som bygger subject + body
-    # Den får all info den behöver från requestet och payloaden
-    generated = generate_gdpr_message( # TODO: fixa klart generate_gdpr_message funktionen
-        # Relevant information från databasen nedan
-        company_name=request_row.company_name,
-        company_email=request_row.company_email,
-        full_name=request_row.full_name,
-        city=request_row.city,
-        profile_url=request_row.profile_url,
-        tone=payload.tone,                 # Tone som frontend skickade in vid genereringen
-        message_type=payload.message_type, # Typ av meddelande, t.ex. initial_request eller follow_up
-        request_types=payload.request_types,
-    )
+    # Väljer rätt generator beroende på om juridisk mall begärts
+    if payload.use_legal_template:
+        generated = generate_legal_gdpr_message(
+            company_name=request_row.company_name,
+            full_name=request_row.full_name,
+            personal_number=payload.personal_number or "",
+            address=payload.legal_address,
+            phone=payload.legal_phone,
+            registrant_email=payload.legal_email,
+        )
+    else:
+        generated = generate_gdpr_message(
+            company_name=request_row.company_name,
+            company_email=request_row.company_email,
+            full_name=request_row.full_name,
+            city=request_row.city,
+            profile_url=request_row.profile_url,
+            tone=payload.tone,
+            message_type=payload.message_type,
+            request_types=payload.request_types,
+        )
 
     # Skapar ett nytt Message-objekt som ska sparas i message-tabellen
     new_message = Message(
