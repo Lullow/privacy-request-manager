@@ -822,6 +822,72 @@ body {
     border-bottom: none;
 }
 
+/* ---------- Feature row with icon ---------- */
+.feature-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.feature-icon-box {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(16, 32, 86, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.feature-question {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(16, 32, 86, 0.08);
+    transition: opacity 0.2s ease;
+}
+
+.feature-question:hover {
+    opacity: 0.7;
+}
+
+/* ---------- Footer ---------- */
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 24px;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.footer-dot {
+    color: #cbd5e1;
+}
+
+.footer-link {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: rgba(16, 32, 86, 0.7);
+}
+
+/* ---------- App layout ---------- */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.app-layout > *:not(footer) {
+    flex: 1;
+}
+
 .messages-company-row {
     display: flex;
     align-items: center;
