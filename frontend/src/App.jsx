@@ -11,6 +11,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Importerar nödvändigheter från react-router-dom
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import Footer from './components/Footer';
+import ResourcesPage from './pages/ResourcesPage';
+import IntegritetspolicyPage from './pages/IntegritetspolicyPage';
 
 
 // Huvudkomponenten App
@@ -18,6 +21,7 @@ export default function App() {
   return (
     // BrowserRouter måste wrappa hela appen som använder Routes
     <BrowserRouter>
+      <div className="app-layout">
       <Routes>
         {/* Hemsidan - ska alltid vara tillgänglig */}
         <Route path="/" element={<FirstPage />} />
@@ -50,9 +54,13 @@ export default function App() {
         }
       />
 
+        <Route path="/resurser" element={<ResourcesPage />} />
+        <Route path="/integritetspolicy" element={<IntegritetspolicyPage />} />
         {/* Catch-all OM användaren går till en okänd route och skicka tillbaka "/" (FirstPage) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <Footer />
+      </div>
     </BrowserRouter>
   );
 }
