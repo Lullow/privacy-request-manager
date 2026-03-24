@@ -53,10 +53,9 @@ export function AuthProvider({ children }) {
     useEffect(() => {
     if (token) {
         // Om token finns, kontrollera vem användaren är
-        // Om token finns, kontrollera vem användaren är
-        //fetchMe(token);
-        setUser({ email: "dummy@dummy.com", id: 1 }); // dummy user
-        setLoading(false);
+        fetchMe(token);
+        // setUser({ email: "dummy@dummy.com", id: 1 }); // dummy user
+        // setLoading(false);
     } else {
         // Om token INTE finns då är vi klara direkt
         setLoading(false);

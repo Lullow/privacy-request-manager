@@ -11,18 +11,19 @@ export default function TopBar() {
         navigate("/");
     }
 
-return (
-    <div>
-        <button onClick={() => navigate("/")}>Hem</button>
-        
-        { isAuthenticated ? (
-            <>
-                <button onClick={() => navigate("/create-request")}>Skapa begäran</button>
-                <button onClick={() => navigate("/dashboard")}>Dashboard</button>
-                <button onClick={handleLogout}>Logga ut</button>
-            </>
-        ) : (
-            <button onClick={() => navigate("/login")}>Logga in</button>
-        )}
-    </div>
-);}
+    return (
+        <div>
+            <button onClick={() => navigate("/")}>Hem</button>
+
+            { isAuthenticated ? (
+                <>
+                    <button onClick={() => navigate("/create-request")}>Skapa begäran</button>
+                    <button onClick={() => navigate("/dashboard")}>Dashboard</button>
+                    <button onClick={handleLogout}>Logga ut</button>
+                </>
+            ) : (
+                <button onClick={() => navigate("/login")}>Logga in</button>
+            )}
+        </div>
+    );
+}

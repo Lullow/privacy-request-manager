@@ -1,19 +1,15 @@
 // LoginPage behöver funktionerna från authApi.js för att prata med backend.
 import { registerUser, loginUser } from "../api/authApi";
-
-import { useAuth } from "../context/useAuth";
-
-
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/useAuth";
 // topbar återanvändbar component
 import TopBar from "../components/TopBar"
 
-// Så kedjan är: användaren klickar bakåt → TopBar anropar onBack → 
-// onLogin — anropas när inloggningen lyckas → byter sida till Dashboard
-    function LoginPage() {
+function LoginPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
+
     //Toggles between login and register account
     // useState skapar en state-variabel — ett värde som React håller koll på och som kan ändras.
     // mode — själva värdet, börjar som "login"
@@ -29,7 +25,6 @@ import TopBar from "../components/TopBar"
     // setForm körs varje gång användaren skriver en bokstav i ett inputfält — inte när allt är ifyllt.
     // Kedjan är användaren skriver "b" → onChange triggas → updateField("email", "b") → setForm körs → form.email = "b"
     const [form, setForm] = useState({
-    name: "",
     email: "",
     password: "",
 });
@@ -43,12 +38,14 @@ import TopBar from "../components/TopBar"
     // Sätter loading till false
     //TODO felmeddelande för (epost finns/fel lösenord eller epost)
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // updatefiled tar emot två saker
-    // key - vilka fält som ska uppdateras t.ex email 
+    // key - vilka fält som ska uppdateras t.ex email
     // value - det nya värdet t.ex bella@gmail.com
-    // intui anropas setform med en funktion istället för ett värde direkt 
+    // intui anropas setform med en funktion istället för ett värde direkt
     function updateField(key, value) {
         // ...prev — kopiera alla befintliga fält som de är
         // [key]: value — skriv över just det fältet med det nya värdet
@@ -66,22 +63,18 @@ import TopBar from "../components/TopBar"
     function switchMode(newMode) {
         // setMode(newMode); Byter läge — t.ex. från "login" till "register". Gör att h1, knappen och toggle-texten byter text.
         setMode(newMode);
-        // Nollställer alla fält. Om användaren skrivit in sin e-post i login-läget och sen byter till register 
+        // Nollställer alla fält. Om användaren skrivit in sin e-post i login-läget och sen byter till register
         // — ska fälten vara tomma, inte behålla det gamla.
-        setForm({ name: "", email: "", password: "" });
-        // setError("") i switchMode rensar bort eventuellt felmeddelande när man byter mellan login och register.
-        // Om vi inte rensar bort felmeddelanden
-        //Användaren försöker logga in → fel lösenord → "Fel lösenord" visas
-        // Användaren klickar "Skapa ett" för att byta till register-läget
-        // Felmeddelandet "Fel lösenord" sitter fortfarande kvar under formuläret
+        setForm({ email: "", password: "" });
         setError("");
+        setSuccess("");
     }
 
     // Innan: // Skickade fetch direkt med fel URL och sparade token även efter register
     // Register gav ingen token — backend returnerar bara användarinfo vid register, inte token. Så vi visar "konto skapat" och byter till login istället
     // Efter: loginUser sparar token automatiskt — via setToken i authApi.js
 
-    // Flödet: 
+    // Flödet:
     // Register → anropar registerUser → visar "konto skapat" → byter till login-läget (sparar ingen token eftersom backend inte ger någon vid register)
     // Login → anropar loginUser → token sparas automatiskt → navigerar till Dashboard via onLogin()
 async function handleSubmit() {
@@ -91,13 +84,12 @@ async function handleSubmit() {
     try {
         if (mode === "register") {
             await registerUser({ email: form.email, password: form.password });
-            setError("Konto skapat! Logga in.");
             switchMode("login");
+            setSuccess("✓ Konto skapat! Du kan nu logga in.");
         } else {
             const res = await loginUser({ email: form.email, password: form.password });
             login(res.access_token);
             navigate("/dashboard");
-
         }
     } catch (err) {
         setError(err.message);
@@ -106,7 +98,7 @@ async function handleSubmit() {
     setLoading(false);
 }
 
-    
+
     return (
         <div className="page">
             <TopBar />
@@ -120,18 +112,6 @@ async function handleSubmit() {
                         : "Skapa ett konto först.."
                         }
                     </p>
-                    {mode === "register" && (
-    <div className="field">
-        <label>Namn</label>
-        <input
-            type="text"
-            placeholder="För- och efternamn"
-            value={form.name}
-            onChange={(e) => updateField("name", e.target.value)}
-        />
-    </div>
-)}
-
     <div className="field">
         <label>E-post</label>
         <input
@@ -144,14 +124,46 @@ async function handleSubmit() {
 
     <div className="field">
         <label>Lösenord</label>
-        <input
-            type="password"
-            placeholder="Minst 8 tecken"
-            value={form.password}
-            onChange={(e) => updateField("password", e.target.value)}
-        />
+        <div style={{ position: "relative" }}>
+            <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Minst 8 tecken"
+                value={form.password}
+                onChange={(e) => updateField("password", e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                style={{ width: "100%", paddingRight: "2.5rem", boxSizing: "border-box" }}
+            />
+            <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                style={{
+                    position: "absolute",
+                    right: "0.6rem",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "1rem",
+                    padding: 0,
+                }}
+                aria-label={showPassword ? "Dölj lösenord" : "Visa lösenord"}
+            >
+                {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="18" height="18">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="18" height="18">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                )}
+            </button>
+        </div>
     </div>
 
+    {success && <small style={{ color: "green" }}>{success}</small>}
     {error && <small className="hint">{error}</small>}
 
     <div className="actions">
@@ -162,7 +174,7 @@ async function handleSubmit() {
 
     <p className="muted" style={{ marginTop: 12 }}>
         {mode === "login" ? (
-            <>Inget konto? <button className="btn-link" onClick={() => switchMode("register")}>Skapa ett</button></>
+            <>Inget konto? <button className="btn-link" onClick={() => switchMode("register")}>Skapa ett konto</button></>
         ) : (
             <>Har du redan ett konto? <button className="btn-link" onClick={() => switchMode("login")}>Logga in</button></>
         )}
