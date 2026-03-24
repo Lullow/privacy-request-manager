@@ -199,6 +199,7 @@ h2 {
 
 .field input {
     width: 100%;
+    box-sizing: border-box;
     padding: 12px 14px;
     border-radius: 12px;
     border: 1px solid #e2e8f0;

@@ -1,10 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
-
-
 import { createPrivacyRequest, generateMessage } from "../api/privacyRequestsApi";
+import GDPRConsent from "../components/GDPRConsent";
 
-// GDPR request types shown as selectable chips
+function toSearchQuery(name) {
+    return encodeURIComponent(name).replace(/%20/g, "+");
+}
+
+const SITES = [
+    {
+        name: "Ratsit",
+        searchUrl: (name, city) => `https://www.ratsit.se/sok/person?vem=${toSearchQuery(name)}${city ? `&ort=${toSearchQuery(city)}` : ""}&m=0&k=0&r=0&er=0&b=0&eb=0&amin=16&amax=120&fon=1&page=1`,
+        removeMethod: "form",
+        removeUrl: "https://www.ratsit.se/tabort",
+    },
+    {
+        name: "Mrkoll",
+        searchUrl: (name, city) => `https://mrkoll.se/resultat?n=${toSearchQuery(name)}&c=${city ? toSearchQuery(city) : ""}&min=16&max=120&sex=a&c_stat=all&company=`,
+        removeMethod: "form",
+        removeUrl: "https://mrkoll.se/om/kundservice-publicerade-uppgifter/",
+    },
+    {
+        name: "Hitta.se",
+        searchUrl: (name, city) => `https://www.hitta.se/s%C3%B6k?vad=${encodeURIComponent(city ? `${name} ${city}` : name)}`,
+        removeMethod: "form",
+        removeUrl: "https://www.hitta.se/kontakta-oss/ta-bort-kontaktsida",
+    },
+    {
+        name: "Eniro",
+        searchUrl: (name, city) => `https://www.eniro.se/${toSearchQuery(city ? `${name} ${city}` : name)}/personer`,
+        removeMethod: "form",
+        removeUrl: "https://personer-uppdatera.eniro.se/",
+    },
+    {
+        name: "Birthday",
+        searchUrl: (name, city) => `https://www.birthday.se/sok?whowhere=${toSearchQuery(city ? `${name} ${city}` : name)}&similar=true`,
+        removeMethod: "email",
+        removeEmail: "info@birthday.se",
+        removeUrl: "https://www.birthday.se/personuppgifter",
+    },
+    {
+        name: "Merinfo",
+        searchUrl: (name, city) => `https://www.merinfo.se/search?q=${toSearchQuery(city ? `${name} ${city}` : name)}`,
+        removeMethod: "email",
+        removeEmail: "info@merinfo.se",
+        removeUrl: "https://www.merinfo.se/om",
+    },
+];
+
 const REQUEST_TYPES = [
     { id: "delete", label: "Radering" },
     { id: "access", label: "Registerutdrag" },
@@ -14,313 +58,628 @@ const REQUEST_TYPES = [
     { id: "portability", label: "Dataportabilitet" },
 ];
 
-function FormPage({ onBack }) {
-    // Main form state
-    const [form, setForm] = useState({
-        companyName: "",
-        companyEmail: "",
-        fullName: "",
-        city: "",
-        profileUrl: "",
-        requestTypes: ["delete"],
-        tone: "neutral",
-    });
+function StepIndicator({ current, total }) {
+    return (
+        <p className="muted" style={{ fontSize: "0.85rem", marginBottom: 16 }}>
+            Steg {current} av {total}
+        </p>
+    );
+}
 
-    // Saved request id from backend
-    const [savedRequestId, setSavedRequestId] = useState(null);
+function getSaved() {
+    try {
+        const saved = sessionStorage.getItem("prm_wizard");
+        return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+}
 
-    // AI generated result
-    const [generatedSubject, setGeneratedSubject] = useState("");
-    const [generatedBody, setGeneratedBody] = useState("");
+function FormPage() {
+    const navigate = useNavigate();
+    const onBack = () => navigate("/");
+    const s = getSaved();
 
-    // UI state
-    const [loading, setLoading] = useState(false);
+    const [step, setStep] = useState(s.step || 1);
+    const [fullName, setFullName] = useState(s.fullName || "");
+    const [city, setCity] = useState(s.city || "");
+    const [selectedSearchSites, setSelectedSearchSites] = useState(s.selectedSearchSites || []);
+    const [selectedRemoveSites, setSelectedRemoveSites] = useState(s.selectedRemoveSites || []);
+    const [requestTypes, setRequestTypes] = useState(s.requestTypes || ["delete"]);
+    const [tone, setTone] = useState(s.tone || "neutral");
+    const [requestPath, setRequestPath] = useState(s.requestPath || "simple");
+    const [consentResult, setConsentResult] = useState(null);
+    const [generatedEmails, setGeneratedEmails] = useState({});
+    const [loadingSite, setLoadingSite] = useState(null);
+    const [copiedSite, setCopiedSite] = useState(null);
     const [error, setError] = useState("");
-    const [copied, setCopied] = useState(false);
 
-    // Update one field in the form state
-    function updateField(key, value) {
-        setForm((prev) => ({
-            ...prev,
-            [key]: value,
+    // Juridiska fält — sparas INTE i sessionStorage
+    const [personalNumber, setPersonalNumber] = useState("");
+    const [showPersonalNumber, setShowPersonalNumber] = useState(false);
+    const [legalAddress, setLegalAddress] = useState("");
+    const [legalPhone, setLegalPhone] = useState("");
+    const [legalEmail, setLegalEmail] = useState("");
+
+    const isBrowserNav = useRef(false);
+
+    // Spara wizard-state till sessionStorage när något ändras
+    // OBS: personnummer och övriga juridiska fält sparas INTE
+    useEffect(() => {
+        sessionStorage.setItem("prm_wizard", JSON.stringify({
+            step, fullName, city, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath,
         }));
+    }, [step, fullName, city, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath]);
+
+    // Koppla varje steg till webbläsarens historik (ej vid browser-navigering)
+    useEffect(() => {
+        if (isBrowserNav.current) {
+            isBrowserNav.current = false;
+            return;
+        }
+        // Steg 1 ersätter alltid current entry så inga extra history-entries staplas
+        if (step === 1) {
+            window.history.replaceState({ step }, "");
+        } else {
+            window.history.pushState({ step }, "");
+        }
+    }, [step]);
+
+    // Hantera webbläsarens back- och fram-knappar
+    useEffect(() => {
+        function handlePopState(e) {
+            const targetStep = e.state?.step;
+            if (targetStep !== undefined) {
+                isBrowserNav.current = true;
+                setStep(targetStep);
+                setError("");
+            }
+        }
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, []);
+
+    function toggleSite(setArr, name) {
+        setArr((prev) =>
+            prev.includes(name) ? prev.filter((s) => s !== name) : [...prev, name]
+        );
     }
 
-    // Add/remove GDPR request types
     function toggleRequestType(id) {
-        setForm((prev) => {
-            const exists = prev.requestTypes.includes(id);
+        setRequestTypes((prev) =>
+            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        );
+    }
 
-            return {
+    async function generateEmailForSite(site) {
+        if (requestPath === "legal" && !personalNumber.trim()) {
+            setError("Personnummer krävs för juridisk begäran.");
+            return;
+        }
+        setLoadingSite(site.name);
+        setError("");
+        try {
+            const requestData = await createPrivacyRequest({
+                company_name: site.name,
+                company_email: site.removeEmail,
+                full_name: fullName,
+                city: city || null,
+                profile_url: null,
+                tone,
+            });
+            const msgPayload = { tone, message_type: "initial_request", request_types: requestTypes };
+            if (requestPath === "legal") {
+                msgPayload.use_legal_template = true;
+                msgPayload.personal_number = personalNumber.trim();
+                if (legalAddress.trim()) msgPayload.legal_address = legalAddress.trim();
+                if (legalPhone.trim()) msgPayload.legal_phone = legalPhone.trim();
+                if (legalEmail.trim()) msgPayload.legal_email = legalEmail.trim();
+            }
+            const msgData = await generateMessage(requestData.id, msgPayload);
+            setGeneratedEmails((prev) => ({
                 ...prev,
-                requestTypes: exists
-                    ? prev.requestTypes.filter((x) => x !== id)
-                    : [...prev.requestTypes, id],
-            };
-        });
-    }
-
-    // Basic validation
-    const errors = {
-        companyName: form.companyName.trim() ? "" : "Fyll i företagets namn.",
-        companyEmail: form.companyEmail.trim() ? "" : "Fyll i företagets e-post.",
-        fullName: form.fullName.trim() ? "" : "Fyll i ditt namn.",
-    };
-
-    const isValid =
-        !errors.companyName &&
-        !errors.companyEmail &&
-        !errors.fullName;
-
-    // Save request in backend
-    async function saveRequest() {
-        setError("");
-
-        if (!isValid) {
-            setError("Fyll i alla obligatoriska fält först.");
-            return null;
-        }
-// Innan skickades fetch utan token. Backend krävde token, svarade med 401, funkade inte för att backend-endpointsen för att skapa ärenden är skyddad med get_current_user.
-// get_current_user(en skyddad enpoint(skyddad endpoint = du måste vara inloggad för att använda den)). Backend kontrollerar token i headern innan den gör något, om inte token gittas svarar backend direkt med 401
-// createPrivacyRequest skickar token automatiskt i headern — utan det hade backend nekat med 401 eftersom ärendet kräver inloggad användare.
-// createPrivacyRequest anropar apiFetch → apiFetch hämtar token från localStorage och lägger till den automatiskt:
-        try {
-            const data = await createPrivacyRequest({
-                company_name: form.companyName,
-                company_email: form.companyEmail,
-                full_name: form.fullName,
-                city: form.city || null,
-                profile_url: form.profileUrl || null,
-                tone: form.tone,
-            });
-
-            setSavedRequestId(data.id);
-            return data.id;
+                [site.name]: {
+                    subject: msgData.subject || "",
+                    body: msgData.message_body || "",
+                },
+            }));
         } catch (err) {
-            setError(err.message || "Något gick fel vid sparning.");
-            return null;
-        }
-    }
-
-    // Generate AI message from backend
-    async function generateWithAI() {
-        setLoading(true);
-        setError("");
-
-        try {
-            let requestId = savedRequestId;
-
-            // Create request first if it does not already exist
-            if (!requestId) {
-                requestId = await saveRequest();
-            }
-
-            if (!requestId) {
-                return;
-            }
-// Innan - fetch skickades direkt utan token
-// generateMessage (från privacyRequestsApi) skickar token automatiskt.
-// generateMessage anropar apiFetch som automatiskt lägger till token i headern — backend godkänner och genererar AI-text.
-            const data = await generateMessage(requestId, {
-                tone: form.tone,
-                message_type: "initial_request",
-                request_types: form.requestTypes,
-            });
-
-
-            setGeneratedSubject(data.subject || "");
-            setGeneratedBody(data.message_body || "");
-        } catch (err) {
-            setError(err.message || "Något gick fel vid AI-generering.");
+            setError(err.message || "Något gick fel vid generering.");
         } finally {
-            setLoading(false);
+            setLoadingSite(null);
         }
     }
 
-    // Copy generated AI result to clipboard
-    async function copyToClipboard() {
-        try {
-            const textToCopy = `${generatedSubject}\n\n${generatedBody}`;
-            await navigator.clipboard.writeText(textToCopy);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 1200);
-        } catch (err) {
-            console.error(err);
-            alert("Kunde inte kopiera automatiskt.");
-        }
+    function buildLegalTemplate(site) {
+        const identityLines = [
+            `• Fullständigt namn: ${fullName}`,
+            `• Personnummer: ${personalNumber}`,
+            legalAddress ? `• Adress: ${legalAddress}` : null,
+            legalPhone ? `• Telefon: ${legalPhone}` : null,
+            legalEmail ? `• E-post: ${legalEmail}` : null,
+        ].filter(Boolean).join("\n");
+
+        return `Hej,
+
+Jag agerar som ombud för ${fullName}, personnummer ${personalNumber}, med stöd av bifogad fullmakt. Denna begäran görs i enlighet med artikel 17 i EU:s dataskyddsförordning (GDPR).
+
+Den registrerade begär att samtliga personuppgifter som rör honom/henne raderas från era system och tjänster, inklusive men inte begränsat till:
+• Namn, adress och kontaktuppgifter
+• Telefonnummer
+• Eventuella foton eller profilbilder
+• All övrig data kopplad till den registrerade
+
+Identifiering
+Följande uppgifter tillhandahålls för att verifiera den registrerades identitet:
+${identityLines}
+
+Vi anser att ovanstående uppgifter är tillräckliga för att verifiera den registrerades identitet i enlighet med GDPR artikel 12.6. Enligt artikel 12.2 får ytterligare identifiering, såsom kopia på ID-handling eller krav på BankID, endast begäras om ni har rimliga tvivel kring den registrerades identitet. Då vi tillhandahåller personnummer och övriga registeruppgifter som redan finns i ert system bör sådana tvivel inte föreligga.
+
+Rättslig grund
+Enligt GDPR artikel 12.3 ska ni bekräfta att raderingen har genomförts utan onödigt dröjsmål och senast inom en månad från mottagandet av denna begäran.
+
+Om ni anser att det finns rättslig grund att behålla uppgifterna, ber vi er specificera exakt vilken grund enligt GDPR artikel 17.3 ni åberopar samt motivera detta skriftligen.
+
+Gällande utgivningsbevis och YGL-undantaget
+IMY har i sitt rättsliga ställningstagande IMYRS 2024:1 (publicerat 14 maj 2024) bedömt att myndigheten är behörig att inleda tillsyn mot söktjänster med utgivningsbevis. IMY konstaterar att den svenska regleringen som ger söktjänster med utgivningsbevis generella undantag från GDPR inte är förenlig med EU-rätten. Mot denna bakgrund anser vi att utgivningsbeviset inte utgör giltig grund för att avslå denna raderingsbegäran.
+
+Konsekvenser vid utebliven åtgärd
+Om begäran inte besvaras inom en månad kommer vi att anmäla ärendet till IMY (GDPR art. 77) och begära avindexering från sökmotorer.
+
+Med vänliga hälsningar,
+Privacy Request Manager
+på uppdrag av ${fullName}
+
+Bilagor: Fullmakt (elektroniskt undertecknad)
+Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:218) § 7`;
     }
+
+    function mailtoLink(site) {
+        const email = generatedEmails[site.name];
+        if (!email) return "#";
+        return `mailto:${site.removeEmail}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+    }
+
+    const emailSites = selectedRemoveSites
+        .map((name) => SITES.find((s) => s.name === name))
+        .filter((s) => s?.removeMethod === "email");
+
+    const formSites = selectedRemoveSites
+        .map((name) => SITES.find((s) => s.name === name))
+        .filter((s) => s?.removeMethod === "form");
 
     return (
         <div className="page">
             <TopBar onBack={onBack} />
-
             <main className="container">
                 <div className="card">
-                    <div className="grid-2">
-                        <h1>Skapa GDPR-begäran</h1>
-                        <p>Fyll i dina uppgifter nedan för att skapa din begäran.</p>
 
-                        <div className="field">
-                            <label>Företag *</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: Google, Mrkoll..."
-                                value={form.companyName}
-                                onChange={(e) =>
-                                    updateField("companyName", e.target.value)
-                                }
-                            />
-                            {errors.companyName && (
-                                <small className="hint">{errors.companyName}</small>
-                            )}
-                        </div>
+                    {/* ── STEG 1: Namn & ort ── */}
+                    {step === 1 && (
+                        <div>
+                            <StepIndicator current={1} total={5} />
+                            <h1>Vem är du?</h1>
+                            <p className="muted">Ange ditt namn och ort för att söka upp dig på personregistren.</p>
 
-                        <div className="field">
-                            <label>Företagets e-post *</label>
-                            <input
-                                type="email"
-                                placeholder="exempel@foretag.se"
-                                value={form.companyEmail}
-                                onChange={(e) =>
-                                    updateField("companyEmail", e.target.value)
-                                }
-                            />
-                            {errors.companyEmail && (
-                                <small className="hint">{errors.companyEmail}</small>
-                            )}
-                        </div>
+                            <div className="field">
+                                <label>Ditt namn *</label>
+                                <input
+                                    type="text"
+                                    placeholder="För- och efternamn"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && fullName.trim() && setStep(2)}
+                                    autoFocus
+                                />
+                            </div>
+                            <div className="field" style={{ marginTop: 16 }}>
+                                <label>Ort <span className="muted">(valfritt, ger färre träffar)</span></label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: Stockholm"
+                                    value={city}
+                                    onChange={(e) => setCity(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && fullName.trim() && setStep(2)}
+                                />
+                            </div>
 
-                        <div className="field">
-                            <label>Ditt namn *</label>
-                            <input
-                                type="text"
-                                placeholder="För- och efternamn"
-                                value={form.fullName}
-                                onChange={(e) =>
-                                    updateField("fullName", e.target.value)
-                                }
-                            />
-                            {errors.fullName && (
-                                <small className="hint">{errors.fullName}</small>
-                            )}
-                        </div>
-
-                        <div className="field">
-                            <label>Ort</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: Stockholm"
-                                value={form.city}
-                                onChange={(e) => updateField("city", e.target.value)}
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label>Länk (valfritt)</label>
-                            <input
-                                type="url"
-                                placeholder="Ex: https://exempel.se/profil/..."
-                                value={form.profileUrl}
-                                onChange={(e) =>
-                                    updateField("profileUrl", e.target.value)
-                                }
-                            />
-                        </div>
-
-                        <div className="field">
-                            <label>Tonalitet</label>
-                            <select
-                                value={form.tone}
-                                onChange={(e) => updateField("tone", e.target.value)}
-                            >
-                                <option value="neutral">Neutral</option>
-                                <option value="formal">Formell</option>
-                                <option value="firm">Bestämd</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <hr className="divider" />
-
-                    <div className="block">
-                        <h2>Vad vill du begära?</h2>
-                        <p className="muted">Välj en eller flera.</p>
-
-                        <div className="chip-grid">
-                            {REQUEST_TYPES.map((t) => (
-                                <label className="chip" key={t.id}>
-                                    <input
-                                        type="checkbox"
-                                        checked={form.requestTypes.includes(t.id)}
-                                        onChange={() => toggleRequestType(t.id)}
-                                    />
-                                    <span>{t.label}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <hr className="divider" />
-
-                    <div className="field">
-                        <label>Förhandsvisning av AI-genererad GDPR-begäran</label>
-                        <textarea
-                            readOnly
-                            value={
-                                generatedBody
-                                    ? `Ämne: ${generatedSubject}\n\n${generatedBody}`
-                                    : ""
-                            }
-                            style={{ minHeight: 265, width: "100%" }}
-                        />
-                    </div>
-
-                    {error && (
-                        <div style={{ marginTop: 12 }}>
-                            <small className="hint">{error}</small>
+                            {error && <small className="hint" style={{ display: "block", marginBottom: 8 }}>{error}</small>}
+                            <div className="actions">
+                                <button className="btn btn-secondary" type="button" onClick={onBack}>Avbryt</button>
+                                <button
+                                    className="btn"
+                                    type="button"
+                                    onClick={() => {
+                                        if (!fullName.trim()) {
+                                            setError("Fyll i ditt namn för att fortsätta.");
+                                            return;
+                                        }
+                                        setError("");
+                                        setStep(2);
+                                    }}
+                                >
+                                    Nästa
+                                </button>
+                            </div>
                         </div>
                     )}
 
-                    <div className="actions">
-                        <button
-                            className="btn btn-secondary"
-                            type="button"
-                            onClick={onBack}
-                        >
-                            Tillbaka
-                        </button>
+                    {/* ── STEG 2: Sök upp dig ── */}
+                    {step === 2 && (
+                        <div>
+                            <StepIndicator current={2} total={5} />
+                            <h1>Sök upp dig</h1>
+                            <p className="muted">
+                                Välj sajter du vill söka på och klicka på "Sök upp mig". Se om du har träffar.
+                            </p>
 
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={saveRequest}
-                            disabled={loading}
-                        >
-                            Spara ärende
-                        </button>
+                            <div className="chip-grid">
+                                {SITES.map((site) => (
+                                    <label className="chip" key={site.name}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedSearchSites.includes(site.name)}
+                                            onChange={() => toggleSite(setSelectedSearchSites, site.name)}
+                                        />
+                                        <span>{site.name}</span>
+                                    </label>
+                                ))}
+                            </div>
 
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={generateWithAI}
-                            disabled={loading}
-                        >
-                            {loading ? "Genererar..." : "Generera med AI"}
-                        </button>
+                            {selectedSearchSites.length > 0 && (
+                                <div style={{ marginTop: 12 }}>
+                                    <small className="muted">
+                                        OBS: Detta öppnar {selectedSearchSites.length} ny{selectedSearchSites.length > 1 ? "a" : ""} flik{selectedSearchSites.length > 1 ? "ar" : ""}.
+                                        {selectedSearchSites.length > 1 && " Om flikar blockeras — tillåt popup-fönster i webbläsarens adressfält."}
+                                    </small>
+                                    <div style={{ marginTop: 8 }}>
+                                        <button
+                                            className="btn"
+                                            type="button"
+                                            onClick={() => {
+                                                selectedSearchSites.forEach((name) => {
+                                                    const site = SITES.find((s) => s.name === name);
+                                                    if (site) window.open(site.searchUrl(fullName.trim(), city.trim()), "_blank");
+                                                });
+                                            }}
+                                        >
+                                            Sök upp mig
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
-                        <button
-                            className="btn"
-                            type="button"
-                            onClick={copyToClipboard}
-                            disabled={!generatedBody}
-                        >
-                            {copied ? "Kopierat" : "Kopiera text"}
-                        </button>
-                    </div>
+                            <div className="actions">
+                                <button className="btn btn-secondary" type="button" onClick={() => setStep(1)}>Tillbaka</button>
+                                <button className="btn" type="button" onClick={() => { setError(""); setStep(3); }}>Nästa</button>
+                            </div>
+                        </div>
+                    )}
 
-                    <pre style={{ marginTop: 16 }}>
-                        {JSON.stringify(form, null, 2)}
-                    </pre>
+                    {/* ── STEG 3: Var hittades du? ── */}
+                    {step === 3 && (
+                        <div>
+                            <StepIndicator current={3} total={5} />
+                            <h1>Var hittades du?</h1>
+                            <p className="muted">Välj de sajter där du fick träff och vill bli borttagen från.</p>
+
+                            <div className="chip-grid">
+                                {SITES.map((site) => (
+                                    <label className="chip" key={site.name}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRemoveSites.includes(site.name)}
+                                            onChange={() => toggleSite(setSelectedRemoveSites, site.name)}
+                                        />
+                                        <span>{site.name}</span>
+                                    </label>
+                                ))}
+                            </div>
+
+                            {error && <small className="hint" style={{ display: "block", marginBottom: 8 }}>{error}</small>}
+                            <div className="actions">
+                                <button className="btn btn-secondary" type="button" onClick={() => { setError(""); setStep(2); }}>Tillbaka</button>
+                                <button
+                                    className="btn"
+                                    type="button"
+                                    onClick={() => {
+                                        if (selectedRemoveSites.length === 0) {
+                                            setError("Välj minst en sajt för att fortsätta.");
+                                            return;
+                                        }
+                                        setError("");
+                                        setStep(4);
+                                    }}
+                                >
+                                    Nästa
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── STEG 4: Ta bort dig ── */}
+                    {step === 4 && (
+                        <div>
+                            <StepIndicator current={4} total={5} />
+                            <h1>Ta bort dina uppgifter</h1>
+                            <p className="muted">Följ instruktionerna nedan för varje sajt. Du signerar i nästa steg.</p>
+
+                            {/* ── Välj begäranstyp ── */}
+                            <div style={{ display: "flex", gap: 12, margin: "20px 0" }}>
+                                <button
+                                    type="button"
+                                    className={`btn${requestPath === "simple" ? "" : " btn-secondary"}`}
+                                    style={{ flex: 1, flexDirection: "column", gap: 4, padding: "14px 12px" }}
+                                    onClick={() => { setRequestPath("simple"); setError(""); }}
+                                >
+                                    <span style={{ fontWeight: 700 }}>Enkel begäran</span>
+                                    <span style={{ fontSize: "0.78rem", opacity: 0.8, fontWeight: 400 }}>AI-genererad GDPR-förfrågan</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`btn${requestPath === "legal" ? "" : " btn-secondary"}`}
+                                    style={{ flex: 1, flexDirection: "column", gap: 4, padding: "14px 12px" }}
+                                    onClick={() => { setRequestPath("legal"); setError(""); }}
+                                >
+                                    <span style={{ fontWeight: 700 }}>Juridisk begäran</span>
+                                    <span style={{ fontSize: "0.78rem", opacity: 0.8, fontWeight: 400 }}>Formell mall med IMY-hänvisning</span>
+                                </button>
+                            </div>
+
+                            {/* ── Fält för juridisk begäran ── */}
+                            {requestPath === "legal" && (
+                                <div>
+                                    <hr className="divider" />
+                                    <h2>Uppgifter för juridisk begäran</h2>
+                                    <p className="muted" style={{ fontSize: "0.85rem", marginBottom: 16 }}>
+                                        Används enbart för att generera brevet — sparas inte i systemet.
+                                    </p>
+
+                                    <div className="field">
+                                        <label>Personnummer *</label>
+                                        <div style={{ position: "relative" }}>
+                                            <input
+                                                type={showPersonalNumber ? "text" : "password"}
+                                                placeholder="XXXXXX-XXXX"
+                                                value={personalNumber}
+                                                onChange={(e) => setPersonalNumber(e.target.value)}
+                                                autoComplete="off"
+                                                style={{ paddingRight: 44 }}
+                                            />
+                                            <button
+                                                type="button"
+                                                tabIndex={-1}
+                                                onClick={() => setShowPersonalNumber((v) => !v)}
+                                                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4, display: "flex", alignItems: "center" }}
+                                            >
+                                                {showPersonalNumber ? (
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                                ) : (
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                )}
+                                            </button>
+                                        </div>
+                                        <small className="hint">Sparas inte — används enbart för att skapa brevet.</small>
+                                    </div>
+
+                                    <div className="field" style={{ marginTop: 12 }}>
+                                        <label>Adress <span className="muted">(valfritt)</span></label>
+                                        <input
+                                            type="text"
+                                            placeholder="Gatuadress, postnummer och stad"
+                                            value={legalAddress}
+                                            onChange={(e) => setLegalAddress(e.target.value)}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+
+                                    <div className="field" style={{ marginTop: 12 }}>
+                                        <label>Telefonnummer <span className="muted">(valfritt)</span></label>
+                                        <input
+                                            type="tel"
+                                            placeholder="07X-XXX XX XX"
+                                            value={legalPhone}
+                                            onChange={(e) => setLegalPhone(e.target.value)}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+
+                                    <div className="field" style={{ marginTop: 12 }}>
+                                        <label>Din e-postadress <span className="muted">(valfritt)</span></label>
+                                        <input
+                                            type="email"
+                                            placeholder="din@epost.se"
+                                            value={legalEmail}
+                                            onChange={(e) => setLegalEmail(e.target.value)}
+                                            autoComplete="off"
+                                        />
+                                    </div>
+                                    <hr className="divider" />
+                                </div>
+                            )}
+
+                            {/* ── Enkel: inställningar för AI-mejl ── */}
+                            {requestPath === "simple" && emailSites.length > 0 && (
+                                <div style={{ marginBottom: 24 }}>
+                                    <hr className="divider" />
+                                    <h2>Inställningar för AI-genererat mejl</h2>
+                                    <div className="field">
+                                        <label>Typ av begäran</label>
+                                        <div className="chip-grid">
+                                            {REQUEST_TYPES.map((t) => (
+                                                <label className="chip" key={t.id}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={requestTypes.includes(t.id)}
+                                                        onChange={() => toggleRequestType(t.id)}
+                                                    />
+                                                    <span>{t.label}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="field">
+                                        <label>Tonalitet</label>
+                                        <select value={tone} onChange={(e) => setTone(e.target.value)}>
+                                            <option value="neutral">Neutral</option>
+                                            <option value="formal">Formell</option>
+                                            <option value="firm">Bestämd</option>
+                                        </select>
+                                    </div>
+                                    <hr className="divider" />
+                                </div>
+                            )}
+
+                            {/* ── Formulär-sajter: gemensam notering ── */}
+                            {formSites.length > 0 && requestPath === "simple" && (
+                                <p className="muted" style={{ fontSize: "0.82rem", marginBottom: 16 }}>
+                                    Obs: de flesta av dessa sajter kräver BankID för att godkänna borttagning via formuläret — det är oftast det snabbaste sättet.
+                                    Vill du <strong>inte</strong> använda BankID? Välj{" "}
+                                    <button type="button" onClick={() => setRequestPath("legal")} style={{ background: "none", border: "none", padding: 0, color: "rgba(16,32,86,0.86)", fontWeight: 600, cursor: "pointer", fontSize: "inherit", textDecoration: "underline" }}>Juridisk begäran</button>
+                                    {" "}och skicka ett formellt brev direkt till sajten.
+                                </p>
+                            )}
+                            {formSites.length > 0 && requestPath === "legal" && !personalNumber.trim() && (
+                                <small className="hint" style={{ display: "block", marginBottom: 16 }}>Fyll i personnummer ovan för att se den juridiska mallen per sajt.</small>
+                            )}
+
+                            {/* ── Formulär-sajter ── */}
+                            {formSites.map((site) => (
+                                <div key={site.name} style={{ marginBottom: 24 }}>
+                                    <h2>{site.name}</h2>
+                                    {requestPath === "simple" ? (
+                                        <>
+                                            <p style={{ margin: "4px 0 0", color: "#334155", fontSize: "0.9rem" }}>Fyll i deras borttagningsformulär på deras hemsida.</p>
+                                            <a href={site.removeUrl} target="_blank" rel="noopener noreferrer" style={{ marginTop: 10, display: "inline-block" }}>
+                                                <button className="btn" type="button">Öppna formulär →</button>
+                                            </a>
+                                        </>
+                                    ) : (
+                                        personalNumber.trim() ? (
+                                            <div>
+                                                <p style={{ margin: "4px 0 8px", color: "#334155", fontSize: "0.9rem" }}>
+                                                    Kopiera mallen och skicka den till sajtens GDPR-kontakt. Kontaktuppgifterna hittar du på deras hemsida.
+                                                </p>
+                                                <textarea
+                                                    readOnly
+                                                    value={buildLegalTemplate(site)}
+                                                    style={{ minHeight: 120, width: "100%", marginBottom: 6, fontSize: "0.8rem", boxSizing: "border-box" }}
+                                                />
+                                                <button
+                                                    className={copiedSite === site.name ? "btn" : "btn btn-secondary"}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(buildLegalTemplate(site));
+                                                        setCopiedSite(site.name);
+                                                        setTimeout(() => setCopiedSite(null), 2000);
+                                                    }}
+                                                >
+                                                    {copiedSite === site.name ? "Kopierat!" : "Kopiera mall"}
+                                                </button>
+                                            </div>
+                                        ) : null
+                                    )}
+                                </div>
+                            ))}
+
+                            {/* ── Mejl-sajter ── */}
+                            {emailSites.map((site) => (
+                                <div key={site.name} style={{ marginBottom: 24 }}>
+                                    <h2>{site.name}</h2>
+                                    {!generatedEmails[site.name] ? (
+                                        <button
+                                            className="btn"
+                                            type="button"
+                                            disabled={
+                                                loadingSite === site.name ||
+                                                (requestPath === "simple" && requestTypes.length === 0) ||
+                                                (requestPath === "legal" && !personalNumber.trim())
+                                            }
+                                            onClick={() => generateEmailForSite(site)}
+                                        >
+                                            {loadingSite === site.name
+                                                ? "Genererar..."
+                                                : requestPath === "legal"
+                                                ? "Generera juridisk mall"
+                                                : "Generera mejl med AI"}
+                                        </button>
+                                    ) : (
+                                        <div>
+                                            <textarea
+                                                readOnly
+                                                value={`Ämne: ${generatedEmails[site.name].subject}\n\n${generatedEmails[site.name].body}`}
+                                                style={{ minHeight: 160, width: "100%", marginBottom: 8 }}
+                                            />
+                                            <div style={{ display: "flex", gap: 8 }}>
+                                                <a href={mailtoLink(site)}>
+                                                    <button className="btn" type="button">Öppna i mejlklient</button>
+                                                </a>
+                                                <button
+                                                    className="btn btn-secondary"
+                                                    type="button"
+                                                    onClick={() => generateEmailForSite(site)}
+                                                    disabled={loadingSite === site.name}
+                                                >
+                                                    Generera om
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+
+                            {error && (
+                                <div style={{ marginTop: 8 }}>
+                                    <small className="hint">{error}</small>
+                                </div>
+                            )}
+
+                            <div className="actions">
+                                <button className="btn btn-secondary" type="button" onClick={() => { setError(""); setStep(3); }}>Tillbaka</button>
+                                <button className="btn" type="button" onClick={() => { setError(""); setStep(5); }}>Nästa</button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── STEG 5: Signera fullmakt ── */}
+                    {step === 5 && (
+                        <div>
+                            <StepIndicator current={5} total={5} />
+                            <h1>Signera fullmakt</h1>
+                            <p className="muted">Granska och godkänn dina begäranden. Detta är ditt sista steg.</p>
+                            <GDPRConsent
+                                userName={fullName}
+                                onComplete={(result) => {
+                                    setConsentResult(result);
+                                    setStep(6);
+                                }}
+                                onBack={() => setStep(4)}
+                            />
+                        </div>
+                    )}
+
+                    {/* ── STEG 6: Klar ── */}
+                    {step === 6 && (
+                        <div>
+                            <h1>Klart!</h1>
+                            <p className="muted">
+                                Du har skickat in borttagningsbegäranden för:
+                            </p>
+                            <ul style={{ marginBottom: 16 }}>
+                                {selectedRemoveSites.map((name) => (
+                                    <li key={name}>{name}</li>
+                                ))}
+                            </ul>
+                            <p className="muted">
+                                Enligt GDPR är företagen skyldiga att svara inom <strong>30 dagar</strong>.
+                            </p>
+                            <div className="actions">
+                                <button className="btn btn-secondary" type="button" onClick={onBack}>Tillbaka till start</button>
+                                <button className="btn" type="button" onClick={() => { setStep(1); setFullName(""); setCity(""); setSelectedSearchSites([]); setSelectedRemoveSites([]); setGeneratedEmails({}); }}>
+                                    Ny begäran
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
                 </div>
             </main>
         </div>
