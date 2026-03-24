@@ -14,6 +14,7 @@ export default function FirstPage() {
     const ref1 = useRef(null);
     const ref2 = useRef(null);
     const ref3 = useRef(null);
+    const ref4 = useRef(null);
 
     // Tre separata state-variabler, en per feature-div.
     // useState(false) — startar som false (osynlig) för alla tre.
@@ -24,6 +25,7 @@ export default function FirstPage() {
     const [isVisible1, setIsVisible1] = useState(false);
     const [isVisible2, setIsVisible2] = useState(false);
     const [isVisible3, setIsVisible3] = useState(false);
+    const [isVisible4, setIsVisible4] = useState(false);
 
     // useEffect(() => { Kör koden inuti en gång när sidan laddas ([] i slutet).
     useEffect(() => {
@@ -45,6 +47,7 @@ export default function FirstPage() {
                     if (entry.target === ref1.current) setIsVisible1(true)
                     if (entry.target === ref2.current) setIsVisible2(true)
                     if (entry.target === ref3.current) setIsVisible3(true)
+                    if (entry.target === ref4.current) setIsVisible4(true)
                 }
             });
         });
@@ -56,6 +59,7 @@ export default function FirstPage() {
         observer.observe(ref1.current)
         observer.observe(ref2.current)
         observer.observe(ref3.current)
+        observer.observe(ref4.current)
 
 
         // Disconnect watcher when site is closed
@@ -67,22 +71,23 @@ export default function FirstPage() {
             {/* Header icons */}
             {/* Notification icon. Scalable vector graphics (svg) from heroicons */} 
             <div className="header-icons">
-                <button className="notification-btn">
+                <button className="notification-btn" title="Notisar">
                     <svg className="bell-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                     </svg>
                 </button>
 
                 {/* Message icon. Scalable vector graphics (svg) from heroicons */}  
-                <button className="message-btn">
+                <button className="message-btn" title="Meddelanden">
                     <svg className="message-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                     </svg>
                 </button>
 
                 {/* Dashboard icon. Scalable vector graphics (svg) from heroicons (change name from dashboard button) */}  
-                <button 
+                <button
                     className="dashboard-button"
+                    title="Dashboard"
                     onClick={() => 
                     (isAuthenticated ? navigate("/dashboard") : navigate ("/login"))}>
                         <svg className="dashboard-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -124,22 +129,50 @@ export default function FirstPage() {
         {/* feature div for different background color */}  
         <section className="features">
             <div className="feature-list">
-                <div ref= {ref1} className= {isVisible1 ? "feature visible" : "feature"}>
-                    <h3>Skapa konto</h3>
-                    <p>Registrera dig säkert och enkelt</p>
-                    <button className="get-get-btn" onClick={() => navigate("/login")}>
-                        Logga in
-                    </button>
+                <div ref={ref1} className={isVisible1 ? "feature visible" : "feature"}>
+                    <div className="feature-row">
+                        <img src="./frontendlogga.png" alt="" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                        <div>
+                            <h3>Skapa konto</h3>
+                            <p>Registrera dig säkert och enkelt</p>
+                            <button className="get-get-btn" onClick={() => navigate("/login")}>Logga in</button>
+                        </div>
+                    </div>
                 </div>
 
-                <div ref = {ref2} className={isVisible2 ? "feature visible" : "feature"}>
-                    <h3>Generera begäran</h3>
-                    <p>Få juridiskt korrekt GDPR-begäran</p>
+                <div ref={ref2} className={isVisible2 ? "feature visible" : "feature"}>
+                    <div className="feature-row">
+                        <img src="./frontendlogga.png" alt="" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                        <div>
+                            <h3>Generera begäran</h3>
+                            <p>Få juridiskt korrekt GDPR-begäran</p>
+                        </div>
+                    </div>
                 </div>
 
-                <div ref = {ref3} className={isVisible3 ? "feature visible" : "feature"}>
-                    <h3>Följ upp</h3>
-                    <p>Spåra status och få påminnelser</p>
+                <div ref={ref3} className={isVisible3 ? "feature visible" : "feature"}>
+                    <div className="feature-row">
+                        <img src="./frontendlogga.png" alt="" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                        <div>
+                            <h3>Följ upp</h3>
+                            <p>Spåra status och få påminnelser</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div ref={ref4} className={isVisible4 ? "feature visible" : "feature"}>
+                    <div className="feature-row">
+                        <img src="./frontendlogga.png" alt="" style={{ width: 44, height: 44, flexShrink: 0 }} />
+                        <div>
+                            <h3>Har du frågor?</h3>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                                <a href="/resurser" style={{ color: "inherit" }}>Vad är mina rättigheter?</a>
+                                <a href="/resurser" style={{ color: "inherit" }}>Vad är artikel 17?</a>
+                                <a href="/resurser" style={{ color: "inherit" }}>Varför blev mitt ärende nekat och vad är nästa steg?</a>
+                                <a href="/resurser" style={{ color: "inherit" }}>Inom hur lång tid ska ett företag svara?</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
