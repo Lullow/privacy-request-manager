@@ -58,11 +58,46 @@ const REQUEST_TYPES = [
     { id: "portability", label: "Dataportabilitet" },
 ];
 
-function StepIndicator({ current, total }) {
+const STEP_LABELS = ["Ditt namn", "Sök upp dig", "Träffar", "Ta bort", "Signera"];
+
+function StepIndicator({ current, onNavigate }) {
     return (
-        <p className="muted" style={{ fontSize: "0.85rem", marginBottom: 16 }}>
-            Steg {current} av {total}
-        </p>
+        <div style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", gap: 6 }}>
+                {STEP_LABELS.map((label, i) => {
+                    const stepNum = i + 1;
+                    const done = stepNum < current;
+                    const active = stepNum === current;
+                    const clickable = done;
+                    return (
+                        <div
+                            key={label}
+                            onClick={() => clickable && onNavigate(stepNum)}
+                            style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: clickable ? "pointer" : "default" }}
+                        >
+                            <div style={{
+                                height: 6,
+                                width: "100%",
+                                borderRadius: 999,
+                                background: done || active ? "rgba(16, 32, 86, 0.85)" : "#e2e8f0",
+                                opacity: active ? 1 : done ? 0.5 : 1,
+                                transition: "all 0.3s ease",
+                            }} />
+                            <span style={{
+                                fontSize: "0.72rem",
+                                fontWeight: active ? 700 : 400,
+                                color: active ? "rgba(16, 32, 86, 0.9)" : done ? "rgba(16, 32, 86, 0.6)" : "#94a3b8",
+                                transition: "color 0.3s ease",
+                                whiteSpace: "nowrap",
+                                textDecoration: clickable ? "underline" : "none",
+                            }}>
+                                {label}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
     );
 }
 
@@ -255,7 +290,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 1: Namn & ort ── */}
                     {step === 1 && (
                         <div>
-                            <StepIndicator current={1} total={5} />
+                            <StepIndicator current={1} onNavigate={setStep} />
                             <h1>Vem är du?</h1>
                             <p className="muted">Ange ditt namn och ort för att söka upp dig på personregistren.</p>
 
@@ -281,6 +316,13 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 />
                             </div>
 
+                            <small className="muted" style={{ display: "block", marginTop: 16, fontSize: "0.8rem" }}>
+                                Dina uppgifter används enbart för att generera begäran.{" "}
+                                <a href="/integritetspolicy" style={{ color: "inherit", textDecoration: "underline" }}>
+                                    Läs hur vi hanterar dina uppgifter.
+                                </a>
+                            </small>
+
                             {error && <small className="hint" style={{ display: "block", marginBottom: 8 }}>{error}</small>}
                             <div className="actions">
                                 <button className="btn btn-secondary" type="button" onClick={onBack}>Avbryt</button>
@@ -305,7 +347,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 2: Sök upp dig ── */}
                     {step === 2 && (
                         <div>
-                            <StepIndicator current={2} total={5} />
+                            <StepIndicator current={2} onNavigate={setStep} />
                             <h1>Sök upp dig</h1>
                             <p className="muted">
                                 Välj sajter du vill söka på och klicka på "Sök upp mig". Se om du har träffar.
@@ -325,25 +367,30 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                             </div>
 
                             {selectedSearchSites.length > 0 && (
-                                <div style={{ marginTop: 12 }}>
-                                    <small className="muted">
-                                        OBS: Detta öppnar {selectedSearchSites.length} ny{selectedSearchSites.length > 1 ? "a" : ""} flik{selectedSearchSites.length > 1 ? "ar" : ""}.
-                                        {selectedSearchSites.length > 1 && " Om flikar blockeras — tillåt popup-fönster i webbläsarens adressfält."}
-                                    </small>
-                                    <div style={{ marginTop: 8 }}>
-                                        <button
-                                            className="btn"
-                                            type="button"
-                                            onClick={() => {
-                                                selectedSearchSites.forEach((name) => {
-                                                    const site = SITES.find((s) => s.name === name);
-                                                    if (site) window.open(site.searchUrl(fullName.trim(), city.trim()), "_blank");
-                                                });
-                                            }}
-                                        >
-                                            Sök upp mig
-                                        </button>
-                                    </div>
+                                <div style={{ marginTop: 16, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                                    <small className="muted" style={{ marginRight: 4 }}>Öppna:</small>
+                                    {selectedSearchSites.map((name) => {
+                                        const site = SITES.find((s) => s.name === name);
+                                        if (!site) return null;
+                                        return (
+                                            <a
+                                                key={name}
+                                                href={site.searchUrl(fullName.trim(), city.trim())}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                style={{
+                                                    fontSize: "0.82rem",
+                                                    padding: "4px 12px",
+                                                    borderRadius: 999,
+                                                    border: "1px solid currentColor",
+                                                    whiteSpace: "nowrap",
+                                                    textDecoration: "none",
+                                                }}
+                                            >
+                                                {name} ↗
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             )}
 
@@ -357,7 +404,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 3: Var hittades du? ── */}
                     {step === 3 && (
                         <div>
-                            <StepIndicator current={3} total={5} />
+                            <StepIndicator current={3} onNavigate={setStep} />
                             <h1>Var hittades du?</h1>
                             <p className="muted">Välj de sajter där du fick träff och vill bli borttagen från.</p>
 
@@ -398,7 +445,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 4: Ta bort dig ── */}
                     {step === 4 && (
                         <div>
-                            <StepIndicator current={4} total={5} />
+                            <StepIndicator current={4} onNavigate={setStep} />
                             <h1>Ta bort dina uppgifter</h1>
                             <p className="muted">Följ instruktionerna nedan för varje sajt. Du signerar i nästa steg.</p>
 
@@ -642,7 +689,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 5: Signera fullmakt ── */}
                     {step === 5 && (
                         <div>
-                            <StepIndicator current={5} total={5} />
+                            <StepIndicator current={5} onNavigate={setStep} />
                             <h1>Signera fullmakt</h1>
                             <p className="muted">Granska och godkänn dina begäranden. Detta är ditt sista steg.</p>
                             <GDPRConsent
