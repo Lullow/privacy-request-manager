@@ -237,16 +237,6 @@ return(
     </div>
 
 
-        {/* Question section */} 
-<section className="dashboard-under-panel">
-    <div className="questions">
-        <h3>Har du frågor?</h3>
-        <h5>Vad är mina rättigheter?</h5>
-        <h5>Vad är paragraf 17?</h5>
-        <h5>Varför blev mitt ärende nekat och vad är nästa steg?</h5>
-        <h5>Inom hur lång tid ska ett företag svara?</h5>
-    </div>
-</section>
 
 
 </section>
