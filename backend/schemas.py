@@ -97,6 +97,13 @@ class GenerateMessageRequest(BaseModel):
     # Field(default_factory=list) är säkrare än att använda en tom lista direkt som default.
     request_types: list[str] = Field(default_factory=list)
 
+    # Juridisk begäran — aktiveras när frontend skickar use_legal_template=True
+    use_legal_template: bool = False
+    personal_number: str | None = None   # Personnummer (ej sparat i DB)
+    legal_address: str | None = None
+    legal_phone: str | None = None
+    legal_email: str | None = None
+
 
 # ~ AI GENERATE - RESPONSE ~
 class GenerateMessageResponse(BaseModel):
