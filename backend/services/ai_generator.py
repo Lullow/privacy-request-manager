@@ -20,7 +20,7 @@ def generate_legal_gdpr_message(
 
     identity_lines = [
         f"• Fullständigt namn: {full_name}",
-        f"• Personnummer: {personal_number}",
+        "• Personnummer: [PERSONNUMMER]",
     ]
     if birth_date:
         identity_lines.append(f"• Födelsedag: {birth_date}")
@@ -34,7 +34,7 @@ def generate_legal_gdpr_message(
 
     message_body = f"""Hej,
 
-Jag agerar som ombud för {full_name}, personnummer {personal_number}, med stöd av bifogad fullmakt. Denna begäran görs i enlighet med artikel 17 i EU:s dataskyddsförordning (GDPR).
+Jag agerar som ombud för {full_name}, personnummer [PERSONNUMMER], med stöd av bifogad fullmakt. Denna begäran görs i enlighet med artikel 17 i EU:s dataskyddsförordning (GDPR).
 
 Den registrerade begär att samtliga personuppgifter som rör honom/henne raderas från era system och tjänster, inklusive men inte begränsat till:
 • Namn, adress och kontaktuppgifter
