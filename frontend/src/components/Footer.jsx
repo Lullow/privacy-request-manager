@@ -3,6 +3,8 @@ export default function Footer() {
         <footer className="footer">
             <span>© 2026 Privacy Request Manager</span>
             <span className="footer-dot">·</span>
+            <a href="/om-oss" className="footer-link">Om oss</a>
+            <span className="footer-dot">·</span>
             <a href="/resurser" className="footer-link">GDPR-resurser</a>
             <span className="footer-dot">·</span>
             <a href="/integritetspolicy" className="footer-link">Integritetspolicy</a>
