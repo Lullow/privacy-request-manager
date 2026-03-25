@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import { createPrivacyRequest, generateMessage } from "../api/privacyRequestsApi";
@@ -14,24 +14,54 @@ const SITES = [
         searchUrl: (name, city) => `https://www.ratsit.se/sok/person?vem=${toSearchQuery(name)}${city ? `&ort=${toSearchQuery(city)}` : ""}&m=0&k=0&r=0&er=0&b=0&eb=0&amin=16&amax=120&fon=1&page=1`,
         removeMethod: "form",
         removeUrl: "https://www.ratsit.se/tabort",
+        removeEmail: "kundservice@ratsit.se",
+        removeSteps: [
+            "Kryssa i villkorsrutan och klicka på \"Ta bort dig från Ratsit\"",
+            "Välj \"Mobilt BankID\" eller \"BankID på denna enhet\"",
+            "Skanna QR-koden med BankID-appen",
+            "Klart — dina uppgifter tas bort inom 24 timmar",
+        ],
     },
     {
         name: "Mrkoll",
         searchUrl: (name, city) => `https://mrkoll.se/resultat?n=${toSearchQuery(name)}&c=${city ? toSearchQuery(city) : ""}&min=16&max=120&sex=a&c_stat=all&company=`,
         removeMethod: "form",
         removeUrl: "https://mrkoll.se/om/kundservice-publicerade-uppgifter/",
+        removeEmail: "hej@nusvar.se",
+        removeSteps: [
+            "Klicka på \"Logga in med Mobilt BankID\"",
+            "Klicka på \"Starta inloggning med Mobilt BankID\"",
+            "Skanna QR-koden med BankID-appen",
+            "Välj att dölja ditt telefonnummer och/eller adress under \"Ändra uppgifter\"",
+        ],
+        removeNote: "Mrkoll döljer uppgifterna — de raderas inte permanent. Vill du begära permanent radering? Välj Juridisk begäran.",
     },
     {
         name: "Hitta.se",
         searchUrl: (name, city) => `https://www.hitta.se/s%C3%B6k?vad=${encodeURIComponent(city ? `${name} ${city}` : name)}`,
         removeMethod: "form",
         removeUrl: "https://www.hitta.se/kontakta-oss/ta-bort-kontaktsida",
+        removeEmail: "kundservice@hitta.se",
+        removeStartUrl: (name, city) => `https://www.hitta.se/s%C3%B6k?vad=${encodeURIComponent(city ? `${name} ${city}` : name)}`,
+        removeSteps: [
+            "Sök på ditt namn i sökfältet",
+            "Klicka på dig själv i sökresultaten",
+            "Klicka på \"Ta bort\" på din profilsida",
+            "Logga in med BankID och skanna QR-koden",
+            "Bekräfta borttagningen — klart!",
+        ],
     },
     {
         name: "Eniro",
         searchUrl: (name, city) => `https://www.eniro.se/${toSearchQuery(city ? `${name} ${city}` : name)}/personer`,
         removeMethod: "form",
         removeUrl: "https://personer-uppdatera.eniro.se/",
+        removeEmail: "info@eniro.com",
+        removeSteps: [
+            "Sök upp ditt namn på sidan",
+            "Logga in med BankID och skanna QR-koden",
+            "Följ instruktionerna på sajten för att uppdatera eller ta bort dina uppgifter",
+        ],
     },
     {
         name: "Birthday",
@@ -121,7 +151,6 @@ function FormPage() {
     const [requestTypes, setRequestTypes] = useState(s.requestTypes || ["delete"]);
     const [tone, setTone] = useState(s.tone || "neutral");
     const [requestPath, setRequestPath] = useState(s.requestPath || "simple");
-    const [consentResult, setConsentResult] = useState(null);
     const [generatedEmails, setGeneratedEmails] = useState({});
     const [loadingSite, setLoadingSite] = useState(null);
     const [copiedSite, setCopiedSite] = useState(null);
@@ -223,7 +252,7 @@ function FormPage() {
         }
     }
 
-    function buildLegalTemplate(site) {
+    function buildLegalTemplate() {
         const identityLines = [
             `• Fullständigt namn: ${fullName}`,
             `• Personnummer: ${personalNumber}`,
@@ -577,11 +606,12 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
 
                             {/* ── Formulär-sajter: gemensam notering ── */}
                             {formSites.length > 0 && requestPath === "simple" && (
-                                <p className="muted" style={{ fontSize: "0.82rem", marginBottom: 16 }}>
-                                    Obs: de flesta av dessa sajter kräver BankID för att godkänna borttagning via formuläret — det är oftast det snabbaste sättet.
-                                    Vill du <strong>inte</strong> använda BankID? Välj{" "}
+                                <p className="muted" style={{ fontSize: "0.82rem", marginBottom: 16, lineHeight: 1.7 }}>
+                                    De flesta sajter kräver BankID för att godkänna borttagning via formuläret — det är oftast det snabbaste sättet.
+                                    Har du inte BankID, eller vill inte använda det? Välj{" "}
                                     <button type="button" onClick={() => setRequestPath("legal")} style={{ background: "none", border: "none", padding: 0, color: "rgba(16,32,86,0.86)", fontWeight: 600, cursor: "pointer", fontSize: "inherit", textDecoration: "underline" }}>Juridisk begäran</button>
-                                    {" "}och skicka ett formellt brev direkt till sajten.
+                                    {" "}— vi genererar ett formellt brev och skickar det å dina vägnar.
+                                    Skulle sajten neka din begäran hjälper vi dig att motargumentera på ett korrekt juridiskt sätt.
                                 </p>
                             )}
                             {formSites.length > 0 && requestPath === "legal" && !personalNumber.trim() && (
@@ -594,9 +624,22 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                     <h2>{site.name}</h2>
                                     {requestPath === "simple" ? (
                                         <>
-                                            <p style={{ margin: "4px 0 0", color: "#334155", fontSize: "0.9rem" }}>Fyll i deras borttagningsformulär på deras hemsida.</p>
-                                            <a href={site.removeUrl} target="_blank" rel="noopener noreferrer" style={{ marginTop: 10, display: "inline-block" }}>
-                                                <button className="btn" type="button">Öppna formulär →</button>
+                                            {site.removeNote && (
+                                                <div style={{ background: "#fff8e1", border: "1px solid #f59e0b", borderRadius: 8, padding: "8px 14px", margin: "8px 0 10px", fontSize: "0.84rem", color: "#92400e" }}>
+                                                    ⚠ {site.removeNote}
+                                                </div>
+                                            )}
+                                            <ol style={{ margin: "8px 0 14px", paddingLeft: 22, color: "#334155", fontSize: "0.9rem", lineHeight: 2 }}>
+                                                {(site.removeSteps || []).map((text, idx) => (
+                                                    <li key={idx}>{text}</li>
+                                                ))}
+                                            </ol>
+                                            <a
+                                                href={site.removeStartUrl ? site.removeStartUrl(fullName.trim(), city.trim()) : site.removeUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                <button className="btn" type="button">Öppna {site.name} →</button>
                                             </a>
                                         </>
                                     ) : (
@@ -607,14 +650,14 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                                 </p>
                                                 <textarea
                                                     readOnly
-                                                    value={buildLegalTemplate(site)}
+                                                    value={buildLegalTemplate()}
                                                     style={{ minHeight: 120, width: "100%", marginBottom: 6, fontSize: "0.8rem", boxSizing: "border-box" }}
                                                 />
                                                 <button
                                                     className={copiedSite === site.name ? "btn" : "btn btn-secondary"}
                                                     type="button"
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(buildLegalTemplate(site));
+                                                        navigator.clipboard.writeText(buildLegalTemplate());
                                                         setCopiedSite(site.name);
                                                         setTimeout(() => setCopiedSite(null), 2000);
                                                     }}
@@ -694,8 +737,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                             <p className="muted">Granska och godkänn dina begäranden. Detta är ditt sista steg.</p>
                             <GDPRConsent
                                 userName={fullName}
-                                onComplete={(result) => {
-                                    setConsentResult(result);
+                                onComplete={() => {
                                     setStep(6);
                                 }}
                                 onBack={() => setStep(4)}
