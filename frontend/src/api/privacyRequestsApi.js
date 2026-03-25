@@ -63,3 +63,11 @@ export function generateMessage(id, data) {
 export function getRequestMessages(id) {
     return apiFetch(`/privacy-requests/${id}/messages`);
 }
+
+// Skickar det genererade mejlet till sajten å användarens vägnar.
+// Kräver att ett meddelande redan genererats för ärendet (via generateMessage).
+export function sendRequest(id) {
+    return apiFetch(`/privacy-requests/${id}/send`, {
+        method: "POST",
+    });
+}
