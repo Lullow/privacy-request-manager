@@ -59,12 +59,13 @@ export async function loginUser(data) {
 
 
 export async function getMe() {
-    // return apiFetch("/auth/me") — skickar en GET-request till /api/auth/me.
     return apiFetch("/auth/me");
-    // Får tillbaka info om den inloggade användaren
-    // Backend svarar med:
-    // { id: 1, email: "bella@gmail.com", created_at: "..." }
+}
 
+export async function verifyEmail(token) {
+    const res = await apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+    setToken(res.access_token);
+    return res;
 }
 
 // LoginPage anropar loginUser()
