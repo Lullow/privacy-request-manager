@@ -119,6 +119,7 @@ function MessagesPage() {
 
             <div className="messages-main">
                 <div className="dashboard-header">
+                    <button className="back-btn" onClick={() => navigate("/dashboard")}>← Tillbaka</button>
                     <h1>Meddelanden</h1>
                     <div className="header-icons">
                         <NotificationBell />
