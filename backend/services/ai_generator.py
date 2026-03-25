@@ -6,6 +6,7 @@ def generate_legal_gdpr_message(
     company_name: str,
     full_name: str,
     personal_number: str,
+    birth_date: str | None = None,
     address: str | None = None,
     phone: str | None = None,
     registrant_email: str | None = None,
@@ -21,6 +22,8 @@ def generate_legal_gdpr_message(
         f"• Fullständigt namn: {full_name}",
         f"• Personnummer: {personal_number}",
     ]
+    if birth_date:
+        identity_lines.append(f"• Födelsedag: {birth_date}")
     if address:
         identity_lines.append(f"• Adress: {address}")
     if phone:
@@ -89,6 +92,7 @@ def generate_gdpr_message(
     full_name: str,
     city: str | None,
     profile_url: str | None,
+    birth_date: str | None = None,
     tone: str = "neutral",
     message_type: str = "initial_request",
     request_types: list[str] | None = None,
@@ -115,6 +119,8 @@ def generate_gdpr_message(
     requested_actions = ", ".join(translated_types) if translated_types else "radering av personuppgifter"
 
     optional_details = []
+    if birth_date:
+        optional_details.append(f"Födelsedag: {birth_date}")
     if city:
         optional_details.append(f"Ort: {city}")
     if profile_url:
