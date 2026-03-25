@@ -380,8 +380,24 @@ body {
     justify-content: space-between;
     align-items: flex-start;
     gap: 2px;
-    color: rgba(16, 32, 86, 0.892);;
+    color: rgba(16, 32, 86, 0.892);
 
+}
+
+.back-btn {
+    position: absolute;
+    top: 28px;
+    left: 28px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: rgba(16, 32, 86, 0.6);
+    padding: 4px 0;
+    transition: color 0.15s;
+}
+.back-btn:hover {
+    color: rgba(16, 32, 86, 1);
 }
 
 .dashboard-header h1 {
@@ -809,6 +825,30 @@ body {
     box-shadow: 0 10px 30px rgba(2, 6, 23, 0.12);
     padding: 16px;
     z-index: 100;
+}
+
+.notification-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.notification-dropdown-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(16, 32, 86, 0.7);
+}
+.notification-close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: rgba(16, 32, 86, 0.5);
+    padding: 0;
+    line-height: 1;
+}
+.notification-close-btn:hover {
+    color: rgba(16, 32, 86, 1);
 }
 
 .notification-item {
