@@ -66,8 +66,9 @@ export function getRequestMessages(id) {
 
 // Skickar det genererade mejlet till sajten å användarens vägnar.
 // Kräver att ett meddelande redan genererats för ärendet (via generateMessage).
-export function sendRequest(id) {
+export function sendRequest(id, personalNumber = null) {
     return apiFetch(`/privacy-requests/${id}/send`, {
         method: "POST",
+        body: personalNumber ? { personal_number: personalNumber } : {},
     });
 }
