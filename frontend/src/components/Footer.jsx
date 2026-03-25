@@ -1,7 +1,7 @@
 export default function Footer() {
     return (
         <footer className="footer">
-            <span>© 2026 Privacy Request Manager</span>
+            <span>© 2026 <a href="/" className="footer-link">Privacy Request Manager</a></span>
             <span className="footer-dot">·</span>
             <a href="/om-oss" className="footer-link">Om oss</a>
             <span className="footer-dot">·</span>
