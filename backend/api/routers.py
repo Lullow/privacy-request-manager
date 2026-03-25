@@ -62,8 +62,9 @@ async def create_privacy_request(
         company_name=payload.company_name,         # tar värdet från payload
         company_email=str(payload.company_email),  # EmailStr -> str för DB (funkar fint)
         full_name=payload.full_name,               # matchar modellen
-        city=payload.city, # kan vara None
-        profile_url=payload.profile_url,  # kan vara None
+        city=payload.city,                         # kan vara None
+        birth_date=payload.birth_date,             # kan vara None
+        profile_url=payload.profile_url,           # kan vara None
         tone=payload.tone, # Sparar användarens valda ton/stil redan när request skapas (AI-integrering)
         status="draft",     # Sätter första statusen till "draft". Det betyder att requestet finns i databasen, men att inget AI-meddelande har genererats ännu
         user_id=current_user.id,
@@ -224,11 +225,14 @@ async def generate_request_message(
         raise HTTPException(status_code=404, detail="Privacy request not found")
     
     # Väljer rätt generator beroende på om juridisk mall begärts
+    birth_date = payload.birth_date or request_row.birth_date
+
     if payload.use_legal_template:
         generated = generate_legal_gdpr_message(
             company_name=request_row.company_name,
             full_name=request_row.full_name,
             personal_number=payload.personal_number or "",
+            birth_date=birth_date,
             address=payload.legal_address,
             phone=payload.legal_phone,
             registrant_email=payload.legal_email,
@@ -240,6 +244,7 @@ async def generate_request_message(
             full_name=request_row.full_name,
             city=request_row.city,
             profile_url=request_row.profile_url,
+            birth_date=birth_date,
             tone=payload.tone,
             message_type=payload.message_type,
             request_types=payload.request_types,
