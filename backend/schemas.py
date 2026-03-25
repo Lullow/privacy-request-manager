@@ -59,6 +59,7 @@ class PrivacyRequestUpdate(BaseModel):
 class UserCreate(BaseModel):
     email: EmailStr
     password: str  # klartext här — hashas sedan i auth-logiken
+    redirect_to: str | None = None  # Sidan att skicka användaren till efter e-postverifiering
 
 
 # Vad API:t skickar tillbaka efter register/login (aldrig password!) password från frontend används bara för att hasha och spara password_hash i databasen — sedan kastas klartext-lösenordet.
@@ -123,3 +124,10 @@ class GenerateMessageResponse(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
+
+
+# ~ SEND REQUEST - BODY ~
+# Payload för POST /{request_id}/send
+# personal_number skickas från frontend vid juridisk begäran för att substituera [PERSONNUMMER]
+class SendRequestBody(BaseModel):
+    personal_number: str | None = None
