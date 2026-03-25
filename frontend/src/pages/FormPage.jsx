@@ -158,6 +158,8 @@ function FormPage() {
     const [loadingSite, setLoadingSite] = useState(null);
     const [copiedSite, setCopiedSite] = useState(null);
     const [error, setError] = useState("");
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [confirmedData, setConfirmedData] = useState(false);
 
     // Juridiska fält — sparas INTE i sessionStorage
     const [personalNumber, setPersonalNumber] = useState("");
@@ -316,14 +318,14 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
         return `mailto:${site.removeEmail}?subject=${subject}&body=${encodeURIComponent(buildLegalTemplate())}`;
     }
 
-    async function handleSendAll(ids) {
+    async function handleSendAll(ids, personalNum = null) {
         const entries = Object.entries(ids);
         if (entries.length === 0) return;
         await Promise.all(
             entries.map(async ([siteName, id]) => {
                 setSendStatus((prev) => ({ ...prev, [siteName]: "sending" }));
                 try {
-                    await sendRequest(id);
+                    await sendRequest(id, personalNum);
                     setSendStatus((prev) => ({ ...prev, [siteName]: "sent" }));
                 } catch {
                     setSendStatus((prev) => ({ ...prev, [siteName]: "failed" }));
@@ -430,14 +432,35 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 />
                             </div>
 
-                            <small className="muted" style={{ display: "block", marginTop: 16, fontSize: "0.8rem" }}>
-                                Dina uppgifter används enbart för att generera begäran.{" "}
-                                <a href="/integritetspolicy" style={{ color: "inherit", textDecoration: "underline" }}>
-                                    Läs hur vi hanterar dina uppgifter.
-                                </a>
-                            </small>
+                            <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+                                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={acceptedTerms}
+                                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                        style={{ marginTop: 3, flexShrink: 0 }}
+                                    />
+                                    <span className="muted" style={{ fontSize: "0.82rem", lineHeight: 1.55 }}>
+                                        Jag har läst och godkänner{" "}
+                                        <a href="/integritetspolicy" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>integritetspolicyn</a>
+                                        {" "}och{" "}
+                                        <a href="/villkor" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "underline" }}>användarvillkoren</a>.
+                                    </span>
+                                </label>
+                                <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer" }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={confirmedData}
+                                        onChange={(e) => setConfirmedData(e.target.checked)}
+                                        style={{ marginTop: 3, flexShrink: 0 }}
+                                    />
+                                    <span className="muted" style={{ fontSize: "0.82rem", lineHeight: 1.55 }}>
+                                        Jag bekräftar att uppgifterna jag lämnar är korrekta och att Privacy Request Manager får behandla dem för att skapa och skicka min begäran.
+                                    </span>
+                                </label>
+                            </div>
 
-                            {error && <small className="hint" style={{ display: "block", marginBottom: 8 }}>{error}</small>}
+                            {error && <small className="hint" style={{ display: "block", marginTop: 8, marginBottom: 0 }}>{error}</small>}
                             <div className="actions">
                                 <button className="btn btn-secondary" type="button" onClick={onBack}>Avbryt</button>
                                 <button
@@ -446,6 +469,10 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                     onClick={() => {
                                         if (!fullName.trim()) {
                                             setError("Fyll i ditt namn för att fortsätta.");
+                                            return;
+                                        }
+                                        if (!acceptedTerms || !confirmedData) {
+                                            setError("Du behöver godkänna villkoren för att fortsätta.");
                                             return;
                                         }
                                         setError("");
@@ -829,7 +856,10 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 userName={fullName}
                                 onComplete={() => {
                                     setStep(6);
-                                    handleSendAll(requestIds);
+                                    handleSendAll(
+                                        requestIds,
+                                        requestPath === "legal" ? personalNumber : null
+                                    );
                                 }}
                                 onBack={() => setStep(4)}
                             />
