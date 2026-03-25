@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
-import { createPrivacyRequest, generateMessage } from "../api/privacyRequestsApi";
+import { createPrivacyRequest, generateMessage, sendRequest } from "../api/privacyRequestsApi";
 import GDPRConsent from "../components/GDPRConsent";
 
 function toSearchQuery(name) {
@@ -151,6 +151,9 @@ function FormPage() {
     const [tone, setTone] = useState(s.tone || "neutral");
     const [requestPath, setRequestPath] = useState(s.requestPath || "simple");
     const [generatedEmails, setGeneratedEmails] = useState({});
+    const [requestIds, setRequestIds] = useState({});   // { [sajtnamn]: backendId }
+    const [sendStatus, setSendStatus] = useState({});   // { [sajtnamn]: "sending"|"sent"|"failed" }
+    const [isPreparingStep5, setIsPreparingStep5] = useState(false);
     const [loadingSite, setLoadingSite] = useState(null);
     const [copiedSite, setCopiedSite] = useState(null);
     const [error, setError] = useState("");
@@ -228,6 +231,7 @@ function FormPage() {
                 profile_url: null,
                 tone,
             });
+            setRequestIds((prev) => ({ ...prev, [site.name]: requestData.id }));
             const msgPayload = { tone, message_type: "initial_request", request_types: requestTypes };
             if (requestPath === "legal") {
                 msgPayload.use_legal_template = true;
@@ -299,6 +303,68 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
         const email = generatedEmails[site.name];
         if (!email) return "#";
         return `mailto:${site.removeEmail}?subject=${encodeURIComponent(email.subject)}&body=${encodeURIComponent(email.body)}`;
+    }
+
+    function getMailtoFallback(site) {
+        if (generatedEmails[site.name]) return mailtoLink(site);
+        const subject = encodeURIComponent(`Raderingsbegäran GDPR – ${fullName}`);
+        return `mailto:${site.removeEmail}?subject=${subject}&body=${encodeURIComponent(buildLegalTemplate())}`;
+    }
+
+    async function handleSendAll(ids) {
+        const entries = Object.entries(ids);
+        if (entries.length === 0) return;
+        await Promise.all(
+            entries.map(async ([siteName, id]) => {
+                setSendStatus((prev) => ({ ...prev, [siteName]: "sending" }));
+                try {
+                    await sendRequest(id);
+                    setSendStatus((prev) => ({ ...prev, [siteName]: "sent" }));
+                } catch {
+                    setSendStatus((prev) => ({ ...prev, [siteName]: "failed" }));
+                }
+            })
+        );
+    }
+
+    async function prepareAndGoToStep5() {
+        setError("");
+        if (requestPath === "legal" && personalNumber.trim() && formSites.length > 0) {
+            setIsPreparingStep5(true);
+            try {
+                const newIds = { ...requestIds };
+                for (const site of formSites) {
+                    if (newIds[site.name]) continue;
+                    const req = await createPrivacyRequest({
+                        company_name: site.name,
+                        company_email: site.removeEmail,
+                        full_name: fullName,
+                        city: city || null,
+                        profile_url: null,
+                        tone,
+                    });
+                    const msgPayload = {
+                        tone,
+                        message_type: "initial_request",
+                        request_types: requestTypes,
+                        use_legal_template: true,
+                        personal_number: personalNumber.trim(),
+                    };
+                    if (legalAddress.trim()) msgPayload.legal_address = legalAddress.trim();
+                    if (legalPhone.trim()) msgPayload.legal_phone = legalPhone.trim();
+                    if (legalEmail.trim()) msgPayload.legal_email = legalEmail.trim();
+                    await generateMessage(req.id, msgPayload);
+                    newIds[site.name] = req.id;
+                }
+                setRequestIds(newIds);
+            } catch (err) {
+                setError("Kunde inte förbereda alla begäranden: " + (err.message || "Något gick fel."));
+                setIsPreparingStep5(false);
+                return;
+            }
+            setIsPreparingStep5(false);
+        }
+        setStep(5);
     }
 
     const emailSites = selectedRemoveSites
@@ -726,7 +792,9 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
 
                             <div className="actions">
                                 <button className="btn btn-secondary" type="button" onClick={() => { setError(""); setStep(3); }}>Tillbaka</button>
-                                <button className="btn" type="button" onClick={() => { setError(""); setStep(5); }}>Nästa</button>
+                                <button className="btn" type="button" onClick={prepareAndGoToStep5} disabled={isPreparingStep5}>
+                                    {isPreparingStep5 ? "Förbereder..." : "Nästa"}
+                                </button>
                             </div>
                         </div>
                     )}
@@ -741,6 +809,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 userName={fullName}
                                 onComplete={() => {
                                     setStep(6);
+                                    handleSendAll(requestIds);
                                 }}
                                 onBack={() => setStep(4)}
                             />
@@ -750,21 +819,51 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                     {/* ── STEG 6: Klar ── */}
                     {step === 6 && (
                         <div>
-                            <h1>Klart!</h1>
-                            <p className="muted">
-                                Du har skickat in borttagningsbegäranden för:
+                            <h1>Begäranden inskickade!</h1>
+                            <p className="muted" style={{ marginBottom: 20 }}>
+                                Vi skickar dina raderingsbegäranden. Företagen är skyldiga att svara inom <strong>30 dagar</strong> enligt GDPR.
                             </p>
-                            <ul style={{ marginBottom: 16 }}>
-                                {selectedRemoveSites.map((name) => (
-                                    <li key={name}>{name}</li>
-                                ))}
-                            </ul>
-                            <p className="muted">
-                                Enligt GDPR är företagen skyldiga att svara inom <strong>30 dagar</strong>.
-                            </p>
+
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                                {selectedRemoveSites.map((name) => {
+                                    const site = SITES.find((s) => s.name === name);
+                                    const status = sendStatus[name];
+                                    const hasRequest = !!requestIds[name];
+                                    const isBankId = !hasRequest && site?.removeMethod === "form" && requestPath === "simple";
+
+                                    return (
+                                        <div key={name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "#f8fafc", border: "1px solid #e2e8f0" }}>
+                                            <span style={{ fontWeight: 600 }}>{name}</span>
+                                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                                {isBankId ? (
+                                                    <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Hanteras via BankID</span>
+                                                ) : status === "sent" ? (
+                                                    <span style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 600 }}>✓ Skickat</span>
+                                                ) : status === "failed" ? (
+                                                    <>
+                                                        <span style={{ fontSize: "0.82rem", color: "#dc2626" }}>Misslyckades</span>
+                                                        {site && (
+                                                            <a href={getMailtoFallback(site)} style={{ fontSize: "0.78rem", color: "rgba(16,32,86,0.8)", textDecoration: "underline" }}>
+                                                                Öppna i mejlklient
+                                                            </a>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Skickar...</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
                             <div className="actions">
                                 <button className="btn btn-secondary" type="button" onClick={onBack}>Tillbaka till start</button>
-                                <button className="btn" type="button" onClick={() => { setStep(1); setFullName(""); setCity(""); setSelectedSearchSites([]); setSelectedRemoveSites([]); setGeneratedEmails({}); }}>
+                                <button className="btn" type="button" onClick={() => {
+                                    setStep(1); setFullName(""); setCity("");
+                                    setSelectedSearchSites([]); setSelectedRemoveSites([]);
+                                    setGeneratedEmails({}); setRequestIds({}); setSendStatus({});
+                                }}>
                                     Ny begäran
                                 </button>
                             </div>
