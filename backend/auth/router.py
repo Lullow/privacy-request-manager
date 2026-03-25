@@ -1,119 +1,122 @@
-# säkra slumpvärden för auth-token
 import secrets
 from datetime import datetime, timedelta
 
-# bcrypt — hashar lösenord. Du ger den "lösenord123" och den ger tillbaka en säker hash. Den kan också jämföra ett lösenord mot en hash vid inloggning.
 import bcrypt
 
-# get_session behövs för att kunna prata med databasen
 from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
 
-# User är SQLAlchemy-modellen — det är den som representerar user- & token-tabellen i databasen.
 from models import Token, User
-
-# schemas är filen schemas.py — och du hämtar fyra Pydantic-klasser därifrån:
 from schemas import TokenResponse, UserCreate, UserLogin, UserRead
+from services.email_sender import send_email
+from settings import settings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .dependencies import get_current_user
 
-# prefix="/auth" — alla endpoints i den här routern får /auth framför sig automatiskt, så det blir /auth/register och /auth/login
-# Utan prefix hade du behövt skriva /auth/register manuellt på varje endpoint istället.
-# tags=["auth"] — grupperar endpoints under "auth" i Swagger /docs så det ser snyggt och organiserat ut
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Hjälpfunktion för att skapa en säker(secret) slumpmässig token
+
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
 
-# Med UserRead filtrerar FastAPI automatiskt svaret så att bara id, email och created_at skickas tillbaka — aldrig password_hash.
-@router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-# async def — markerar att funktionen är asynkron, dvs den kan "pausa och vänta" utan att blockera hela servern
-# FastAPI ser att parametern har en Pydantic-typ (UserCreate) och förstår automatiskt att den ska läsa och validera JSON-bodyn från requesten och lägga in den där.
-# payload innehåller det frontend skickade in — ett UserCreate-objekt med två fält: (payload.email/payload.password)
-# Depends(get_session) — FastAPI kör get_session() automatiskt innan funktionen körs
-# get_session skapar en databasanslutning och ger den till session
-# session är nu ditt verktyg för att prata med databasen — du använder den för att köra queries, spara, hämta osv.
 
+@router.post("/register", status_code=status.HTTP_201_CREATED)
 async def register(payload: UserCreate, session: AsyncSession = Depends(get_session)):
-    # Kolla om email redan finns
-    # select(User) Bygger en SQL-query: SELECT * FROM user
-    # .where(User.email == payload.email) Lägger till ett filter: WHERE email = 'namn@gmail.com'
-    #  await Väntar på att databasen svarar innan koden fortsätter
     result = await session.execute(select(User).where(User.email == payload.email))
-
-    # scalar_one_or_none() plockar ut ett enda objekt ur råsvaret från databasen.
-    # Om email inte finns: existing = None
     existing_user = result.scalar_one_or_none()
 
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    # Hasha lösenordet
-    # bcrypt.hashpw(..., ...)Hashar lösenordet + saltet tillsammans. Resultatet är bytes.
-    # payload.password = Lösenordet användaren skickade in — t.ex. "mittlösenord123" — som en vanlig sträng.
-    # .encode() Gör om strängen till bytes, för bcrypt kan bara jobba med bytes, inte strängar.
-    # bcrypt.gensalt() = Genererar ett slumpmässigt "salt" — ett extra brus som läggs till lösenordet innan det hashas. Genererar ett slumpmässigt "salt" — ett extra brus som läggs till lösenordet innan det hashas
-    # .decode() Gör om bytes tillbaka till en vanlig sträng, för databasen förväntar sig en sträng.
-    # Ta lösenordet → gör om till bytes → lägg till salt → hasha → gör om till sträng → spara i hashed.
     hashed_password = bcrypt.hashpw(payload.password.encode(), bcrypt.gensalt()).decode()
+    verification_token = generate_token()
 
-    # Skapar ett nytt User-objekt i Python — men sparar det inte i databasen än.
-    # User(...) = skapar ett objekt av din User-modell från models.py
-    # email=payload.email = sätter emailen till det frontend skickade in
-    # password_hash=hashed = sätter lösenordet till den hashade versionen
-    new_user = User(email=payload.email, password_hash=hashed_password)
+    new_user = User(
+        email=payload.email,
+        password_hash=hashed_password,
+        is_verified=False,
+        verification_token=verification_token,
+    )
 
-    # lägg till i sessionen (kö för INSERT)
     session.add(new_user)
-    # skicka till databasen (INSERT sker här)
     await session.commit()
     await session.refresh(new_user)
 
-    return new_user
+    # Bygg verifieringslänken — inkludera redirect_to om frontend skickade med det
+    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+    if payload.redirect_to:
+        verify_url += f"&next={payload.redirect_to}"
+
+    # Skicka verifieringsmejl
+    subject = "Verifiera din e-postadress – Privacy Request Manager"
+    body = f"""Hej,
+
+Tack för att du registrerade dig hos Privacy Request Manager.
+
+Klicka på länken nedan för att verifiera din e-postadress och aktivera ditt konto:
+
+{verify_url}
+
+Länken är giltig tills vidare. Om du inte registrerade dig kan du ignorera detta mejl.
+
+Med vänliga hälsningar,
+Privacy Request Manager"""
+
+    try:
+        await send_email(to=payload.email, subject=subject, body=body)
+    except Exception:
+        # Om mejlet misslyckas tar vi inte bort kontot — användaren kan kontakta support
+        pass
+
+    return {"message": "Konto skapat. Kontrollera din e-post för att verifiera ditt konto."}
 
 
 @router.post("/login", response_model=TokenResponse)
-# UserLogin är schemat som beskriver vad frontend måste skicka in när man loggar in.
 async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)):
-    # Hämta användaren
-    # .where(User.email == payload.email) WHERE email = "det användaren skickade in"
-    # result är råsvaret från databasen — inte ett rent Python-objekt än, utan mer som en behållare med rader. ex: <sqlalchemy.engine.result.ChunkedIteratorResult object>
     result = await session.execute(select(User).where(User.email == payload.email))
-    # Därför gör du nästa rad: user = result.scalar_one_or_none()
-    # Det ger dig antingen ett rent User-objekt eller None.
     user = result.scalar_one_or_none()
 
-    # Kolla lösenord
-    # not user = Ingen användare hittades med den emailen — alltså finns inte kontot.
-    # not bcrypt.checkpw(...) Användaren finns men lösenordet är fel
-    # payload.password.encode() = lösenordet användaren skickade in (bytes)
-    # user.password_hash.encode() = den hashade versionen som sparades i databasen (bytes)
-    # bcrypt hashar det inkommande lösenordet och jämför — returnerar True om de matchar, False om inte.
-    # or = Om någon av de två är sant → kasta 401-fel.
-    # Kastar samma fel oaavsett för att inte signalera om emailen finns i systemet (för hackare)
-    if not user or not bcrypt.checkpw(
-        payload.password.encode(), user.password_hash.encode()
-    ):
+    if not user or not bcrypt.checkpw(payload.password.encode(), user.password_hash.encode()):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    
+
+    if not user.is_verified:
+        raise HTTPException(
+            status_code=403,
+            detail="Verifiera din e-postadress först. Kontrollera din inkorg.",
+        )
 
     token_str = generate_token()
-
-    db_token = Token(
-        token=token_str,
-        user_id=user.id,
-    )
-
+    db_token = Token(token=token_str, user_id=user.id)
     session.add(db_token)
     await session.commit()
 
-    return{
-        "access_token": token_str,
-        "token_type": "bearer",
-    }
+    return {"access_token": token_str, "token_type": "bearer"}
+
+
+@router.get("/verify-email", response_model=TokenResponse)
+async def verify_email(token: str, session: AsyncSession = Depends(get_session)):
+    # Hitta användaren med detta verifieringstoken
+    result = await session.execute(
+        select(User).where(User.verification_token == token)
+    )
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(status_code=400, detail="Ogiltig eller redan använd verifieringslänk.")
+
+    # Markera som verifierad och rensa token
+    user.is_verified = True
+    user.verification_token = None
+
+    # Skapa ett auth-token så att användaren loggas in direkt
+    auth_token = generate_token()
+    db_token = Token(token=auth_token, user_id=user.id)
+    session.add(db_token)
+    await session.commit()
+
+    return {"access_token": auth_token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=UserRead)
