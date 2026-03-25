@@ -14,6 +14,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Footer from './components/Footer';
 import ResourcesPage from './pages/ResourcesPage';
 import IntegritetspolicyPage from './pages/IntegritetspolicyPage';
+import OmOssPage from './pages/OmOssPage';
 
 
 // Huvudkomponenten App
@@ -56,6 +57,7 @@ export default function App() {
 
         <Route path="/resurser" element={<ResourcesPage />} />
         <Route path="/integritetspolicy" element={<IntegritetspolicyPage />} />
+        <Route path="/om-oss" element={<OmOssPage />} />
         {/* Catch-all OM användaren går till en okänd route och skicka tillbaka "/" (FirstPage) */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
