@@ -69,6 +69,10 @@ class PrivacyRequest(Base):
     # och nullable=True säger att DB-kolumnen också får vara NULL.
     city: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
+    # Födelsedag (kan vara tom) — används för identifiering i GDPR-begäran
+    # Sparas som sträng i formatet ÅÅÅÅ-MM-DD
+    birth_date: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     # Profil-URL (kan vara tom)
     # profile_url får vara None.
     # Du använder String(200) här: bra för kortare länkar.
