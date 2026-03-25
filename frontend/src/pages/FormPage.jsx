@@ -42,7 +42,6 @@ const SITES = [
         removeMethod: "form",
         removeUrl: "https://www.hitta.se/kontakta-oss/ta-bort-kontaktsida",
         removeEmail: "kundservice@hitta.se",
-        removeStartUrl: (name, city) => `https://www.hitta.se/s%C3%B6k?vad=${encodeURIComponent(city ? `${name} ${city}` : name)}`,
         removeSteps: [
             "Sök på ditt namn i sökfältet",
             "Klicka på dig själv i sökresultaten",
@@ -594,6 +593,9 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                     </div>
                                     <div className="field">
                                         <label>Tonalitet</label>
+                                        <small className="muted" style={{ display: "block", marginBottom: 6, fontSize: "0.78rem" }}>
+                                            Justera tonen i det AI-genererade mejlet — neutral fungerar i de flesta fall, formell passar vid officiell korrespondens och bestämd om du vill understryka dina rättigheter.
+                                        </small>
                                         <select value={tone} onChange={(e) => setTone(e.target.value)}>
                                             <option value="neutral">Neutral</option>
                                             <option value="formal">Formell</option>
