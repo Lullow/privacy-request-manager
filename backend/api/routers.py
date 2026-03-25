@@ -24,11 +24,13 @@ from schemas import (
     PrivacyRequestCreate,
     PrivacyRequestRead,
     PrivacyRequestUpdate,
+    SendRequestBody,
 )
 
 # Importerar själva funktionen som bygger GDPR-meddelandet
 # Den här funktionen ska skapa subject och body baserat på requestens data
 from services.ai_generator import generate_gdpr_message, generate_legal_gdpr_message
+from services.email_sender import send_email
 
 # - select: bygger en SELECT-query (typ "SELECT * FROM privacy_request")
 from sqlalchemy import select
@@ -322,3 +324,57 @@ async def list_request_messages(
     # Returna listan med messages
     # FastAPI omvandlar den till response_model=list[MessageRead]
     return list(rows)
+
+
+# POST-endpoint: skickar det genererade mejlet till företaget å användarens vägnar
+# Exempel: /api/privacy-requests/5/send
+@router.post("/{request_id}/send")
+async def send_privacy_request(
+    request_id: int,
+    payload: SendRequestBody,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    # Hämtar rätt privacy request från databasen
+    stmt = select(PrivacyRequest).where(
+        PrivacyRequest.id == request_id,
+        PrivacyRequest.user_id == current_user.id,
+    )
+    result = await session.execute(stmt)
+    request_row = result.scalar_one_or_none()
+
+    if request_row is None:
+        raise HTTPException(status_code=404, detail="Privacy request not found")
+
+    # Hämtar det senaste genererade meddelandet för ärendet
+    stmt_msg = (
+        select(Message)
+        .where(Message.privacy_request_id == request_id)
+        .order_by(Message.id.desc())
+    )
+    result_msg = await session.execute(stmt_msg)
+    message = result_msg.scalars().first()
+
+    if message is None:
+        raise HTTPException(status_code=400, detail="Inget genererat meddelande hittades för detta ärende")
+
+    # Substituerar [PERSONNUMMER] med verkligt personnummer om det skickades med
+    body = message.message_body
+    if payload.personal_number and "[PERSONNUMMER]" in body:
+        body = body.replace("[PERSONNUMMER]", payload.personal_number)
+
+    # Skickar mejlet
+    try:
+        await send_email(
+            to=request_row.company_email,
+            subject=message.subject,
+            body=body,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kunde inte skicka mejlet: {str(e)}")
+
+    # Uppdaterar status till "sent"
+    request_row.status = "sent"
+    await session.commit()
+
+    return {"message": "Mejlet skickades"}
