@@ -21,6 +21,9 @@ class PrivacyRequestCreate(BaseModel):
     # Stad (valfritt)
     city: str | None = None
 
+    # Födelsedag i formatet ÅÅÅÅ-MM-DD (valfritt, rekommenderas för identifiering)
+    birth_date: str | None = None
+
     # Profil-länk (valfritt).  #menar du profile URL? #TODO Ja, ändrat den nu, tack!
     profile_url: str | None = None
 
@@ -36,6 +39,7 @@ class PrivacyRequestRead(BaseModel):
     company_email: EmailStr
     full_name: str
     city: str | None
+    birth_date: str | None
     profile_url: str | None
     tone: str
     status: str
@@ -96,6 +100,9 @@ class GenerateMessageRequest(BaseModel):
 
     # Field(default_factory=list) är säkrare än att använda en tom lista direkt som default.
     request_types: list[str] = Field(default_factory=list)
+
+    # Födelsedag för identifiering i genererat mejl (ej sparat i DB via generate-endpointen)
+    birth_date: str | None = None
 
     # Juridisk begäran — aktiveras när frontend skickar use_legal_template=True
     use_legal_template: bool = False
