@@ -145,6 +145,7 @@ function FormPage() {
     const [step, setStep] = useState(s.step || 1);
     const [fullName, setFullName] = useState(s.fullName || "");
     const [city, setCity] = useState(s.city || "");
+    const [birthDate, setBirthDate] = useState(s.birthDate || "");
     const [selectedSearchSites, setSelectedSearchSites] = useState(s.selectedSearchSites || []);
     const [selectedRemoveSites, setSelectedRemoveSites] = useState(s.selectedRemoveSites || []);
     const [requestTypes, setRequestTypes] = useState(s.requestTypes || ["delete"]);
@@ -171,9 +172,9 @@ function FormPage() {
     // OBS: personnummer och övriga juridiska fält sparas INTE
     useEffect(() => {
         sessionStorage.setItem("prm_wizard", JSON.stringify({
-            step, fullName, city, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath,
+            step, fullName, city, birthDate, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath,
         }));
-    }, [step, fullName, city, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath]);
+    }, [step, fullName, city, birthDate, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath]);
 
     // Koppla varje steg till webbläsarens historik (ej vid browser-navigering)
     useEffect(() => {
@@ -228,11 +229,13 @@ function FormPage() {
                 company_email: site.removeEmail,
                 full_name: fullName,
                 city: city || null,
+                birth_date: birthDate || null,
                 profile_url: null,
                 tone,
             });
             setRequestIds((prev) => ({ ...prev, [site.name]: requestData.id }));
             const msgPayload = { tone, message_type: "initial_request", request_types: requestTypes };
+            if (birthDate) msgPayload.birth_date = birthDate;
             if (requestPath === "legal") {
                 msgPayload.use_legal_template = true;
                 msgPayload.personal_number = personalNumber.trim();
@@ -259,6 +262,8 @@ function FormPage() {
         const identityLines = [
             `• Fullständigt namn: ${fullName}`,
             `• Personnummer: ${personalNumber}`,
+            birthDate ? `• Födelsedag: ${birthDate}` : null,
+            city ? `• Ort: ${city}` : null,
             legalAddress ? `• Adress: ${legalAddress}` : null,
             legalPhone ? `• Telefon: ${legalPhone}` : null,
             legalEmail ? `• E-post: ${legalEmail}` : null,
@@ -340,6 +345,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                         company_email: site.removeEmail,
                         full_name: fullName,
                         city: city || null,
+                        birth_date: birthDate || null,
                         profile_url: null,
                         tone,
                     });
@@ -350,6 +356,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                         use_legal_template: true,
                         personal_number: personalNumber.trim(),
                     };
+                    if (birthDate) msgPayload.birth_date = birthDate;
                     if (legalAddress.trim()) msgPayload.legal_address = legalAddress.trim();
                     if (legalPhone.trim()) msgPayload.legal_phone = legalPhone.trim();
                     if (legalEmail.trim()) msgPayload.legal_email = legalEmail.trim();
@@ -407,6 +414,19 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && fullName.trim() && setStep(2)}
+                                />
+                            </div>
+                            <div className="field" style={{ marginTop: 16 }}>
+                                <label>Födelsedag <span className="muted">(rekommenderas — hjälper sajterna att identifiera dig)</span></label>
+                                <input
+                                    type="date"
+                                    value={birthDate}
+                                    min="1900-01-01"
+                                    max={new Date().toISOString().split("T")[0]}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (!val || val.split("-")[0].length <= 4) setBirthDate(val);
+                                    }}
                                 />
                             </div>
 
