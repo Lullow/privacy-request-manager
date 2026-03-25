@@ -1,7 +1,7 @@
 // LoginPage behöver funktionerna från authApi.js för att prata med backend.
 import { registerUser, loginUser } from "../api/authApi";
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 // topbar återanvändbar component
 import TopBar from "../components/TopBar"
@@ -9,6 +9,8 @@ import TopBar from "../components/TopBar"
 function LoginPage() {
     const navigate = useNavigate();
     const { login } = useAuth();
+    const [searchParams] = useSearchParams();
+    const next = searchParams.get("next") || "/dashboard";
 
     //Toggles between login and register account
     // useState skapar en state-variabel — ett värde som React håller koll på och som kan ändras.
@@ -83,13 +85,12 @@ async function handleSubmit() {
 
     try {
         if (mode === "register") {
-            await registerUser({ email: form.email, password: form.password });
-            switchMode("login");
-            setSuccess("✓ Konto skapat! Du kan nu logga in.");
+            await registerUser({ email: form.email, password: form.password, redirect_to: next });
+            setSuccess("✓ Konto skapat! Kontrollera din e-post och klicka på verifieringslänken.");
         } else {
             const res = await loginUser({ email: form.email, password: form.password });
             login(res.access_token);
-            navigate("/dashboard");
+            navigate(next, { replace: true });
         }
     } catch (err) {
         setError(err.message);
