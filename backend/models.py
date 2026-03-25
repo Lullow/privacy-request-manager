@@ -7,7 +7,7 @@ from datetime import datetime
 # - Text: text utan fast maxlängd
 # from datetime import datetime importerar Python-klassen datetime — den används för defaultvärde
 # DateTime — talar om för databasen vad kolumnen är för typ
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 
 # Importerar ORM-delarna:
 # - DeclarativeBase: bas-klassen som alla modeller bygger på
@@ -32,6 +32,8 @@ class User(Base):
     # Du lagrar aldrig lösenordet i klartext i databasen (säkerhetsregel)
     # Om databasen läckte och du hade sparat lösenord123 direkt, kan vem som helst logga in som alla användare. Istället hashar du lösenordet
     password_hash: Mapped[str] = mapped_column(String(200))
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    verification_token: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
     tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete-orphan")
