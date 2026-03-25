@@ -152,9 +152,10 @@ return(
 <section className="dashboard">
 
     <div className="dashboard-header">
+        <button className="back-btn" onClick={() => navigate("/")}>← Tillbaka</button>
         <h1>Mina ärenden</h1>
 
-   {/* Notification icon. Scalable vector graphics (svg) from heroicons */} 
+   {/* Notification icon. Scalable vector graphics (svg) from heroicons */}
         <div className="header-icons">
             <NotificationBell />
 

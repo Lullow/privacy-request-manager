@@ -49,6 +49,10 @@ export default function NotificationBell() {
 
             {showNotifications && (
                 <div className="notification-dropdown">
+                    <div className="notification-dropdown-header">
+                        <span className="notification-dropdown-title">Notifikationer</span>
+                        <button className="notification-close-btn" onClick={() => setShowNotifications(false)}>×</button>
+                    </div>
                     {notifications.length === 0 ? (
                         <p className="muted">Du har inga nya notifikationer.</p>
                     ) : (
