@@ -7,6 +7,8 @@ export default function Footer() {
             <span className="footer-dot">·</span>
             <a href="/resurser" className="footer-link">GDPR-resurser</a>
             <span className="footer-dot">·</span>
+            <a href="/villkor" className="footer-link">Användarvillkor</a>
+            <span className="footer-dot">·</span>
             <a href="/integritetspolicy" className="footer-link">Integritetspolicy</a>
             <span className="footer-dot">·</span>
             <a href="https://www.imy.se" target="_blank" rel="noopener noreferrer" className="footer-link">IMY ↗</a>
