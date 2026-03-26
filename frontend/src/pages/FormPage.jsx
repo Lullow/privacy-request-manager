@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
-import { createPrivacyRequest, generateMessage, sendRequest } from "../api/privacyRequestsApi";
+import { createPrivacyRequest, generateMessage, sendRequest, getPrivacyRequests } from "../api/privacyRequestsApi";
 import GDPRConsent from "../components/GDPRConsent";
 
 function toSearchQuery(name) {
@@ -220,15 +220,33 @@ function FormPage() {
     }
 
     // Skapar draft-ärenden för alla email-sajter när användaren når steg 4
-    // Detta gör att ärendena syns som "Utkast" i Meddelanden direkt
+    // Hämtar först befintliga utkast från DB för att undvika dubletter om sessionStorage rensats
     useEffect(() => {
         if (step !== 4 || !fullName.trim() || emailSites.length === 0) return;
 
         async function createDrafts() {
             const newIds = { ...requestIds };
             let changed = false;
+
+            // Hämta befintliga ärenden från DB och matcha mot sajter
+            try {
+                const existing = await getPrivacyRequests();
+                for (const site of emailSites) {
+                    if (newIds[site.name]) continue;
+                    const match = existing.find(
+                        (r) => r.company_name === site.name && r.status === "draft"
+                    );
+                    if (match) {
+                        newIds[site.name] = match.id;
+                        changed = true;
+                    }
+                }
+            } catch (err) {
+                console.error("Kunde inte hämta befintliga ärenden", err);
+            }
+
             for (const site of emailSites) {
-                if (newIds[site.name]) continue; // draft finns redan
+                if (newIds[site.name]) continue; // finns redan — hoppa över
                 try {
                     const req = await createPrivacyRequest({
                         company_name: site.name,

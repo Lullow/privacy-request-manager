@@ -144,7 +144,13 @@ function MessagesPage() {
                     {selectedRequest && (
                         <>
                             <h2>{selectedRequest.company_name}</h2>
-                            {messages.length === 0 && (
+                            {selectedRequest.status === "draft" && (
+                                <div className="draft-placeholder">
+                                    <p className="muted">Du har inte skickat någon förfrågan för detta ärende än.</p>
+                                    <button className="draft-continue-btn" onClick={() => navigate("/create-request")}>Fortsätt formuläret →</button>
+                                </div>
+                            )}
+                            {selectedRequest.status !== "draft" && messages.length === 0 && (
                                 <p className="muted">Inga meddelanden för detta ärende.</p>
                             )}
                             {messages.map((msg) => (

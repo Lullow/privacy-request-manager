@@ -742,6 +742,7 @@ body {
     display: flex;
     flex-direction: column;
     flex: 1;
+    position: relative;
 }
 
 /* Vänster sidopanel med ärendelista */
@@ -793,6 +794,29 @@ body {
     color: rgba(16, 32, 86, 0.892);
     font-size: 22px;
     margin-bottom: 24px;
+}
+
+.draft-placeholder {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.draft-continue-btn {
+    align-self: flex-start;
+    background-color: rgba(16, 32, 86, 0.892);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.draft-continue-btn:hover {
+    background-color: rgba(16, 32, 86, 1);
 }
 
 /* Enskilt meddelande */
