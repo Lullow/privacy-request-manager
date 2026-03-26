@@ -118,7 +118,7 @@ Lösenord lagras aldrig i klartext. Personnummer lagras aldrig alls.`,
 • Begära dataportabilitet när det är tillämpligt
 • Lämna klagomål till Integritetsskyddsmyndigheten (IMY) på imy.se
 
-Kontakta oss på [KONTAKT@EXEMPEL.SE] för att utöva dina rättigheter. Vi svarar inom 30 dagar.`,
+Radering av konto och all kopplad data sker omedelbart via inställningarna i tjänsten. För övriga rättigheter, kontakta oss på [KONTAKT@EXEMPEL.SE].`,
     },
     {
         number: "12",
