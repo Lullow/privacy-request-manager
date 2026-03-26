@@ -62,8 +62,14 @@ export async function getMe() {
     return apiFetch("/auth/me");
 }
 
+export async function deleteAccount() {
+    return apiFetch("/auth/account", { method: "DELETE" });
+}
+
 export async function verifyEmail(token) {
-    const res = await apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+    const res = await apiFetch(`/auth/verify-email?token=${encodeURIComponent(token)}`, {
+        auth: false,
+    });
     setToken(res.access_token);
     return res;
 }
