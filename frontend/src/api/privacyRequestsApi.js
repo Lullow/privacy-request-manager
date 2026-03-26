@@ -72,3 +72,17 @@ export function sendRequest(id, personalNumber = null) {
         body: personalNumber ? { personal_number: personalNumber } : {},
     });
 }
+
+// Genererar och skickar en påminnelse till företaget för ett specifikt ärende.
+// Skapar ett nytt meddelande av typen "reminder" och uppdaterar status till "waiting".
+export function deletePrivacyRequest(id) {
+    return apiFetch(`/privacy-requests/${id}`, {
+        method: "DELETE",
+    });
+}
+
+export function sendReminder(id) {
+    return apiFetch(`/privacy-requests/${id}/reminder`, {
+        method: "POST",
+    });
+}

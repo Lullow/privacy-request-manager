@@ -36,7 +36,8 @@ function translateMessageType(type) {
 function translateStatus(status) {
     const statuses = {
         draft: "Utkast",
-        generated: "Skickat",
+        generated: "Genererat",
+        sent: "Skickat",
         waiting: "Väntar",
         complete: "Mottaget",
         denied: "Nekat",

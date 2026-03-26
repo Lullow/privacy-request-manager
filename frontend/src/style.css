@@ -358,9 +358,11 @@ h2 {
 }
 
 
-.border { 
+.border {
     background-color: rgb(255, 255, 255);
     border-radius: 30px;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
 .dashboard { 
@@ -460,29 +462,67 @@ body {
 .dashboard-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0 40px;
-    margin-bottom: 30px;
+    align-items: flex-end;
+    max-width: 1000px;
+    margin: 0 auto 30px;
+    padding: 0 0 0 0;
+    margin-right: -20px;
 }
 
-.filters {
-    display: flex;
-    gap: 15px;
-    align-items: center;
+
+.filter-dropdown-wrapper {
+    position: relative;
+    margin-left: -100px;
 }
 
-.filters label {
+.filter-dropdown-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+    background: white;
+    border: 1.5px solid rgba(16, 32, 86, 0.2);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: rgba(16, 32, 86, 0.892);
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.filter-dropdown-btn:hover {
+    border-color: rgba(16, 32, 86, 0.5);
+}
+
+.filter-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(2, 6, 23, 0.12);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 150px;
+    z-index: 100;
+}
+
+.filter-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
     font-size: 14px;
     color: rgba(16, 32, 86, 0.892);
     cursor: pointer;
+    transition: background 0.15s;
 }
 
-.filters input {
-    margin: 0;
+.filter-dropdown-item:hover {
+    background: rgba(16, 32, 86, 0.06);
 }
 
 /* ---------- Case List ---------- */
@@ -687,6 +727,7 @@ body {
     background-color: #1d2260;
     color: white;
 }
+
 
 /* ---------- Messages Page ---------- */
 .messages-page {

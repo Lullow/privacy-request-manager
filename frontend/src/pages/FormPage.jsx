@@ -41,7 +41,8 @@ const SITES = [
         searchUrl: (name, city) => `https://www.hitta.se/s%C3%B6k?vad=${encodeURIComponent(city ? `${name} ${city}` : name)}`,
         removeMethod: "form",
         removeUrl: "https://www.hitta.se/kontakta-oss/ta-bort-kontaktsida",
-        removeEmail: "kundservice@hitta.se",
+        //removeEmail: "kundservice@hitta.se",
+        removeEmail: "bellaroupe@gmail.com",
         removeSteps: [
             "Sök på ditt namn i sökfältet",
             "Klicka på dig själv i sökresultaten",
@@ -152,7 +153,7 @@ function FormPage() {
     const [tone, setTone] = useState(s.tone || "neutral");
     const [requestPath, setRequestPath] = useState(s.requestPath || "simple");
     const [generatedEmails, setGeneratedEmails] = useState({});
-    const [requestIds, setRequestIds] = useState({});   // { [sajtnamn]: backendId }
+    const [requestIds, setRequestIds] = useState(s.requestIds || {});   // { [sajtnamn]: backendId }
     const [sendStatus, setSendStatus] = useState({});   // { [sajtnamn]: "sending"|"sent"|"failed" }
     const [isPreparingStep5, setIsPreparingStep5] = useState(false);
     const [loadingSite, setLoadingSite] = useState(null);
@@ -174,7 +175,7 @@ function FormPage() {
     // OBS: personnummer och övriga juridiska fält sparas INTE
     useEffect(() => {
         sessionStorage.setItem("prm_wizard", JSON.stringify({
-            step, fullName, city, birthDate, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath,
+            step, fullName, city, birthDate, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath, requestIds,
         }));
     }, [step, fullName, city, birthDate, selectedSearchSites, selectedRemoveSites, requestTypes, tone, requestPath]);
 
@@ -218,6 +219,39 @@ function FormPage() {
         );
     }
 
+    // Skapar draft-ärenden för alla email-sajter när användaren når steg 4
+    // Detta gör att ärendena syns som "Utkast" i Meddelanden direkt
+    useEffect(() => {
+        if (step !== 4 || !fullName.trim() || emailSites.length === 0) return;
+
+        async function createDrafts() {
+            const newIds = { ...requestIds };
+            let changed = false;
+            for (const site of emailSites) {
+                if (newIds[site.name]) continue; // draft finns redan
+                try {
+                    const req = await createPrivacyRequest({
+                        company_name: site.name,
+                        company_email: site.removeEmail,
+                        full_name: fullName,
+                        city: city || null,
+                        birth_date: birthDate || null,
+                        profile_url: null,
+                        tone,
+                    });
+                    newIds[site.name] = req.id;
+                    changed = true;
+                } catch (err) {
+                    console.error("Kunde inte skapa utkast för", site.name, err);
+                }
+            }
+            if (changed) setRequestIds(newIds);
+        }
+
+        createDrafts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [step]);
+
     async function generateEmailForSite(site) {
         if (requestPath === "legal" && !personalNumber.trim()) {
             setError("Personnummer krävs för juridisk begäran.");
@@ -226,16 +260,21 @@ function FormPage() {
         setLoadingSite(site.name);
         setError("");
         try {
-            const requestData = await createPrivacyRequest({
-                company_name: site.name,
-                company_email: site.removeEmail,
-                full_name: fullName,
-                city: city || null,
-                birth_date: birthDate || null,
-                profile_url: null,
-                tone,
-            });
-            setRequestIds((prev) => ({ ...prev, [site.name]: requestData.id }));
+            // Använd befintligt draft-id om det finns, annars skapa nytt
+            let requestId = requestIds[site.name];
+            if (!requestId) {
+                const requestData = await createPrivacyRequest({
+                    company_name: site.name,
+                    company_email: site.removeEmail,
+                    full_name: fullName,
+                    city: city || null,
+                    birth_date: birthDate || null,
+                    profile_url: null,
+                    tone,
+                });
+                requestId = requestData.id;
+                setRequestIds((prev) => ({ ...prev, [site.name]: requestId }));
+            }
             const msgPayload = { tone, message_type: "initial_request", request_types: requestTypes };
             if (birthDate) msgPayload.birth_date = birthDate;
             if (requestPath === "legal") {
@@ -245,7 +284,7 @@ function FormPage() {
                 if (legalPhone.trim()) msgPayload.legal_phone = legalPhone.trim();
                 if (legalEmail.trim()) msgPayload.legal_email = legalEmail.trim();
             }
-            const msgData = await generateMessage(requestData.id, msgPayload);
+            const msgData = await generateMessage(requestId, msgPayload);
             setGeneratedEmails((prev) => ({
                 ...prev,
                 [site.name]: {

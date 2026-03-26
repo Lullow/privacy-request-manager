@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
 
-import { getPrivacyRequests } from "../api/privacyRequestsApi";
+import { getPrivacyRequests, sendReminder, deletePrivacyRequest } from "../api/privacyRequestsApi";
 
 import { useEffect, useRef, useState } from "react"
 
@@ -41,13 +41,50 @@ const dummyRequests = [
 
     const [requests, setRequests] = useState(dummyRequests)
 
+// reminderState — håller koll på varje ärendes påminnelseknapp: null | "loading" | "sent" | "error"
+const [reminderState, setReminderState] = useState({});
+
+async function handleDelete(id) {
+    try {
+        await deletePrivacyRequest(id);
+        setRequests(prev => prev.filter(r => r.id !== id));
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function handleSendReminder(id) {
+    setReminderState(s => ({ ...s, [id]: "loading" }));
+    try {
+        await sendReminder(id);
+        setReminderState(s => ({ ...s, [id]: "sent" }));
+    } catch {
+        setReminderState(s => ({ ...s, [id]: "error" }));
+    }
+}
+
 // Filter-state — håller koll på vilka statusar som är aktiva
 // pagaende = draft, generated, waiting | avslutad = complete, denied
-const [filters, setFilters] = useState({ pagaende: true, avslutad: true });
+const [filters, setFilters] = useState({ pagaende: true, avslutad: true, utkast: true });
+const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+
+// Visar vilken text som ska stå på filter-knappen
+const filterLabel = filters.pagaende && filters.avslutad && filters.utkast ? "Alla"
+    : filters.utkast && !filters.pagaende && !filters.avslutad ? "Utkast"
+    : filters.pagaende ? "Pågående"
+    : filters.avslutad ? "Avslutad"
+    : "Alla";
+
+// Beräknar procentvärden för donuten baserat på riktiga ärenden
+const total = requests.length || 1;
+const completePercent = Math.round((requests.filter(r => r.status === "complete").length / total) * 100);
+const waitingPercent = Math.round((requests.filter(r => ["waiting", "generated"].includes(r.status)).length / total) * 100);
+const deniedPercent = Math.round((requests.filter(r => r.status === "denied").length / total) * 100);
 
 // Filtrerar listan baserat på aktiva filter
 const filteredRequests = requests.filter((req) => {
-    const pagaende = ["draft", "generated", "waiting"].includes(req.status);
+    if (req.status === "draft") return filters.utkast;
+    const pagaende = ["generated", "waiting"].includes(req.status);
     const avslutad = ["complete", "denied"].includes(req.status);
     return (pagaende && filters.pagaende) || (avslutad && filters.avslutad);
 });
@@ -131,8 +168,8 @@ useEffect(() => {
     animateDonut();
     // Räknaren för siffran i donut-centern. Börjar på 0 och räknas upp mot slutvärdet.
     let total = 0;
-    // Letar efter alla element med klassen status i hela sidan — det är statusdivarna i ärendelistan:
-    const totalCount = document.querySelectorAll(".status").length;
+    // Hämtar totalt antal ärenden från data-total attributet
+    const totalCount = parseInt(donut.dataset.total) || 0;
 
 
     // const animateCenter = () => { Definierar animationsfunktionen för siffran i donut-centern.
@@ -153,7 +190,7 @@ useEffect(() => {
 };
 
     animateCenter();
-}, [])
+}, [requests])
 
 
 
@@ -187,37 +224,33 @@ return(
     </div>
 
 
-    {/* Filters + Donut */} 
+    {/* Filter (vänster) + Donut (höger) */}
     <div className="dashboard-top">
-        <div className="filters">
-            <label>
-                <input type="checkbox"
-                    checked={filters.pagaende && filters.avslutad}
-                    onChange={(e) => setFilters({ pagaende: e.target.checked, avslutad: e.target.checked })}
-                /> Alla
-            </label>
-            <label>
-                <input type="checkbox"
-                    checked={filters.pagaende}
-                    onChange={(e) => setFilters(f => ({ ...f, pagaende: e.target.checked }))}
-                /> Pågående
-            </label>
-            <label>
-                <input type="checkbox"
-                    checked={filters.avslutad}
-                    onChange={(e) => setFilters(f => ({ ...f, avslutad: e.target.checked }))}
-                /> Avslutad
-            </label>
+        <div className="filter-dropdown-wrapper">
+            <button className="filter-dropdown-btn" onClick={() => setShowFilterDropdown(v => !v)}>
+                {filterLabel}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9" />
+                </svg>
+            </button>
+            {showFilterDropdown && (
+                <div className="filter-dropdown-menu">
+                    <div className="filter-dropdown-item" onClick={() => { setFilters({ pagaende: true, avslutad: true, utkast: true }); setShowFilterDropdown(false); }}>Alla</div>
+                    <div className="filter-dropdown-item" onClick={() => { setFilters({ pagaende: false, avslutad: false, utkast: true }); setShowFilterDropdown(false); }}>Utkast</div>
+                    <div className="filter-dropdown-item" onClick={() => { setFilters({ pagaende: true, avslutad: false, utkast: false }); setShowFilterDropdown(false); }}>Pågående</div>
+                    <div className="filter-dropdown-item" onClick={() => { setFilters({ pagaende: false, avslutad: true, utkast: false }); setShowFilterDropdown(false); }}>Avslutad</div>
+                </div>
+            )}
         </div>
 
-        <div className="donut" ref={ref} data-waiting="50" data-complete="30" data-denied="20">
+        <div className="donut" ref={ref} data-waiting={waitingPercent} data-complete={completePercent} data-denied={deniedPercent} data-total={requests.length}>
             <div className="donut-center">
-                {/* Starting Value */} 
                 0
                 <span>Ärenden</span>
             </div>
         </div>
     </div>
+
     <div className="border">
     {/* Caselist */} 
     <div className="case-list">
@@ -249,8 +282,22 @@ return(
             Det gör att CSS:en kan styla varje status olika med .status.waiting och .status.complete*/}
         <div className={`cell status ${one.status}`}>{translateStatus(one.status)}</div>
         <div className="cell case-actions">
-            <button className="btn-dashboard" onClick={() => navigate(`/messages?id=${one.id}`)}>Visa</button>
-            <button className="btn-dashboard">Skicka påminnelse</button>
+            <button className="btn-dashboard" onClick={() => navigate(one.status === "draft" ? "/create-request" : `/messages?id=${one.id}`)}>Visa</button>
+            {one.status === "draft" && (
+                <button className="btn-dashboard" onClick={() => handleDelete(one.id)}>Radera</button>
+            )}
+            {one.status !== "draft" && (
+                <button
+                    className="btn-dashboard"
+                    onClick={() => handleSendReminder(one.id)}
+                    disabled={reminderState[one.id] === "loading" || reminderState[one.id] === "sent"}
+                >
+                    {reminderState[one.id] === "loading" ? "Skickar..." :
+                     reminderState[one.id] === "sent" ? "Skickad" :
+                     reminderState[one.id] === "error" ? "Försök igen" :
+                     "Skicka påminnelse"}
+                </button>
+            )}
         </div>
     </div>
 ))}
