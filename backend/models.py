@@ -35,6 +35,7 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     verification_token: Mapped[str | None] = mapped_column(String(100), nullable=True, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     tokens: Mapped[list["Token"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -160,6 +161,7 @@ class Token(Base):
     token: Mapped[str] = mapped_column(String(255), unique=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
 
     user: Mapped["User"] = relationship(back_populates="tokens")
 
