@@ -1,5 +1,6 @@
 import html
 import logging
+import re
 
 import resend
 from fastapi.concurrency import run_in_threadpool
@@ -7,10 +8,17 @@ from settings import settings
 
 logger = logging.getLogger(__name__)
 
+_URL_RE = re.compile(r"(https?://\S+)")
+
 
 def _build_html_body(body: str) -> str:
     escaped_body = html.escape(body)
-    return f"<pre style='font-family: inherit; white-space: pre-wrap;'>{escaped_body}</pre>"
+    # Gör URL:er klickbara efter HTML-escaping
+    linked_body = _URL_RE.sub(
+        lambda m: f'<a href="{m.group(1)}">{m.group(1)}</a>',
+        escaped_body,
+    )
+    return f"<pre style='font-family: inherit; white-space: pre-wrap;'>{linked_body}</pre>"
 
 
 async def send_email(to: str, subject: str, body: str) -> None:
