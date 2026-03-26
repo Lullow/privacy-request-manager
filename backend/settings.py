@@ -21,16 +21,13 @@ class Settings(BaseSettings):
     # DATABASE_URL: str innebär att Settings kräver att DATABASE_URL finns i .env eller env vars.
     # Om den saknas får du ett validation error när Settings() skapas.
     DATABASE_URL: str  # type annotation
-    SECRET_KEY: str
     ANTHROPIC_API_KEY: str
     FRONTEND_URL: str = "http://localhost:5173"
 
-    # SMTP-inställningar för att skicka mejl
-    SMTP_HOST: str = ""
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = ""
+    # Resend-inställningar för att skicka mejl
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = "onboarding@resend.dev"
+    EMAIL_REPLY_TO: str | None = None
 
     # Den här raden betyder: om CORS_ORIGIONS inte finns i .env så används defaulten.
     # Din frontend kör på http://localhost:5173 och din backend på http://localhost:8000. Webbläsaren blockerar som standard requests mellan olika "origins" (adresser).
