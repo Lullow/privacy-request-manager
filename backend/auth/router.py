@@ -1,7 +1,10 @@
 import logging
 import secrets
+from datetime import datetime, timedelta
 
 import bcrypt
+
+TOKEN_LIFETIME_DAYS = 30
 
 from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,6 +24,14 @@ logger = logging.getLogger(__name__)
 
 def generate_token() -> str:
     return secrets.token_urlsafe(32)
+
+
+def build_auth_token(user_id: int) -> Token:
+    return Token(
+        token=generate_token(),
+        user_id=user_id,
+        expires_at=datetime.utcnow() + timedelta(days=TOKEN_LIFETIME_DAYS),
+    )
 
 
 async def send_verification_email(email: str, verification_token: str, redirect_to: str | None = None) -> None:
@@ -172,12 +183,13 @@ async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)
             detail="Verifiera din e-postadress först. Kontrollera din inkorg.",
         )
 
-    token_str = generate_token()
-    db_token = Token(token=token_str, user_id=user.id)
+    user.last_login_at = datetime.utcnow()
+
+    db_token = build_auth_token(user.id)
     session.add(db_token)
     await session.commit()
 
-    return {"access_token": token_str, "token_type": "bearer"}
+    return {"access_token": db_token.token, "token_type": "bearer"}
 
 
 @router.get("/verify-email", response_model=TokenResponse)
@@ -191,14 +203,23 @@ async def verify_email(token: str, session: AsyncSession = Depends(get_session))
     user.is_verified = True
     user.verification_token = None
 
-    auth_token = generate_token()
-    db_token = Token(token=auth_token, user_id=user.id)
+    db_token = build_auth_token(user.id)
     session.add(db_token)
     await session.commit()
 
-    return {"access_token": auth_token, "token_type": "bearer"}
+    return {"access_token": db_token.token, "token_type": "bearer"}
 
 
 @router.get("/me", response_model=UserRead)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.delete("/account", status_code=204)
+async def delete_account(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    user = await session.get(User, current_user.id)
+    await session.delete(user)
+    await session.commit()
