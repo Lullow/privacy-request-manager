@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
+import TopBar from "../components/TopBar";
 
 import { getPrivacyRequests, sendReminder, deletePrivacyRequest } from "../api/privacyRequestsApi";
+import { deleteAccount } from "../api/authApi";
+import { useAuth } from "../context/useAuth";
 
 import { useEffect, useRef, useState } from "react"
 
@@ -27,6 +30,21 @@ function DashboardPage(){
 // useRef — skapar en referens till ett DOM-element. Utan den vet inte JavaScript vilken div det handlar om
 const ref = useRef(null)
 const navigate = useNavigate();
+const { logout } = useAuth();
+const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+const [deleteLoading, setDeleteLoading] = useState(false);
+
+async function handleDeleteAccount() {
+    setDeleteLoading(true);
+    try {
+        await deleteAccount();
+        logout();
+        navigate("/", { replace: true });
+    } catch {
+        setDeleteLoading(false);
+        setShowDeleteConfirm(false);
+    }
+}
 
 
     // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
@@ -198,27 +216,21 @@ useEffect(() => {
 return(
 
 <section className="dashboard">
+    <TopBar />
 
     <div className="dashboard-header">
-        <button className="back-btn" onClick={() => navigate("/")}>← Tillbaka</button>
         <h1>Mina ärenden</h1>
-
-   {/* Notification icon. Scalable vector graphics (svg) from heroicons */}
         <div className="header-icons">
             <NotificationBell />
-
-    {/* Message icon. Scalable vector graphics (svg) from heroicons */}  
             <button className="message-btn" onClick={() => navigate("/messages")}>
                 <svg className="message-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                 </svg>
             </button>
-
-    {/* Dashboard icon. Scalable vector graphics (svg) from heroicons (change name from dashboard button) */}  
             <button className="dashboard-button">
-                    <svg className="dashboard-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                    </svg>
+                <svg className="dashboard-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                </svg>
             </button>
         </div>
     </div>
@@ -310,8 +322,31 @@ return(
         </div>
     </div>
 
+    <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e2e8f0" }}>
+        <button
+            className="btn-danger"
+            onClick={() => setShowDeleteConfirm(true)}
+        >
+            Radera mitt konto
+        </button>
+    </div>
 
-
+    {showDeleteConfirm && (
+        <div className="modal-overlay">
+            <div className="modal-card">
+                <h2>Är du säker?</h2>
+                <p className="muted">Ditt konto och all kopplad data raderas permanent. Detta går inte att ångra.</p>
+                <div className="modal-actions">
+                    <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
+                        Avbryt
+                    </button>
+                    <button className="btn-danger" onClick={handleDeleteAccount} disabled={deleteLoading}>
+                        {deleteLoading ? "Raderar..." : "Ja, radera mitt konto"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
 
 </section>
 
