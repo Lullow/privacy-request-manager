@@ -548,7 +548,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                             <StepIndicator current={2} onNavigate={setStep} />
                             <h1>Sök upp dig</h1>
                             <p className="muted">
-                                Välj sajter du vill söka på och klicka på "Sök upp mig". Se om du har träffar.
+                                Välj sajter du vill söka på och öppna varje sajt via "Öppna"-knappen — se om du har träffar.
                             </p>
 
                             <div className="chip-grid">
@@ -674,9 +674,13 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 <div>
                                     <hr className="divider" />
                                     <h2>Uppgifter för juridisk begäran</h2>
-                                    <p className="muted" style={{ fontSize: "0.85rem", marginBottom: 16 }}>
+                                    <p className="muted" style={{ fontSize: "0.85rem", marginBottom: 12 }}>
                                         Används enbart för att generera brevet — sparas inte i systemet.
                                     </p>
+                                    <div className="info-hint-box">
+                                        <span className="info-hint-icon">💡</span>
+                                        <span>Ju mer information du anger, desto lättare är det för sajten att identifiera dig — vilket ökar chansen att din begäran beviljas snabbt.</span>
+                                    </div>
 
                                     <div className="field">
                                         <label>Personnummer *</label>
@@ -714,6 +718,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             onChange={(e) => setLegalAddress(e.target.value)}
                                             autoComplete="off"
                                         />
+                                        <small className="hint">Hjälper sajten att matcha din folkbokföringsadress mot det som visas.</small>
                                     </div>
 
                                     <div className="field" style={{ marginTop: 12 }}>
@@ -725,6 +730,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             onChange={(e) => setLegalPhone(e.target.value)}
                                             autoComplete="off"
                                         />
+                                        <small className="hint">Gör det lättare för sajten att nå dig om de behöver bekräfta din identitet.</small>
                                     </div>
 
                                     <div className="field" style={{ marginTop: 12 }}>
@@ -736,6 +742,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             onChange={(e) => setLegalEmail(e.target.value)}
                                             autoComplete="off"
                                         />
+                                        <small className="hint">Sajten kan skicka en bekräftelse direkt till dig när begäran är behandlad.</small>
                                     </div>
                                     <hr className="divider" />
                                 </div>
