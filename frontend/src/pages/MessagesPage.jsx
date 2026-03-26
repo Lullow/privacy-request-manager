@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import NotificationBell from "../components/NotificationBell";
+import TopBar from "../components/TopBar";
 import { getPrivacyRequests, getRequestMessages } from "../api/privacyRequestsApi";
 
 // DUMMY DATA — kommentera ut för att testa utan ärenden/meddelanden
@@ -97,6 +98,7 @@ function MessagesPage() {
 
     return (
         <section className="messages-page">
+            <TopBar />
 
             <div className="messages-sidebar">
                 <h2>Ärenden</h2>
