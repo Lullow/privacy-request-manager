@@ -41,6 +41,17 @@ const dummyRequests = [
 
     const [requests, setRequests] = useState(dummyRequests)
 
+// Filter-state — håller koll på vilka statusar som är aktiva
+// pagaende = draft, generated, waiting | avslutad = complete, denied
+const [filters, setFilters] = useState({ pagaende: true, avslutad: true });
+
+// Filtrerar listan baserat på aktiva filter
+const filteredRequests = requests.filter((req) => {
+    const pagaende = ["draft", "generated", "waiting"].includes(req.status);
+    const avslutad = ["complete", "denied"].includes(req.status);
+    return (pagaende && filters.pagaende) || (avslutad && filters.avslutad);
+});
+
 
 // getPrivacyRequests anropar apiFetch som automatiskt skickar token i headern → backend godkänner → ärenden hämtas och visas.
 // Innan hade vi ingen token, backend nekade 
@@ -179,9 +190,24 @@ return(
     {/* Filters + Donut */} 
     <div className="dashboard-top">
         <div className="filters">
-            <label><input type="checkbox" defaultChecked/> Alla</label> 
-            <label><input type="checkbox" defaultChecked/> Pågående </label>
-            <label><input type="checkbox" defaultChecked/> Avslutad</label>
+            <label>
+                <input type="checkbox"
+                    checked={filters.pagaende && filters.avslutad}
+                    onChange={(e) => setFilters({ pagaende: e.target.checked, avslutad: e.target.checked })}
+                /> Alla
+            </label>
+            <label>
+                <input type="checkbox"
+                    checked={filters.pagaende}
+                    onChange={(e) => setFilters(f => ({ ...f, pagaende: e.target.checked }))}
+                /> Pågående
+            </label>
+            <label>
+                <input type="checkbox"
+                    checked={filters.avslutad}
+                    onChange={(e) => setFilters(f => ({ ...f, avslutad: e.target.checked }))}
+                /> Avslutad
+            </label>
         </div>
 
         <div className="donut" ref={ref} data-waiting="50" data-complete="30" data-denied="20">
@@ -206,7 +232,7 @@ return(
 {/* requests = listan vi hämtar från backend */} 
 {/* .map = gå igenom varje ärende i listan och gör om till jsx */}
 {/* one = ett ärende i taget */} 
-{requests.map((one) => (
+{filteredRequests.map((one) => (
 
     <div className="case-row" key={one.id}>
         {/* Skapar en rad för varje ärende.
@@ -230,8 +256,8 @@ return(
 ))}
     {/* Kolla om listan är tom. Om den är det = "Du har inga ärenden ännu"  */}
 
-    {requests.length === 0 && (
-    <p className="muted">Du har inga ärenden ännu.</p>
+    {filteredRequests.length === 0 && (
+    <p className="muted">Inga ärenden matchar filtret.</p>
 )}
 
         </div>
