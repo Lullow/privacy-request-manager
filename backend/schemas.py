@@ -77,6 +77,11 @@ class UserLogin(BaseModel):
     password: str
 
 
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+    redirect_to: str | None = None
+
+
 # ~ MESSAGE - READ ~
 class MessageRead(BaseModel):
     id: int
