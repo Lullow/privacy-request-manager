@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-// DUMMY DATA — kommentera ut för att testa utan notiser
-const dummyNotifications = [
-    { id: 1, text: "Merinfo AB har svarat på din begäran.", requestId: 1 },
-];
-
-// Byt till [] för att se tomt läge:
-// const dummyNotifications = [];
+import { mockNotifications } from "../mocks/mockData";
 
 export default function NotificationBell() {
     const navigate = useNavigate();
@@ -16,7 +9,7 @@ export default function NotificationBell() {
     // Filtrera bort redan klickade notiser via localStorage
     const dismissed = JSON.parse(localStorage.getItem("dismissedNotifications") || "[]");
     const [notifications, setNotifications] = useState(
-        dummyNotifications.filter((n) => !dismissed.includes(n.id))
+        mockNotifications.filter((n) => !dismissed.includes(n.id))
     );
     const hasNotifications = notifications.length > 0;
 

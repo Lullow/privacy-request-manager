@@ -2,7 +2,7 @@
 import { registerUser, loginUser } from "../api/authApi";
 import { useState } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "../hooks/useAuth";
 // topbar återanvändbar component
 import TopBar from "../components/TopBar"
 

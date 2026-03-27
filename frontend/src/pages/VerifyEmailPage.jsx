@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { verifyEmail } from "../api/authApi";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "../hooks/useAuth";
 import TopBar from "../components/TopBar";
 
 const verificationRequests = new Map();

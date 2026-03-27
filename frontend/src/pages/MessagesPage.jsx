@@ -2,53 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import { getPrivacyRequests, getRequestMessages } from "../api/privacyRequestsApi";
-
-// DUMMY DATA — kommentera ut för att testa utan ärenden/meddelanden
-const dummyRequests = [
-    { id: 1, company_name: "Merinfo", status: "generated" },
-    { id: 2, company_name: "Eniro", status: "draft" },
-];
-
-const dummyMessages = {
-    1: [
-        {
-            id: 1,
-            message_type: "initial_request",
-            source: "ai",
-            subject: "Begäran om radering av personuppgifter – GDPR artikel 17",
-            message_body: "Hej,\n\nJag skriver för att begära radering av mina personuppgifter i enlighet med artikel 17 i GDPR (rätten att bli glömd).\n\nVänligen bekräfta att ni har tagit emot denna begäran och informera mig om när uppgifterna har raderats.\n\nMed vänliga hälsningar",
-            tone: "formal",
-            created_at: "2026-03-10T10:00:00",
-        },
-    ],
-    2: [],
-};
-
-function translateMessageType(type) {
-    const types = {
-        initial_request: "Förfrågan",
-        follow_up: "Uppföljning",
-        reminder: "Påminnelse",
-    };
-    return types[type] || type;
-}
-
-function translateStatus(status) {
-    const statuses = {
-        draft: "Utkast",
-        generated: "Genererat",
-        sent: "Skickat",
-        waiting: "Väntar",
-        complete: "Mottaget",
-        denied: "Nekat",
-    };
-    return statuses[status] || status;
-}
+import { translateStatus, translateMessageType } from "../utils/translations";
+import { mockRequests, mockMessages } from "../mocks/mockData";
 
 function MessagesPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [requests, setRequests] = useState(dummyRequests);
+    const [requests, setRequests] = useState(mockRequests);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [messages, setMessages] = useState([]);
     const [unreadRequests, setUnreadRequests] = useState(
@@ -89,9 +49,9 @@ function MessagesPage() {
 
         try {
             const data = await getRequestMessages(request.id);
-            setMessages(data.length > 0 ? data : (dummyMessages[request.id] ?? []));
+            setMessages(data.length > 0 ? data : (mockMessages[request.id] ?? []));
         } catch (err) {
-            setMessages(dummyMessages[request.id] ?? []);
+            setMessages(mockMessages[request.id] ?? []);
         }
     }
 

@@ -3,25 +3,11 @@ import TopBar from "../components/TopBar";
 
 import { getPrivacyRequests, sendReminder, deletePrivacyRequest } from "../api/privacyRequestsApi";
 import { deleteAccount } from "../api/authApi";
-import { useAuth } from "../context/useAuth";
+import { useAuth } from "../hooks/useAuth";
+import { translateStatus } from "../utils/translations";
+import { mockRequests } from "../mocks/mockData";
 
 import { useEffect, useRef, useState } from "react"
-
-// function DashboardPage() är själva komponenten — 
-// det är React-sättet att skapa en återanvändbar bit av UI.
-// Utan funktionen har React ingenting att importera eller visa. Det är funktionen som:
-// Håller all logik (useState, useEffect, fetch)
-// Returnerar JSX (det som syns på skärmen)
-function translateStatus(status) {
-    const statuses = {
-        draft: "Utkast",
-        generated: "Besvarad",
-        waiting: "Väntar",
-        complete: "Mottaget",
-        denied: "Nekat",
-    };
-    return statuses[status] || status;
-}
 
 function DashboardPage(){
 
@@ -51,12 +37,7 @@ async function handleDeleteAccount() {
     // requests fylls med det backend skickar tillbaka — en lista av objekt. Varje objekt är ett ärende:
     // setRequests — funktionen som ersätter listan med ny data
 
-// DUMMY DATA — visas om backend inte returnerar några ärenden
-const dummyRequests = [
-    { id: 1, company_name: "Merinfo", status: "generated" },
-];
-
-    const [requests, setRequests] = useState(dummyRequests)
+    const [requests, setRequests] = useState(mockRequests)
 
 // reminderState — håller koll på varje ärendes påminnelseknapp: null | "loading" | "sent" | "error"
 const [reminderState, setReminderState] = useState({});
