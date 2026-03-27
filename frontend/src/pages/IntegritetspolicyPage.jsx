@@ -16,7 +16,7 @@ Vi vill att det ska vara tydligt vilka uppgifter vi samlar in, varför vi gör d
 
 [Företagsnamn / projektets juridiska namn]
 Organisationsnummer: [org.nr]
-E-post: [KONTAKT@EXEMPEL.SE]
+E-post: support@avlistamig.se
 Adress: [postadress]`,
     },
     {
@@ -118,7 +118,7 @@ Lösenord lagras aldrig i klartext. Personnummer lagras aldrig alls.`,
 • Begära dataportabilitet när det är tillämpligt
 • Lämna klagomål till Integritetsskyddsmyndigheten (IMY) på imy.se
 
-Radering av konto och all kopplad data sker omedelbart via inställningarna i tjänsten. För övriga rättigheter, kontakta oss på [KONTAKT@EXEMPEL.SE].`,
+Radering av konto och all kopplad data sker omedelbart via inställningarna i tjänsten. För övriga rättigheter, kontakta oss på support@avlistamig.se.`,
     },
     {
         number: "12",

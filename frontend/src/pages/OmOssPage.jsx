@@ -87,7 +87,7 @@ export default function OmOssPage() {
                             Har du frågor, synpunkter eller förslag på förbättringar? Vi tar gärna emot feedback.
                         </p>
                         <p className="muted" style={{ fontSize: "0.92rem", lineHeight: 1.7, marginTop: 10 }}>
-                            E-post: <strong>[KONTAKT@EXEMPEL.SE]</strong>
+                            E-post: <strong>support@avlistamig.se</strong>
                         </p>
                     </div>
 

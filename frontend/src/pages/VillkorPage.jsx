@@ -83,7 +83,7 @@ Detta gäller dock inte ansvar som enligt tvingande lag inte får begränsas.`,
         title: "Kontakt",
         content: `Om du har frågor om tjänsten eller dessa villkor, kontakta oss på:
 
-[KONTAKT@EXEMPEL.SE]`,
+support@avlistamig.se`,
     },
     {
         number: "12",
