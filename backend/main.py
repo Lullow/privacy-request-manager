@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from sqlalchemy import delete, or_
+from sqlalchemy import delete, func, or_, select
 
 from api.routers import router as privacy_request_router
 from auth.router import router as auth_router
@@ -28,8 +28,6 @@ async def _delete_inactive_users() -> None:
     cutoff = datetime.now(timezone.utc) - timedelta(days=INACTIVITY_MONTHS * 30)
 
     async with SessionLocal() as session:
-        # Räkna hur många som berörs innan radering (för loggning)
-        from sqlalchemy import select, func
         count_q = select(func.count()).select_from(User).where(
             or_(
                 User.last_login_at < cutoff,

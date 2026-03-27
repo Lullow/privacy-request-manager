@@ -3,21 +3,20 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-
-TOKEN_LIFETIME_DAYS = 30
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from connect_db import get_session
-from fastapi import APIRouter, Depends, HTTPException, Request, status
 from limiter import limiter
-
 from models import Token, User
 from schemas import ResendVerificationRequest, TokenResponse, UserCreate, UserLogin, UserRead
 from services.email_sender import send_email
 from settings import settings
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from .dependencies import get_current_user
+
+TOKEN_LIFETIME_DAYS = 30
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
