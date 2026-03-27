@@ -1,6 +1,5 @@
 import logging
-import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import bcrypt
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -9,51 +8,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from connect_db import get_session
 from limiter import limiter
-from models import Token, User
+from models import User
 from schemas import ResendVerificationRequest, TokenResponse, UserCreate, UserLogin, UserRead
-from services.email_sender import send_email
-from settings import settings
 
 from .dependencies import get_current_user
-
-TOKEN_LIFETIME_DAYS = 30
+from .email import send_verification_email
+from .utils import build_auth_token, generate_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
-
-
-def generate_token() -> str:
-    return secrets.token_urlsafe(32)
-
-
-def build_auth_token(user_id: int) -> Token:
-    return Token(
-        token=generate_token(),
-        user_id=user_id,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=TOKEN_LIFETIME_DAYS),
-    )
-
-
-async def send_verification_email(email: str, verification_token: str, redirect_to: str | None = None) -> None:
-    verify_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
-    if redirect_to:
-        verify_url += f"&next={redirect_to}"
-
-    subject = "Verifiera din e-postadress - Privacy Request Manager"
-    body = f"""Hej,
-
-Tack för att du registrerade dig hos Privacy Request Manager.
-
-Klicka på länken nedan för att verifiera din e-postadress och aktivera ditt konto:
-
-{verify_url}
-
-Länken är giltig tills vidare. Om du inte registrerade dig kan du ignorera detta mejl.
-
-Med vänliga hälsningar,
-Privacy Request Manager"""
-
-    await send_email(to=email, subject=subject, body=body)
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
