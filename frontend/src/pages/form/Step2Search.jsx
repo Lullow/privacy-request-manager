@@ -1,6 +1,9 @@
 import StepIndicator from "../../components/StepIndicator";
 import { SITES } from "../../data/sites";
 
+// Steg 2: Visar checkboxar för alla sajter och genererar direktlänkar till sökresultat.
+// Länkarna öppnas i ny flik — användaren letar manuellt efter sig själv och väljer
+// vilka sajter som gav träff (det sker i steg 3).
 export default function Step2Search({
     fullName, city,
     selectedSearchSites, toggleSite,

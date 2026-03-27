@@ -1,6 +1,9 @@
 import StepIndicator from "../../components/StepIndicator";
 import { SITES } from "../../data/sites";
 
+// Steg 3: Användaren markerar vilka sajter de faktiskt hittades på (baserat på steg 2).
+// Minst en sajt måste väljas för att kunna gå vidare — dessa skickas sedan som
+// selectedRemoveSites till steg 4 där borttagningsbegäranden skapas.
 export default function Step3Hits({
     selectedRemoveSites, toggleSite,
     error, setError,

@@ -169,12 +169,15 @@ const styles = {
   },
 };
 
-// Signature Pad (Canvas)
+// Canvas-baserat signeringsverktyg. Stöder både mus och touch (mobil).
+// Signaturen exporteras som en PNG data URL via onSignatureChange-callbacken.
 function SignaturePad({ onSignatureChange }) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
 
+  // Beräknar pennans position relativt canvas-elementet, med korrekt skalning.
+  // Nödvändigt eftersom canvas kan ha en annan CSS-storlek än dess faktiska pixelstorlek.
   const getPos = useCallback((e) => {
     const rect = canvasRef.current.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -187,6 +190,8 @@ function SignaturePad({ onSignatureChange }) {
     };
   }, []);
 
+  // Initierar canvas med dubbel upplösning (2x) för skarphet på retina-skärmar.
+  // ctx.scale(2, 2) kompenserar för den dubbla pixelupplösningen i ritlogiken.
   useEffect(() => {
     const c = canvasRef.current;
     c.width = c.offsetWidth * 2;
@@ -279,6 +284,9 @@ function CheckIcon() {
   );
 }
 
+// Fullmaktskomponent med två signeringsalternativ: handskriven signatur (canvas) eller digitalt godkännande.
+// onComplete anropas med signeringsdata (metod, signatur-PNG, tidsstämpel) när användaren bekräftar.
+// onBack visas som en tillbaka-knapp om den skickas in (valfri).
 export default function GDPRConsent({ userName = "", onComplete, onBack }) {
   const [mode, setMode] = useState("sign");
   const [signature, setSignature] = useState(null);
@@ -287,6 +295,7 @@ export default function GDPRConsent({ userName = "", onComplete, onBack }) {
   const [submitted, setSubmitted] = useState(false);
   const [timestamp, setTimestamp] = useState(null);
 
+  // Kan skickas: samtycket måste vara ikryssat OCH antingen ha en signatur (sign-läge) eller klickat godkänn (accept-läge).
   const canSubmit = consent && (mode === "sign" ? signature !== null : accepted);
 
   const handleSubmit = () => {
@@ -294,6 +303,7 @@ export default function GDPRConsent({ userName = "", onComplete, onBack }) {
     const now = new Date().toISOString();
     setTimestamp(now);
     setSubmitted(true);
+    // Skickar signeringsdata till Step5Sign som triggar handleSendAll i FormPage.
     onComplete?.({
       method: mode === "sign" ? "signature" : "consent_button",
       signatureDataUrl: mode === "sign" ? signature : null,

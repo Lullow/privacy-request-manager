@@ -2,6 +2,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import NotificationBell from "./NotificationBell";
 
+// Gemensam header som visas på alla sidor.
+// Visar olika navigation beroende på om användaren är inloggad:
+//   - Inloggad: notifikationsklocksa, meddelanden, dashboard, logga ut
+//   - Ej inloggad: logga in-knapp
 export default function TopBar() {
     const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
@@ -12,6 +16,7 @@ export default function TopBar() {
         navigate("/");
     }
 
+    // Lägger till CSS-klassen "active" på den länk som matchar aktuell URL.
     function navClass(path) {
         return location.pathname === path ? "topbar-nav-link active" : "topbar-nav-link";
     }

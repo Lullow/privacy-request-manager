@@ -1,5 +1,7 @@
 import StepIndicator from "../../components/StepIndicator";
 
+// Steg 1: Samlar in namn, ort, födelsedag och kräver att användaren godkänner
+// integritetspolicyn och användarvillkoren innan de kan fortsätta.
 export default function Step1Name({
     fullName, setFullName,
     city, setCity,
@@ -21,6 +23,8 @@ export default function Step1Name({
                     type="text"
                     placeholder="För- och efternamn"
                     value={fullName}
+                    // Tillåter bara bokstäver (inkl. svenska), bindestreck och apostrof.
+                    // Förhindrar att siffror eller specialtecken hamnar i namnet.
                     onChange={(e) => setFullName(e.target.value.replace(/[^a-zA-ZåäöÅÄÖéèüÜ\s\-']/g, ""))}
                     onKeyDown={(e) => e.key === "Enter" && fullName.trim() && setStep(2)}
                     autoFocus
@@ -43,6 +47,8 @@ export default function Step1Name({
                     value={birthDate}
                     min="1900-01-01"
                     max={new Date().toISOString().split("T")[0]}
+                    // Begränsar årtalet till max 4 siffror för att undvika ogiltiga datum
+                    // som webbläsarens date-input annars kan acceptera (t.ex. år 12345).
                     onChange={(e) => {
                         const val = e.target.value;
                         if (!val || val.split("-")[0].length <= 4) setBirthDate(val);

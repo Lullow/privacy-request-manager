@@ -1,5 +1,8 @@
 import { STEP_LABELS } from "../data/sites";
 
+// Visar framsteg genom formulärets steg som en rad med färgade staplar och etiketter.
+// Avklarade steg (done) är klickbara — användaren kan navigera bakåt utan att tappa data.
+// Aktivt steg markeras med fetstil och mörkare färg.
 export default function StepIndicator({ current, onNavigate }) {
     return (
         <div style={{ marginBottom: 28 }}>
@@ -8,6 +11,7 @@ export default function StepIndicator({ current, onNavigate }) {
                     const stepNum = i + 1;
                     const done = stepNum < current;
                     const active = stepNum === current;
+                    // Bara avklarade steg är klickbara — ej framåt-navigation.
                     const clickable = done;
                     return (
                         <div

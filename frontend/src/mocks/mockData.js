@@ -1,10 +1,14 @@
-// DUMMY DATA — används när backend inte returnerar data (demo/offline-läge)
+// Mock-data som används som fallback när backend inte returnerar data (t.ex. offline/demo-läge).
+// Importeras av DashboardPage, MessagesPage och NotificationBell.
 
+// Exempelärenden med olika statusar för att testa dashboard-vyn och statistiken.
 export const mockRequests = [
     { id: 1, company_name: "Merinfo", status: "generated" },
     { id: 2, company_name: "Eniro", status: "draft" },
 ];
 
+// Exempelmeddelanden, nycklat på ärendets id.
+// Ärende 1 har ett AI-genererat mejl; ärende 2 är tomt (inget mejl genererat än).
 export const mockMessages = {
     1: [
         {
@@ -20,6 +24,8 @@ export const mockMessages = {
     2: [],
 };
 
+// Exempelnotifikation kopplad till ärende 1.
+// Klick på notifikationen markerar ärendet som oläst och navigerar till MessagesPage.
 export const mockNotifications = [
     { id: 1, text: "Merinfo AB har svarat på din begäran.", requestId: 1 },
 ];

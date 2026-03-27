@@ -1,7 +1,16 @@
+// Bygger en URL-kodad söksträng där mellanslag ersätts med "+" (kompatibelt med de flesta söktjänsters format).
 function toSearchQuery(name) {
     return encodeURIComponent(name).replace(/%20/g, "+");
 }
 
+// Konfiguration för alla sajter som stöds av tjänsten.
+// Varje sajt har:
+//   searchUrl  — funktion som genererar en direktlänk till sökresultatsidan för användarens namn/ort.
+//   removeMethod — "form" (BankID-flöde på sajten) eller "email" (mejl till sajtens kundservice).
+//   removeUrl  — länk till sajtens borttagningssida eller kontaktformulär.
+//   removeEmail — e-postadress dit AI-genererade mejl skickas (används i FormPage steg 4).
+//   removeSteps — steg-för-steg-instruktioner som visas för användaren i formuläret.
+//   removeNote  — valfri varning/notering om sajtens begränsningar (t.ex. att Mrkoll bara döljer).
 export const SITES = [
     {
         name: "Ratsit",
@@ -28,6 +37,7 @@ export const SITES = [
             "Skanna QR-koden med BankID-appen",
             "Välj att dölja ditt telefonnummer och/eller adress under \"Ändra uppgifter\"",
         ],
+        // OBS: Mrkoll döljer uppgifterna snarare än att radera dem permanent.
         removeNote: "Mrkoll döljer uppgifterna — de raderas inte permanent. Vill du begära permanent radering? Välj Juridisk begäran.",
     },
     {
@@ -72,6 +82,8 @@ export const SITES = [
     },
 ];
 
+// GDPR-begärantyper som användaren kan välja bland i formuläret (steg 4).
+// id matchar backend-värden; label visas i UI.
 export const REQUEST_TYPES = [
     { id: "delete", label: "Radering" },
     { id: "access", label: "Registerutdrag" },
@@ -81,4 +93,6 @@ export const REQUEST_TYPES = [
     { id: "portability", label: "Dataportabilitet" },
 ];
 
+// Etiketter för steg-indikatorn i formuläret.
+// Ordningen matchar stegnumren i FormPage (steg 1–5 visas, steg 6 är bekräftelsesidan).
 export const STEP_LABELS = ["Ditt namn", "Sök upp dig", "Träffar", "Ta bort", "Signera"];

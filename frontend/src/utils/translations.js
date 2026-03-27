@@ -1,3 +1,6 @@
+// Översätter backend-statuskoder till svenska etiketter för visning i UI.
+// Används i DashboardPage (statuskolumn + donut-diagram) och MessagesPage (ärendelistan).
+// Fallback: returnerar den ursprungliga strängen om statuskoden inte är känd.
 export function translateStatus(status) {
     const statuses = {
         draft: "Utkast",
@@ -10,6 +13,8 @@ export function translateStatus(status) {
     return statuses[status] || status;
 }
 
+// Översätter meddelandetyper till svenska etiketter för visning i MessagesPage.
+// Fallback: returnerar den ursprungliga strängen om typen inte är känd.
 export function translateMessageType(type) {
     const types = {
         initial_request: "Förfrågan",

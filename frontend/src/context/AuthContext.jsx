@@ -1,98 +1,80 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
-
-// Skapar en auth-contect så att det går att dela auth-data i hela appen
-// Detta funkar men Vite/Lint klagar TODO? 
+// Skapar auth-kontexten som delas i hela appen via AuthProvider.
+// Konsumeras via useAuth-hooken (src/hooks/useAuth.js).
 export const AuthContext = createContext();
 
-
-
-
 export function AuthProvider({ children }) {
-    // Hämta token från localStorage om användaren redan varit inloggad
-    const [token, setToken] = useState(localStorage.getItem("token",) || "");
-    // Spara info om den inloggade användern
+    // Initieras direkt från localStorage så att inloggad status återställs vid sidladdning.
+    const [token, setToken] = useState(localStorage.getItem("token") || "");
+    // Användarens profildata hämtas från backend efter att token verifierats.
     const [user, setUser] = useState(null);
-    // Håller koll på om vi fortfarande laddar auth-status
+    // loading är true tills vi vet om token är giltig — hindrar ProtectedRoute från att
+    // omdirigera för tidigt innan auth-kontrollen är klar.
     const [loading, setLoading] = useState(true);
-    // TEST:
-    const isAuthenticated = !!token;
-    console.log({ token, isAuthenticated });
 
-    // Hämtar användarens info från backen med hjälp av token
+    // Verifierar token mot backend och hämtar användarens profildata.
+    // Om token är ogiltig eller utgången rensas den och användaren loggas ut tyst.
     async function fetchMe(currentToken) {
-    try {
-        const response = await fetch("/api/auth/me", {
-        headers: {
-            // Skickar token men hjälp av authorization header
-            Authorization: `Bearer ${currentToken}`,
-        },
-        });
+        try {
+            const response = await fetch("/api/auth/me", {
+                headers: {
+                    Authorization: `Bearer ${currentToken}`,
+                },
+            });
 
-        // Error-hantering (om inte token funkar)
-        if (!response.ok) {
-        throw new Error("Ogiltig token");
+            if (!response.ok) {
+                throw new Error("Ogiltig token");
+            }
+
+            const data = await response.json();
+            setUser(data);
+        } catch {
+            // Token är ogiltig — rensa auth-state helt.
+            localStorage.removeItem("token");
+            setToken("");
+            setUser(null);
+        } finally {
+            setLoading(false);
         }
+    }
 
-        // Gör om svaret från backend till JSON
-        const data = await response.json();
-        // Spara användarens data i state
-        setUser(data);
-    } catch {
-        // Om token är fel så loggas användaren ut
+    // Körs varje gång token ändras (inloggning, utloggning, sidladdning).
+    useEffect(() => {
+        if (token) {
+            fetchMe(token);
+        } else {
+            // Ingen token — ingen nätverksbegäran behövs, laddar klart direkt.
+            setLoading(false);
+        }
+    }, [token]);
+
+    // Sparar token i både localStorage (persistent) och state (reaktivt).
+    // Anropas från LoginPage och VerifyEmailPage efter lyckad autentisering.
+    function login(newToken) {
+        localStorage.setItem("token", newToken);
+        setToken(newToken);
+    }
+
+    // Rensar token och användardata. Anropas från TopBar via handleLogout.
+    function logout() {
         localStorage.removeItem("token");
         setToken("");
         setUser(null);
-    } finally {
-        // När kontrollen är klar slutar det ladda
-        setLoading(false);
-    }
-    }
-
-    // Körs när token ändrss
-    useEffect(() => {
-    if (token) {
-        // Om token finns, kontrollera vem användaren är
-        fetchMe(token);
-        // setUser({ email: "dummy@dummy.com", id: 1 }); // dummy user
-        // setLoading(false);
-    } else {
-        // Om token INTE finns då är vi klara direkt
-        setLoading(false);
-    }
-    }, [token]);
-
-    // Körs när användaren loggar in
-    function login(newToken) {
-    // Sparar token i localStorage så den finns kvar efter en refresh
-    localStorage.setItem("token", newToken);
-    // Sparar token i state
-    setToken(newToken);
-    }
-
-    // Körs när användaren loggas ut
-    function logout() {
-    // Tar bort token från localStorage
-    localStorage.removeItem("token");
-    // Nollställer auth-state
-    setToken("");
-    setUser(null);
     }
 
     return (
-    <AuthContext.Provider
-        // Delar ut auth-datan och auth-funktionerna till resten av appen
-        value={{
-        token,
-        user,
-        loading,
-        login,
-        logout,
-        // True om användardata finns, annars blir det false
-        isAuthenticated: !!token,
-        }}
-    >
-        {children}
-    </AuthContext.Provider>
+        <AuthContext.Provider
+            value={{
+                token,
+                user,
+                loading,
+                login,
+                logout,
+                isAuthenticated: !!token,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
     );
 }

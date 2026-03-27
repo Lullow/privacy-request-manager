@@ -2,17 +2,20 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { mockNotifications } from "../mocks/mockData";
 
+// Notifikationsklocksa i TopBar. Visar antal olästa notiser som en badge.
+// Avvisade notiser sparas i localStorage så att de inte dyker upp igen vid sidladdning.
 export default function NotificationBell() {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
 
-    // Filtrera bort redan klickade notiser via localStorage
+    // Filtrera bort notiser som användaren redan klickat på (sparade i localStorage).
     const dismissed = JSON.parse(localStorage.getItem("dismissedNotifications") || "[]");
     const [notifications, setNotifications] = useState(
         mockNotifications.filter((n) => !dismissed.includes(n.id))
     );
     const hasNotifications = notifications.length > 0;
 
+    // Stänger dropdown med Escape-tangenten.
     useEffect(() => {
         function handleEsc(e) { if (e.key === "Escape") setShowNotifications(false); }
         document.addEventListener("keydown", handleEsc);
@@ -20,12 +23,12 @@ export default function NotificationBell() {
     }, []);
 
     function handleNotificationClick(notification) {
-        // Spara requestId som oläst
+        // Markerar det kopplade ärendet som oläst i MessagesPage (visas som en blå prick).
         const unread = JSON.parse(localStorage.getItem("unreadRequests") || "[]");
         if (!unread.includes(notification.requestId)) {
             localStorage.setItem("unreadRequests", JSON.stringify([...unread, notification.requestId]));
         }
-        // Spara notisen som avklarad
+        // Avvisar notisen så att den inte visas igen.
         const dismissed = JSON.parse(localStorage.getItem("dismissedNotifications") || "[]");
         localStorage.setItem("dismissedNotifications", JSON.stringify([...dismissed, notification.id]));
 

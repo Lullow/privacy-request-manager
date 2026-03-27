@@ -8,9 +8,12 @@ import { mockRequests, mockMessages } from "../mocks/mockData";
 function MessagesPage() {
     const navigate = useNavigate();
     const location = useLocation();
+    // Initieras med mockRequests som placeholder tills backend svarar.
     const [requests, setRequests] = useState(mockRequests);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [messages, setMessages] = useState([]);
+    // unreadRequests — lista med ärende-ID:n som har olästa notiser.
+    // Sparas i localStorage av NotificationBell och rensas här när användaren öppnar ärendet.
     const [unreadRequests, setUnreadRequests] = useState(
         JSON.parse(localStorage.getItem("unreadRequests") || "[]")
     );
@@ -49,8 +52,10 @@ function MessagesPage() {
 
         try {
             const data = await getRequestMessages(request.id);
+            // Fallback till mock-data om backend returnerar en tom lista (t.ex. i demo-läge).
             setMessages(data.length > 0 ? data : (mockMessages[request.id] ?? []));
         } catch (err) {
+            // Vid nätverksfel — visa mock-data istället för ett tomt tillstånd.
             setMessages(mockMessages[request.id] ?? []);
         }
     }

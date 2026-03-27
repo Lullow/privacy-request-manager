@@ -1,5 +1,9 @@
 import { SITES } from "../../data/sites";
 
+// Steg 6: Bekräftelsesida som visar sändningsstatus per sajt i realtid.
+// sendStatus uppdateras löpande från handleSendAll i FormPage medan begäranden skickas.
+// isBankId-logiken identifierar form-sajter vid enkel begäran — dessa hanteras
+// manuellt av användaren och ingår inte i den automatiska sändningen.
 export default function Step6Done({ selectedRemoveSites, requestIds, requestPath, sendStatus, getMailtoFallback, onBack, onReset }) {
     return (
         <div>

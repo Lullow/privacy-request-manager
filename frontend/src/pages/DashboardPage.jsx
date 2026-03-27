@@ -11,14 +11,15 @@ import { useEffect, useRef, useState } from "react"
 
 function DashboardPage(){
 
-// ref används för att peka på donut-diven i JSX så att animationen kan ändra dess CSS.
-// useRef — skapar en referens till ett DOM-element. Utan den vet inte JavaScript vilken div det handlar om
+// ref pekar på donut-diven i JSX (<div className="donut" ref={ref}>).
+// Utan den vet inte JavaScript vilken div det handlar om när animationen ska uppdatera CSS-variablerna.
 const ref = useRef(null)
 const navigate = useNavigate();
 const { logout } = useAuth();
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 const [deleteLoading, setDeleteLoading] = useState(false);
 
+// Raderar kontot permanent via backend, loggar ut och navigerar till startsidan.
 async function handleDeleteAccount() {
     setDeleteLoading(true);
     try {
@@ -32,11 +33,8 @@ async function handleDeleteAccount() {
 }
 
 
-    // [] = startvärdet är en tom lista, för när sidan laddas har vi ingen data ännu.
-    // requests — själva listan med ärenden (börjar som [])
-    // requests fylls med det backend skickar tillbaka — en lista av objekt. Varje objekt är ett ärende:
-    // setRequests — funktionen som ersätter listan med ny data
-
+    // Initieras med mockRequests som placeholder tills backend svarar.
+    // Om backend returnerar data ersätts mock-datan (se useEffect nedan).
     const [requests, setRequests] = useState(mockRequests)
 
 // reminderState — håller koll på varje ärendes påminnelseknapp: null | "loading" | "sent" | "error"
@@ -94,9 +92,8 @@ const filteredRequests = requests.filter((req) => {
 });
 
 
-// getPrivacyRequests anropar apiFetch som automatiskt skickar token i headern → backend godkänner → ärenden hämtas och visas.
-// Innan hade vi ingen token, backend nekade 
-// Återställ notiser varje gång dashboarden laddas (för demo)
+// Återställer notis-state varje gång dashboarden laddas (demo-läge).
+// I produktion ska detta tas bort — notiser ska inte återställas automatiskt.
 useEffect(() => {
     localStorage.removeItem("dismissedNotifications");
     localStorage.setItem("unreadRequests", JSON.stringify([1]));
@@ -249,24 +246,11 @@ return(
             <div className="cell">Åtgärder</div>
         </div>
 
-{/* requests = listan vi hämtar från backend */} 
-{/* .map = gå igenom varje ärende i listan och gör om till jsx */}
-{/* one = ett ärende i taget */} 
 {filteredRequests.map((one) => (
-
     <div className="case-row" key={one.id}>
-        {/* Skapar en rad för varje ärende.
-        key={one.id} = React kräver en unik nyckel på varje element
-        i en lista så den vet vilken rad som är vilken. 
-        one.id kommer från backend. */}
-        {/* Visar företagsnamnet. one.company_name är fältet från backend (snake_case). */}
         <div className="cell">{one.company_name}</div>
-        {/* className={...} — sätter CSS-klassen dynamiskt.
-            Backticks   `` används för att mixa fast text och variabler:
-            `cell status ${one.status}`
-            Om one.status är "waiting" → blir klassen "cell status waiting"
-            Om one.status är "complete" → blir klassen "cell status complete"
-            Det gör att CSS:en kan styla varje status olika med .status.waiting och .status.complete*/}
+        {/* Dynamisk CSS-klass kombinerar "cell status" med ärendets status (t.ex. "cell status waiting").
+            CSS:en använder .status.waiting, .status.complete etc. för att färgsätta varje status. */}
         <div className={`cell status ${one.status}`}>{translateStatus(one.status)}</div>
         <div className="cell case-actions">
             <button className="btn-dashboard" onClick={() => navigate(one.status === "draft" ? "/create-request" : `/messages?id=${one.id}`)}>Visa</button>
