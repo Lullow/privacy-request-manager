@@ -1,7 +1,7 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,7 +25,7 @@ CLEANUP_INTERVAL_SECONDS = 24 * 60 * 60  # körs varje natt
 
 async def _delete_inactive_users() -> None:
     """Raderar konton som varit inaktiva i minst 24 månader."""
-    cutoff = datetime.utcnow() - timedelta(days=INACTIVITY_MONTHS * 30)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=INACTIVITY_MONTHS * 30)
 
     async with SessionLocal() as session:
         # Räkna hur många som berörs innan radering (för loggning)
@@ -58,7 +58,7 @@ async def _delete_expired_tokens() -> None:
     """Raderar tokens som passerat sitt expires_at."""
     async with SessionLocal() as session:
         result = await session.execute(
-            delete(Token).where(Token.expires_at < datetime.utcnow())
+            delete(Token).where(Token.expires_at < datetime.now(timezone.utc))
         )
         count = result.rowcount
         await session.commit()

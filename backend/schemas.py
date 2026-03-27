@@ -3,6 +3,8 @@ from datetime import datetime
 
 # Basemodel: basen för pydantic-modeller
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
+from typing import Literal
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
@@ -52,7 +54,7 @@ class PrivacyRequestRead(BaseModel):
 # ~ PRIVACY REQUEST - UPDATE
 # för PUT, status är den enda som uppdateras
 class PrivacyRequestUpdate(BaseModel):
-    status: str
+    status: Literal["draft", "generated", "sent"]
 
 
 # Vad frontend skickar när man registrerar ett konto

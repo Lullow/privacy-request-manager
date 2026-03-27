@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from connect_db import get_session
 from fastapi import Depends, HTTPException
@@ -25,7 +25,7 @@ async def get_current_user(
     if not db_token:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    if db_token.expires_at < datetime.utcnow():
+    if db_token.expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Token har gått ut — logga in igen.")
 
     return db_token.user

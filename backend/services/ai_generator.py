@@ -1,6 +1,8 @@
 import anthropic
 from settings import settings
 
+_client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+
 
 def generate_legal_gdpr_message(
     company_name: str,
@@ -153,9 +155,7 @@ SUBJECT: <ämnesrad här>
 BODY:
 <meddelandetext här>"""
 
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-
-    response = client.messages.create(
+    response = _client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=1024,
         messages=[{"role": "user", "content": prompt}],

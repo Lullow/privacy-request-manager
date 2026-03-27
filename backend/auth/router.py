@@ -1,6 +1,6 @@
 import logging
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 
@@ -31,7 +31,7 @@ def build_auth_token(user_id: int) -> Token:
     return Token(
         token=generate_token(),
         user_id=user_id,
-        expires_at=datetime.utcnow() + timedelta(days=TOKEN_LIFETIME_DAYS),
+        expires_at=datetime.now(timezone.utc) + timedelta(days=TOKEN_LIFETIME_DAYS),
     )
 
 
@@ -187,7 +187,7 @@ async def login(request: Request, payload: UserLogin, session: AsyncSession = De
             detail="Verifiera din e-postadress först. Kontrollera din inkorg.",
         )
 
-    user.last_login_at = datetime.utcnow()
+    user.last_login_at = datetime.now(timezone.utc)
 
     db_token = build_auth_token(user.id)
     session.add(db_token)
