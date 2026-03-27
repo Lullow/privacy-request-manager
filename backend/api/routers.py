@@ -378,3 +378,58 @@ async def send_privacy_request(
     await session.commit()
 
     return {"message": "Mejlet skickades"}
+
+
+# POST-endpoint: genererar och skickar en påminnelse för ett ärende
+# Exempel: /api/privacy-requests/5/reminder
+@router.post("/{request_id}/reminder")
+async def send_reminder(
+    request_id: int,
+    session: AsyncSession = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    stmt = select(PrivacyRequest).where(
+        PrivacyRequest.id == request_id,
+        PrivacyRequest.user_id == current_user.id,
+    )
+    result = await session.execute(stmt)
+    request_row = result.scalar_one_or_none()
+
+    if request_row is None:
+        raise HTTPException(status_code=404, detail="Privacy request not found")
+
+    generated = generate_gdpr_message(
+        company_name=request_row.company_name,
+        company_email=request_row.company_email,
+        full_name=request_row.full_name,
+        city=request_row.city,
+        profile_url=request_row.profile_url,
+        birth_date=request_row.birth_date,
+        tone=request_row.tone,
+        message_type="follow_up",
+        request_types=["delete"],
+    )
+
+    new_message = Message(
+        privacy_request_id=request_row.id,
+        message_type="follow_up",
+        source="ai",
+        subject=generated["subject"],
+        message_body=generated["message_body"],
+        tone=request_row.tone,
+    )
+    session.add(new_message)
+
+    try:
+        await send_email(
+            to=request_row.company_email,
+            subject=generated["subject"],
+            body=generated["message_body"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kunde inte skicka påminnelsen: {str(e)}")
+
+    request_row.status = "waiting"
+    await session.commit()
+
+    return {"message": "Påminnelse skickad"}
