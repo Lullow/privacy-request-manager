@@ -15,7 +15,7 @@ def _build_html_body(body: str) -> str:
     escaped_body = html.escape(body)
     # Gör URL:er klickbara efter HTML-escaping
     linked_body = _URL_RE.sub(
-        lambda m: f'<a href="{m.group(1)}">{m.group(1)}</a>',
+        lambda m: f'<a href="{html.escape(m.group(1))}">{m.group(1)}</a>',
         escaped_body,
     )
     return f"<pre style='font-family: inherit; white-space: pre-wrap;'>{linked_body}</pre>"

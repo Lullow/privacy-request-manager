@@ -3,7 +3,7 @@ from datetime import datetime
 
 # Basemodel: basen för pydantic-modeller
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ~ PRIVACY REQUEST - CREATE ~
@@ -56,10 +56,23 @@ class PrivacyRequestUpdate(BaseModel):
 
 
 # Vad frontend skickar när man registrerar ett konto
+def _validate_redirect_to(v: str | None) -> str | None:
+    if v is None:
+        return v
+    if not v.startswith("/") or "//" in v or "@" in v:
+        raise ValueError("redirect_to måste vara en relativ sökväg, t.ex. /dashboard")
+    return v
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str  # klartext här — hashas sedan i auth-logiken
     redirect_to: str | None = None  # Sidan att skicka användaren till efter e-postverifiering
+
+    @field_validator("redirect_to")
+    @classmethod
+    def validate_redirect_to(cls, v: str | None) -> str | None:
+        return _validate_redirect_to(v)
 
 
 # Vad API:t skickar tillbaka efter register/login (aldrig password!) password från frontend används bara för att hasha och spara password_hash i databasen — sedan kastas klartext-lösenordet.
@@ -80,6 +93,11 @@ class UserLogin(BaseModel):
 class ResendVerificationRequest(BaseModel):
     email: EmailStr
     redirect_to: str | None = None
+
+    @field_validator("redirect_to")
+    @classmethod
+    def validate_redirect_to(cls, v: str | None) -> str | None:
+        return _validate_redirect_to(v)
 
 
 # ~ MESSAGE - READ ~
