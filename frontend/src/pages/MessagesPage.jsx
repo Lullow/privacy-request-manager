@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import NotificationBell from "../components/NotificationBell";
 import TopBar from "../components/TopBar";
 import { getPrivacyRequests, getRequestMessages } from "../api/privacyRequestsApi";
 
@@ -99,7 +98,7 @@ function MessagesPage() {
     return (
         <section className="messages-page">
             <TopBar />
-
+            <div className="messages-body">
             <div className="messages-sidebar">
                 <h2>Ärenden</h2>
                 {requests.map((req) => (
@@ -121,24 +120,12 @@ function MessagesPage() {
             </div>
 
             <div className="messages-main">
-                <div className="dashboard-header">
-                    <button className="back-btn" onClick={() => navigate("/dashboard")}>← Tillbaka</button>
+                <div className="messages-main-header">
                     <h1>Meddelanden</h1>
-                    <div className="header-icons">
-                        <NotificationBell />
-                        <button className="message-btn" onClick={() => navigate("/messages")}>
-                            <svg className="message-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                            </svg>
-                        </button>
-                        <button className="dashboard-button" onClick={() => navigate("/dashboard")}>
-                            <svg className="dashboard-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
-                            </svg>
-                        </button>
-                    </div>
+                    <button className="back-btn" onClick={() => navigate("/dashboard")}>← Tillbaka</button>
                 </div>
 
+                <div className="border">
                 <div className="messages-thread">
                     {!selectedRequest && (
                         <p className="muted">Välj ett ärende för att se meddelanden.</p>
@@ -160,7 +147,7 @@ function MessagesPage() {
                                     <div className="message-meta">
                                         <span className="message-type">{translateMessageType(msg.message_type)}</span>
                                         <span className="message-date">
-                                            {new Date(msg.created_at).toLocaleDateString("sv-SE")}
+                                            {new Date(msg.created_at).toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}
                                         </span>
                                     </div>
                                     <p className="message-subject"><strong>{msg.subject}</strong></p>
@@ -170,8 +157,9 @@ function MessagesPage() {
                         </>
                     )}
                 </div>
+                </div>
             </div>
-
+            </div>
         </section>
     );
 }
