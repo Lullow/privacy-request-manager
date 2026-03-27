@@ -162,10 +162,3 @@ class Token(Base):
 
     user: Mapped["User"] = relationship(back_populates="tokens")
 
-"""
-Snabba “bra-att-veta” notes
-
-Mapped[...] är SQLAlchemy 2.0-sättet att göra modeller “typ-säkra” och tydliga.
-nullable=True måste matcha att du tillåter None i typen (str | None), annars blir det inkonsekvent.
-Text importeras men används inte just nu — helt okej, men du kan ta bort importen för att hålla filen clean.
-"""
