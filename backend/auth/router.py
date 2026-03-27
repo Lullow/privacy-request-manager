@@ -7,7 +7,8 @@ import bcrypt
 TOKEN_LIFETIME_DAYS = 30
 
 from connect_db import get_session
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from limiter import limiter
 
 from models import Token, User
 from schemas import ResendVerificationRequest, TokenResponse, UserCreate, UserLogin, UserRead
@@ -57,7 +58,8 @@ Privacy Request Manager"""
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-async def register(payload: UserCreate, session: AsyncSession = Depends(get_session)):
+@limiter.limit("5/minute")
+async def register(request: Request, payload: UserCreate, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.email == payload.email))
     existing_user = result.scalar_one_or_none()
 
@@ -128,8 +130,9 @@ async def register(payload: UserCreate, session: AsyncSession = Depends(get_sess
 
 
 @router.post("/resend-verification")
+@limiter.limit("3/minute")
 async def resend_verification(
-    payload: ResendVerificationRequest, session: AsyncSession = Depends(get_session)
+    request: Request, payload: ResendVerificationRequest, session: AsyncSession = Depends(get_session)
 ):
     result = await session.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
@@ -170,7 +173,8 @@ async def resend_verification(
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: UserLogin, session: AsyncSession = Depends(get_session)):
+@limiter.limit("10/minute")
+async def login(request: Request, payload: UserLogin, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 

@@ -3,9 +3,10 @@ from datetime import datetime
 from connect_db import get_session
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from models import Token, User
+from models import Token
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 security = HTTPBearer()
 
@@ -16,7 +17,9 @@ async def get_current_user(
 ):
     token_str = credentials.credentials
 
-    result = await session.execute(select(Token).where(Token.token == token_str))
+    result = await session.execute(
+        select(Token).where(Token.token == token_str).options(joinedload(Token.user))
+    )
     db_token = result.scalar_one_or_none()
 
     if not db_token:
@@ -25,10 +28,4 @@ async def get_current_user(
     if db_token.expires_at < datetime.utcnow():
         raise HTTPException(status_code=401, detail="Token har gått ut — logga in igen.")
 
-    result = await session.execute(select(User).where(User.id == db_token.user_id))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-
-    return user
+    return db_token.user

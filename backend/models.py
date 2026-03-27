@@ -83,10 +83,7 @@ class PrivacyRequest(Base):
     profile_url: Mapped[str | None] = mapped_column(String(200), nullable=True)
 
     # kopplar varje ärende till en specifik användare.
-
-    # TODO: Ändra från valfritt när auth implementeras.
-    # Lägger valfritt tillsvidare
-    user_id: Mapped[int | None] = mapped_column(ForeignKey("user.id"), nullable=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     # Tone för AI-generering
     # Sparar vilket tonläge som AI:n ska använda, exempelvis: neutral, formal, friendly

@@ -47,7 +47,7 @@ class Settings(BaseSettings):
         # .split(",") delar upp på kommatecken
         # .strip() tar bort mellanslag runt varje origin
         # I verkligheten kan du ha flera frontend-adresser som behöver prata med din backend, därav behöver det bli en lista
-        return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
 
 
 # Vi skapar en global instans av Settings så du kan importera den överallt:
