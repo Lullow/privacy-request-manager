@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // DUMMY DATA — kommentera ut för att testa utan notiser
@@ -20,6 +20,12 @@ export default function NotificationBell() {
     );
     const hasNotifications = notifications.length > 0;
 
+    useEffect(() => {
+        function handleEsc(e) { if (e.key === "Escape") setShowNotifications(false); }
+        document.addEventListener("keydown", handleEsc);
+        return () => document.removeEventListener("keydown", handleEsc);
+    }, []);
+
     function handleNotificationClick(notification) {
         // Spara requestId som oläst
         const unread = JSON.parse(localStorage.getItem("unreadRequests") || "[]");
@@ -38,13 +44,14 @@ export default function NotificationBell() {
     return (
         <div className="notification-wrapper">
             <button
-                className="notification-btn"
+                className="notification-btn topbar-icon-btn"
                 onClick={() => setShowNotifications(!showNotifications)}
+                title="Notifikationer"
             >
                 <svg className="bell-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                 </svg>
-                {hasNotifications && <span className="notification-dot" />}
+                {hasNotifications && <span className="notification-dot">{notifications.length}</span>}
             </button>
 
             {showNotifications && (

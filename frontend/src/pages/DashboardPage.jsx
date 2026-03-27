@@ -85,6 +85,12 @@ async function handleSendReminder(id) {
 const [filters, setFilters] = useState({ pagaende: true, avslutad: true, utkast: true });
 const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
+useEffect(() => {
+    function handleEsc(e) { if (e.key === "Escape") setShowFilterDropdown(false); }
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+}, []);
+
 // Visar vilken text som ska stå på filter-knappen
 const filterLabel = filters.pagaende && filters.avslutad && filters.utkast ? "Alla"
     : filters.utkast && !filters.pagaende && !filters.avslutad ? "Utkast"
@@ -217,9 +223,10 @@ return(
 <section className="dashboard">
     <TopBar />
 
+    <div className="container">
     <div className="dashboard-header">
         <h1>Mina ärenden</h1>
-        <button className="back-btn" onClick={() => navigate("/")}>← Tillbaka</button>
+        <button className="btn btn-secondary" onClick={() => navigate("/")}>Tillbaka</button>
     </div>
 
 
@@ -309,13 +316,14 @@ return(
         </div>
     </div>
 
-    <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e2e8f0" }}>
+    <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid #e2e8f0", paddingLeft: 40 }}>
         <button
             className="btn-danger"
             onClick={() => setShowDeleteConfirm(true)}
         >
             Radera mitt konto
         </button>
+    </div>
     </div>
 
     {showDeleteConfirm && (

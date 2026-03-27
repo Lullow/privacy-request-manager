@@ -156,6 +156,13 @@ function FormPage() {
     const [requestIds, setRequestIds] = useState(s.requestIds || {});   // { [sajtnamn]: backendId }
     const [sendStatus, setSendStatus] = useState({});   // { [sajtnamn]: "sending"|"sent"|"failed" }
     const [isPreparingStep5, setIsPreparingStep5] = useState(false);
+    const [showToneDropdown, setShowToneDropdown] = useState(false);
+
+    useEffect(() => {
+        function handleEsc(e) { if (e.key === "Escape") setShowToneDropdown(false); }
+        document.addEventListener("keydown", handleEsc);
+        return () => document.removeEventListener("keydown", handleEsc);
+    }, []);
     const [loadingSite, setLoadingSite] = useState(null);
     const [copiedSite, setCopiedSite] = useState(null);
     const [error, setError] = useState("");
@@ -164,10 +171,12 @@ function FormPage() {
 
     // Juridiska fält — sparas INTE i sessionStorage
     const [personalNumber, setPersonalNumber] = useState("");
+    const [personalNumberError, setPersonalNumberError] = useState("");
     const [showPersonalNumber, setShowPersonalNumber] = useState(false);
     const [legalAddress, setLegalAddress] = useState("");
     const [legalPhone, setLegalPhone] = useState("");
     const [legalEmail, setLegalEmail] = useState("");
+    const [legalEmailError, setLegalEmailError] = useState("");
 
     const isBrowserNav = useRef(false);
 
@@ -454,13 +463,13 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                             <h1>Vem är du?</h1>
                             <p className="muted">Ange ditt namn och ort för att söka upp dig på personregistren.</p>
 
-                            <div className="field">
+                            <div className="field" style={{ marginTop: 16 }}>
                                 <label>Ditt namn *</label>
                                 <input
                                     type="text"
                                     placeholder="För- och efternamn"
                                     value={fullName}
-                                    onChange={(e) => setFullName(e.target.value)}
+                                    onChange={(e) => setFullName(e.target.value.replace(/[^a-zA-ZåäöÅÄÖéèüÜ\s\-']/g, ""))}
                                     onKeyDown={(e) => e.key === "Enter" && fullName.trim() && setStep(2)}
                                     autoFocus
                                 />
@@ -551,7 +560,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                 Välj sajter du vill söka på och öppna varje sajt via "Öppna"-knappen — se om du har träffar.
                             </p>
 
-                            <div className="chip-grid">
+                            <div className="chip-grid" style={{ marginTop: 16 }}>
                                 {SITES.map((site) => (
                                     <label className="chip" key={site.name}>
                                         <input
@@ -604,9 +613,9 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                         <div>
                             <StepIndicator current={3} onNavigate={setStep} />
                             <h1>Var hittades du?</h1>
-                            <p className="muted">Välj de sajter där du fick träff och vill bli borttagen från.</p>
+                            <p className="muted">Välj de sajter där du fick träff och vill bli borttagen från — klicka sedan på Nästa.</p>
 
-                            <div className="chip-grid">
+                            <div className="chip-grid" style={{ marginTop: 16 }}>
                                 {SITES.map((site) => (
                                     <label className="chip" key={site.name}>
                                         <input
@@ -689,7 +698,23 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                                 type={showPersonalNumber ? "text" : "password"}
                                                 placeholder="XXXXXX-XXXX"
                                                 value={personalNumber}
-                                                onChange={(e) => setPersonalNumber(e.target.value)}
+                                                onChange={(e) => {
+                                                    const raw = e.target.value.replace(/[^0-9]/g, "");
+                                                    if (raw.length === 1 && raw !== "1" && raw !== "2") return;
+                                                    if (raw.length > 12) return;
+                                                    const formatted = raw.length >= 9
+                                                        ? raw.slice(0, 8) + "-" + raw.slice(8, 12)
+                                                        : raw;
+                                                    setPersonalNumber(formatted);
+                                                    setPersonalNumberError("");
+                                                }}
+                                                onBlur={() => {
+                                                    const valid10 = /^\d{6}-\d{4}$/.test(personalNumber);
+                                                    const valid12 = /^\d{8}-\d{4}$/.test(personalNumber);
+                                                    if (personalNumber && !valid10 && !valid12) {
+                                                        setPersonalNumberError("Ange format ÅÅMMDD-XXXX (10 siffror) eller ÅÅÅÅMMDD-XXXX (12 siffror).");
+                                                    }
+                                                }}
                                                 autoComplete="off"
                                                 style={{ paddingRight: 44 }}
                                             />
@@ -700,12 +725,13 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                                 style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4, display: "flex", alignItems: "center" }}
                                             >
                                                 {showPersonalNumber ? (
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                                ) : (
                                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                                ) : (
+                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                                                 )}
                                             </button>
                                         </div>
+                                        {personalNumberError && <small className="hint">{personalNumberError}</small>}
                                         <small className="hint">Sparas inte — används enbart för att skapa brevet.</small>
                                     </div>
 
@@ -727,7 +753,11 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             type="tel"
                                             placeholder="07X-XXX XX XX"
                                             value={legalPhone}
-                                            onChange={(e) => setLegalPhone(e.target.value)}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^0-9\-]/g, "");
+                                                const dashes = (val.match(/-/g) || []).length;
+                                                if (dashes <= 1) setLegalPhone(val);
+                                            }}
                                             autoComplete="off"
                                         />
                                         <small className="hint">Gör det lättare för sajten att nå dig om de behöver bekräfta din identitet.</small>
@@ -739,12 +769,40 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             type="email"
                                             placeholder="din@epost.se"
                                             value={legalEmail}
-                                            onChange={(e) => setLegalEmail(e.target.value)}
+                                            onChange={(e) => { setLegalEmail(e.target.value); setLegalEmailError(""); }}
+                                            onBlur={(e) => {
+                                                const val = e.target.value.trim();
+                                                if (val && !/^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/.test(val)) {
+                                                    setLegalEmailError("Ogiltig e-postadress.");
+                                                }
+                                            }}
                                             autoComplete="off"
                                         />
+                                        {legalEmailError && <small className="hint">{legalEmailError}</small>}
                                         <small className="hint">Sajten kan skicka en bekräftelse direkt till dig när begäran är behandlad.</small>
                                     </div>
                                     <hr className="divider" />
+
+                                    {/* ── Tonalitet för juridisk begäran ── */}
+                                    <div className="field" style={{ marginTop: 4, marginBottom: 20 }}>
+                                        <label>Tonalitet</label>
+                                        <small className="muted" style={{ display: "block", marginBottom: 6, fontSize: "0.78rem" }}>
+                                            Justera tonen i det juridiska brevet — neutral fungerar i de flesta fall, formell passar vid officiell korrespondens och bestämd om du vill understryka dina rättigheter.
+                                        </small>
+                                        <div className="filter-dropdown-wrapper" style={{ paddingLeft: 0 }}>
+                                            <button type="button" className="filter-dropdown-btn" onClick={() => setShowToneDropdown(v => !v)}>
+                                                {tone === "neutral" ? "Neutral" : tone === "formal" ? "Formell" : "Bestämd"}
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                                            </button>
+                                            {showToneDropdown && (
+                                                <div className="filter-dropdown-menu">
+                                                    {[["neutral","Neutral"],["formal","Formell"],["firm","Bestämd"]].map(([val, label]) => (
+                                                        <div key={val} className="filter-dropdown-item" onClick={() => { setTone(val); setShowToneDropdown(false); }}>{label}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
@@ -768,16 +826,24 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="field">
+                                    <div className="field" style={{ marginTop: 20 }}>
                                         <label>Tonalitet</label>
                                         <small className="muted" style={{ display: "block", marginBottom: 6, fontSize: "0.78rem" }}>
                                             Justera tonen i det AI-genererade mejlet — neutral fungerar i de flesta fall, formell passar vid officiell korrespondens och bestämd om du vill understryka dina rättigheter.
                                         </small>
-                                        <select value={tone} onChange={(e) => setTone(e.target.value)}>
-                                            <option value="neutral">Neutral</option>
-                                            <option value="formal">Formell</option>
-                                            <option value="firm">Bestämd</option>
-                                        </select>
+                                        <div className="filter-dropdown-wrapper" style={{ paddingLeft: 0 }}>
+                                            <button type="button" className="filter-dropdown-btn" onClick={() => setShowToneDropdown(v => !v)}>
+                                                {tone === "neutral" ? "Neutral" : tone === "formal" ? "Formell" : "Bestämd"}
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+                                            </button>
+                                            {showToneDropdown && (
+                                                <div className="filter-dropdown-menu">
+                                                    {[["neutral","Neutral"],["formal","Formell"],["firm","Bestämd"]].map(([val, label]) => (
+                                                        <div key={val} className="filter-dropdown-item" onClick={() => { setTone(val); setShowToneDropdown(false); }}>{label}</div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <hr className="divider" />
                                 </div>

@@ -20,8 +20,7 @@ export default function TopBar() {
         <header className="topbar-header">
             <div className="topbar">
                 <button className="topbar-brand" onClick={() => navigate("/")}>
-                    <span className="brand-dot" />
-                    Privacy Request Manager
+                    <img src="/mainlogga.png" alt="Logo" style={{ height: 80 }} />
                 </button>
 
                 <nav className="topbar-nav">
