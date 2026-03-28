@@ -7,20 +7,22 @@ from settings import settings
 async def send_verification_email(email: str, verification_token: str, redirect_to: str | None = None) -> None:
     verify_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
     if redirect_to:
+        # URL-encode the redirect path so special characters don't break the query string.
+        # safe='/' preserves forward slashes so paths like /dashboard remain readable.
         verify_url += f"&next={quote(redirect_to, safe='/')}"
 
-    subject = "Verifiera din e-postadress - Privacy Request Manager"
-    body = f"""Hej,
+    subject = "Verify your email address - Privacy Request Manager"
+    body = f"""Hi,
 
-Tack för att du registrerade dig hos Privacy Request Manager.
+Thank you for registering with Privacy Request Manager.
 
-Klicka på länken nedan för att verifiera din e-postadress och aktivera ditt konto:
+Click the link below to verify your email address and activate your account:
 
 {verify_url}
 
-Länken är giltig tills vidare. Om du inte registrerade dig kan du ignorera detta mejl.
+If you did not register, you can safely ignore this email.
 
-Med vänliga hälsningar,
+Best regards,
 Privacy Request Manager"""
 
     await send_email(to=email, subject=subject, body=body)

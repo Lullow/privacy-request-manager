@@ -21,6 +21,9 @@ from settings import settings
 
 
 def _configure_logging() -> None:
+    # Set up a single structured log format for the entire application.
+    # uvicorn loggers are set to propagate so they use the same handler
+    # instead of writing duplicate lines to the console.
     logging.config.dictConfig(
         {
             "version": 1,
@@ -54,6 +57,9 @@ logger = logging.getLogger(__name__)
 
 
 def _check_migrations(connection: Connection) -> None:
+    # Compare the database's current migration head against the latest
+    # revision known to Alembic. Logs a warning if they diverge so the
+    # developer knows to run 'alembic upgrade head' before serving traffic.
     alembic_cfg = Config("alembic.ini")
     script = ScriptDirectory.from_config(alembic_cfg)
     context = MigrationContext.configure(connection)
@@ -64,19 +70,22 @@ def _check_migrations(connection: Connection) -> None:
     if current != heads:
         pending = heads - current
         logger.warning(
-            "Databasen har %d ej körda migration(er): %s — kör 'alembic upgrade head'.",
+            "Database has %d unapplied migration(s): %s — run 'alembic upgrade head'.",
             len(pending),
             ", ".join(pending),
         )
     else:
-        logger.info("Databasschemat är uppdaterat.")
+        logger.info("Database schema is up to date.")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Run migration check synchronously inside an async connection.
+    # run_sync is required because Alembic's MigrationContext is not async-aware.
     async with engine.connect() as connection:
         await connection.run_sync(_check_migrations)
 
+    # Start the background cleanup task and cancel it gracefully on shutdown.
     task = asyncio.create_task(cleanup_loop())
     yield
     task.cancel()
@@ -88,6 +97,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Privacy Request Manager API", lifespan=lifespan)
 
+# Attach the rate limiter state and its exception handler to the app.
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 

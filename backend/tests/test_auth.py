@@ -28,7 +28,7 @@ async def test_register_duplicate_unverified_resends_email(client):
             "password": "secret123",
         })
     assert resp.status_code == 201
-    assert "verifierat" in resp.json()["message"]
+    assert "not verified" in resp.json()["message"]
 
 
 @pytest.mark.asyncio

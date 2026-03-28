@@ -29,6 +29,8 @@ async def register(request: Request, payload: UserCreate, session: AsyncSession 
         if existing_user.is_verified:
             raise HTTPException(status_code=400, detail="Email already registered")
 
+        # If the account exists but is unverified, issue a fresh verification token
+        # and resend the email instead of creating a duplicate account.
         existing_user.verification_token = generate_token()
         await session.commit()
 
@@ -39,18 +41,15 @@ async def register(request: Request, payload: UserCreate, session: AsyncSession 
                 redirect_to=payload.redirect_to,
             )
         except Exception as exc:
-            logger.exception("Verifieringsmejl kunde inte skickas till %s", existing_user.email)
+            logger.exception("Could not send verification email to %s", existing_user.email)
             return {
-                "message": (
-                    "Kontot finns redan men är inte verifierat. "
-                    "Verifieringsmejlet kunde inte skickas igen."
-                ),
+                "message": "Account already exists but is not verified. Verification email could not be resent.",
                 "email_sent": False,
                 "error": str(exc),
             }
 
         return {
-            "message": "Kontot finns redan men är inte verifierat. Ett nytt verifieringsmejl har skickats.",
+            "message": "Account already exists but is not verified. A new verification email has been sent.",
             "email_sent": True,
         }
 
@@ -75,18 +74,15 @@ async def register(request: Request, payload: UserCreate, session: AsyncSession 
             redirect_to=payload.redirect_to,
         )
     except Exception as exc:
-        logger.exception("Verifieringsmejl kunde inte skickas till %s", payload.email)
+        logger.exception("Could not send verification email to %s", payload.email)
         return {
-            "message": (
-                "Konto skapat, men verifieringsmejlet kunde inte skickas. "
-                "Kontrollera Resend-konfigurationen och försök igen."
-            ),
+            "message": "Account created, but the verification email could not be sent. Check the Resend configuration and try again.",
             "email_sent": False,
             "error": str(exc),
         }
 
     return {
-        "message": "Konto skapat. Kontrollera din e-post för att verifiera ditt konto.",
+        "message": "Account created. Check your email to verify your account.",
         "email_sent": True,
     }
 
@@ -100,14 +96,15 @@ async def resend_verification(
     user = result.scalar_one_or_none()
 
     if user is None:
+        # Return a generic success message to avoid leaking whether an email address is registered.
         return {
-            "message": "Om kontot finns och inte redan är verifierat har ett verifieringsmejl skickats.",
+            "message": "If the account exists and is not yet verified, a verification email has been sent.",
             "email_sent": True,
         }
 
     if user.is_verified:
         return {
-            "message": "Kontot är redan verifierat. Du kan logga in direkt.",
+            "message": "Account is already verified. You can log in.",
             "email_sent": False,
         }
 
@@ -121,15 +118,15 @@ async def resend_verification(
             redirect_to=payload.redirect_to,
         )
     except Exception as exc:
-        logger.exception("Verifieringsmejl kunde inte skickas till %s", user.email)
+        logger.exception("Could not send verification email to %s", user.email)
         return {
-            "message": "Kontot finns men verifieringsmejlet kunde inte skickas.",
+            "message": "Account found but the verification email could not be sent.",
             "email_sent": False,
             "error": str(exc),
         }
 
     return {
-        "message": "Verifieringsmejl skickat. Kontrollera din inkorg.",
+        "message": "Verification email sent. Check your inbox.",
         "email_sent": True,
     }
 
@@ -140,13 +137,15 @@ async def login(request: Request, payload: UserLogin, session: AsyncSession = De
     result = await session.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
 
+    # Deliberately combine the "user not found" and "wrong password" cases into a single
+    # 401 response to prevent user enumeration via different error messages.
     if not user or not bcrypt.checkpw(payload.password.encode(), user.password_hash.encode()):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     if not user.is_verified:
         raise HTTPException(
             status_code=403,
-            detail="Verifiera din e-postadress först. Kontrollera din inkorg.",
+            detail="Please verify your email address first. Check your inbox.",
         )
 
     user.last_login_at = datetime.utcnow()
@@ -164,15 +163,16 @@ async def verify_email(token: str, session: AsyncSession = Depends(get_session))
     user = result.scalar_one_or_none()
 
     if user is None:
-        raise HTTPException(status_code=400, detail="Ogiltig eller redan använd verifieringslänk.")
+        raise HTTPException(status_code=400, detail="Invalid or already used verification link.")
 
     user.is_verified = True
-    user.verification_token = None
+    user.verification_token = None  # Invalidate the token so it cannot be reused.
 
     db_token = build_auth_token(user.id)
     session.add(db_token)
     await session.commit()
 
+    # Log the user in immediately after verification so they don't have to log in separately.
     return {"access_token": db_token.token, "token_type": "bearer"}
 
 
@@ -186,6 +186,7 @@ async def logout(
     db_token: Token = Depends(get_current_token),
     session: AsyncSession = Depends(get_session),
 ):
+    # Delete the token from the database so it can no longer be used.
     token = await session.get(Token, db_token.id)
     await session.delete(token)
     await session.commit()
