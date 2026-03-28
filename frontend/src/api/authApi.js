@@ -37,6 +37,16 @@ export async function deleteAccount() {
     return apiFetch("/auth/account", { method: "DELETE" });
 }
 
+// Skickar om verifieringsmejlet till angiven e-postadress.
+// Anropas om användaren inte fått eller tappat bort sitt verifieringsmejl.
+export async function resendVerification(email) {
+    return apiFetch("/auth/resend-verification", {
+        method: "POST",
+        auth: false,
+        body: { email },
+    });
+}
+
 // Verifierar e-postadressen via länken i välkomstmejlet.
 // auth: false — token skickas inte med eftersom användaren inte är inloggad ännu.
 // Backend svarar med en JWT-token som sparas direkt så att användaren loggas in automatiskt.

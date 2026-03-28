@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { getMe } from "../api/authApi";
 
 // Skapar auth-kontexten som delas i hela appen via AuthProvider.
 // Konsumeras via useAuth-hooken (src/hooks/useAuth.js).
@@ -15,19 +16,9 @@ export function AuthProvider({ children }) {
 
     // Verifierar token mot backend och hämtar användarens profildata.
     // Om token är ogiltig eller utgången rensas den och användaren loggas ut tyst.
-    async function fetchMe(currentToken) {
+    async function fetchMe() {
         try {
-            const response = await fetch("/api/auth/me", {
-                headers: {
-                    Authorization: `Bearer ${currentToken}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error("Ogiltig token");
-            }
-
-            const data = await response.json();
+            const data = await getMe();
             setUser(data);
         } catch {
             // Token är ogiltig — rensa auth-state helt.
@@ -42,7 +33,7 @@ export function AuthProvider({ children }) {
     // Körs varje gång token ändras (inloggning, utloggning, sidladdning).
     useEffect(() => {
         if (token) {
-            fetchMe(token);
+            fetchMe();
         } else {
             // Ingen token — ingen nätverksbegäran behövs, laddar klart direkt.
             setLoading(false);
