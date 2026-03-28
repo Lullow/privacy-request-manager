@@ -37,6 +37,11 @@ export async function deleteAccount() {
     return apiFetch("/auth/account", { method: "DELETE" });
 }
 
+// Loggar ut användaren och ogiltigförklarar token i databasen.
+export async function logoutUser() {
+    return apiFetch("/auth/logout", { method: "POST" });
+}
+
 // Skickar om verifieringsmejlet till angiven e-postadress.
 // Anropas om användaren inte fått eller tappat bort sitt verifieringsmejl.
 export async function resendVerification(email) {

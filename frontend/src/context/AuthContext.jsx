@@ -1,5 +1,5 @@
 import { createContext, useEffect, useState } from "react";
-import { getMe } from "../api/authApi";
+import { getMe, logoutUser } from "../api/authApi";
 
 // Skapar auth-kontexten som delas i hela appen via AuthProvider.
 // Konsumeras via useAuth-hooken (src/hooks/useAuth.js).
@@ -48,7 +48,9 @@ export function AuthProvider({ children }) {
     }
 
     // Rensar token och användardata. Anropas från TopBar via handleLogout.
-    function logout() {
+    // Kallar backend så att token raderas ur databasen direkt.
+    async function logout() {
+        try { await logoutUser(); } catch { /* ignorera nätverksfel vid utloggning */ }
         localStorage.removeItem("token");
         setToken("");
         setUser(null);
