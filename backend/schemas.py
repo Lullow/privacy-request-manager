@@ -5,7 +5,7 @@ from datetime import datetime
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
 
 
 # ~ PRIVACY REQUEST - CREATE ~
@@ -27,7 +27,7 @@ class PrivacyRequestCreate(BaseModel):
     birth_date: str | None = None
 
     # Profil-länk (valfritt).  #menar du profile URL? #TODO Ja, ändrat den nu, tack!
-    profile_url: str | None = None
+    profile_url: HttpUrl | None = None
 
     # Tone för AI anvädning
     # Om frontend inte skickar tone så är request "neutral" som standard

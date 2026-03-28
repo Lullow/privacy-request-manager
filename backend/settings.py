@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     # Om du inte sätter CORS_ORIGINS skulle webbläsaren blockera alla requests från din frontend till din backend.
     # Pydantic vet att den ska leta efter cors_origin för att se vilken port som frontend ska köra på
     CORS_ORIGINS: str = ""
+    LOG_LEVEL: str = "INFO"
 
     # @property gör att du kan använda settings.cors_origins_list som en "vanlig variabel"
     # trots att det egentligen är en funktion som körs varje gång du läser den.
