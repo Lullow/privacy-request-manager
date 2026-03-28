@@ -5,6 +5,8 @@ from datetime import datetime
 # EmailStr: Pydantic-typ som validerar att en sträng är en riktig email
 from typing import Literal
 
+import re
+
 from pydantic import BaseModel, EmailStr, Field, HttpUrl, field_validator
 
 
@@ -25,6 +27,13 @@ class PrivacyRequestCreate(BaseModel):
 
     # Födelsedag i formatet ÅÅÅÅ-MM-DD (valfritt, rekommenderas för identifiering)
     birth_date: str | None = None
+
+    @field_validator("birth_date")
+    @classmethod
+    def validate_birth_date(cls, v: str | None) -> str | None:
+        if v is not None and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", v):
+            raise ValueError("birth_date måste vara i formatet ÅÅÅÅ-MM-DD, t.ex. 1990-01-31")
+        return v
 
     # Profil-länk (valfritt).  #menar du profile URL? #TODO Ja, ändrat den nu, tack!
     profile_url: HttpUrl | None = None

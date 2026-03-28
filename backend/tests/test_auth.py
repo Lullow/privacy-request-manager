@@ -1,5 +1,8 @@
 import pytest
+from sqlalchemy import select
 from unittest.mock import AsyncMock, patch
+
+from models import User
 
 
 @pytest.mark.asyncio
@@ -67,6 +70,29 @@ async def test_me_with_invalid_token_returns_401(client):
 async def test_verify_email_invalid_token_returns_400(client):
     resp = await client.get("/api/auth/verify-email?token=nonexistent")
     assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_verify_email_happy_path(client, session):
+    with patch("auth.router.send_verification_email", new_callable=AsyncMock):
+        await client.post("/api/auth/register", json={
+            "email": "verify_happy@example.com",
+            "password": "secret123",
+        })
+
+    result = await session.execute(select(User).where(User.email == "verify_happy@example.com"))
+    user = result.scalar_one()
+    token = user.verification_token
+
+    resp = await client.get(f"/api/auth/verify-email?token={token}")
+    assert resp.status_code == 200
+    assert "access_token" in resp.json()
+
+    login_resp = await client.post("/api/auth/login", json={
+        "email": "verify_happy@example.com",
+        "password": "secret123",
+    })
+    assert login_resp.status_code == 200
 
 
 @pytest.mark.asyncio

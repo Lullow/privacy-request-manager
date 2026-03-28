@@ -88,6 +88,28 @@ async def test_delete_privacy_request(client, session):
 
 
 @pytest.mark.asyncio
+async def test_invalid_profile_url_returns_422(client, session):
+    _, token = await _create_verified_user_and_token(session, "urltest@example.com")
+    resp = await client.post(
+        "/api/privacy-requests",
+        json={"company_name": "Test AB", "company_email": "t@test.com", "full_name": "Test", "profile_url": "not-a-url"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_invalid_birth_date_returns_422(client, session):
+    _, token = await _create_verified_user_and_token(session, "datetest@example.com")
+    resp = await client.post(
+        "/api/privacy-requests",
+        json={"company_name": "Test AB", "company_email": "t@test.com", "full_name": "Test", "birth_date": "31/01/1990"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
 async def test_cannot_access_other_users_request(client, session):
     _, token_a = await _create_verified_user_and_token(session, "usera@example.com")
     _, token_b = await _create_verified_user_and_token(session, "userb@example.com")
