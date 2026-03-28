@@ -66,7 +66,7 @@ async def create_privacy_request(
         full_name=payload.full_name,               # matchar modellen
         city=payload.city,                         # kan vara None
         birth_date=payload.birth_date,             # kan vara None
-        profile_url=payload.profile_url,           # kan vara None
+        profile_url=str(payload.profile_url) if payload.profile_url else None,
         tone=payload.tone, # Sparar användarens valda ton/stil redan när request skapas (AI-integrering)
         status="draft",     # Sätter första statusen till "draft". Det betyder att requestet finns i databasen, men att inget AI-meddelande har genererats ännu
         user_id=current_user.id,
