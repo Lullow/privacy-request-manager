@@ -8,10 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from connect_db import get_session
 from limiter import limiter
-from models import User
+from models import Token, User
 from schemas import ResendVerificationRequest, TokenResponse, UserCreate, UserLogin, UserRead
 
-from .dependencies import get_current_user
+from .dependencies import get_current_token, get_current_user
 from .email import send_verification_email
 from .utils import build_auth_token, generate_token
 
@@ -179,6 +179,16 @@ async def verify_email(token: str, session: AsyncSession = Depends(get_session))
 @router.get("/me", response_model=UserRead)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/logout", status_code=204)
+async def logout(
+    db_token: Token = Depends(get_current_token),
+    session: AsyncSession = Depends(get_session),
+):
+    token = await session.get(Token, db_token.id)
+    await session.delete(token)
+    await session.commit()
 
 
 @router.delete("/account", status_code=204)

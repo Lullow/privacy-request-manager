@@ -3,7 +3,7 @@ from datetime import datetime
 from connect_db import get_session
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from models import Token
+from models import Token, User
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -11,10 +11,10 @@ from sqlalchemy.orm import joinedload
 security = HTTPBearer()
 
 
-async def get_current_user(
+async def get_current_token(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: AsyncSession = Depends(get_session),
-):
+) -> Token:
     token_str = credentials.credentials
 
     result = await session.execute(
@@ -28,4 +28,8 @@ async def get_current_user(
     if db_token.expires_at < datetime.utcnow():
         raise HTTPException(status_code=401, detail="Token har gått ut — logga in igen.")
 
+    return db_token
+
+
+async def get_current_user(db_token: Token = Depends(get_current_token)):
     return db_token.user
