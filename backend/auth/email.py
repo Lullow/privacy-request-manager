@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 from services.email_sender import send_email
 from settings import settings
 
@@ -5,7 +7,7 @@ from settings import settings
 async def send_verification_email(email: str, verification_token: str, redirect_to: str | None = None) -> None:
     verify_url = f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
     if redirect_to:
-        verify_url += f"&next={redirect_to}"
+        verify_url += f"&next={quote(redirect_to, safe='/')}"
 
     subject = "Verifiera din e-postadress - Privacy Request Manager"
     body = f"""Hej,
