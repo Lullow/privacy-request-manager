@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import logging.config
 from contextlib import asynccontextmanager
 
 from alembic.config import Config
@@ -18,6 +19,37 @@ from limiter import limiter
 from services.cleanup import cleanup_loop
 from settings import settings
 
+
+def _configure_logging() -> None:
+    logging.config.dictConfig(
+        {
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "default": {
+                    "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                    "datefmt": "%Y-%m-%d %H:%M:%S",
+                },
+            },
+            "handlers": {
+                "console": {
+                    "class": "logging.StreamHandler",
+                    "formatter": "default",
+                },
+            },
+            "root": {
+                "level": settings.LOG_LEVEL.upper(),
+                "handlers": ["console"],
+            },
+            "loggers": {
+                "uvicorn.access": {"propagate": True},
+                "uvicorn.error": {"propagate": True},
+            },
+        }
+    )
+
+
+_configure_logging()
 logger = logging.getLogger(__name__)
 
 
