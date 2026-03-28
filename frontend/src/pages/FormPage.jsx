@@ -134,19 +134,36 @@ function FormPage() {
         .map((name) => SITES.find((s) => s.name === name))
         .filter((s) => s?.removeMethod === "form");
 
-    // Skapar utkast i databasen för alla e-postsajter när användaren når steg 4.
+    // Skapar utkast i databasen för alla valda sajter när användaren når steg 4.
+    // Inkluderar både email-sajter och form-sajter så att alla syns i dashboarden.
     // Kontrollerar befintliga ärenden först för att undvika dubbletter vid återsökning.
+    const allSelectedSites = [...emailSites, ...formSites];
+
     useEffect(() => {
-        if (step !== 4 || !fullName.trim() || emailSites.length === 0) return;
+        if (step !== 4 || !fullName.trim() || allSelectedSites.length === 0) return;
 
         async function createDrafts() {
             const newIds = { ...requestIds };
             let changed = false;
 
-            // Återanvänd befintliga utkast om de redan finns i databasen.
+            // Hämta befintliga ärenden och validera cachade ID:n
             try {
                 const existing = await getPrivacyRequests();
-                for (const site of emailSites) {
+
+                // Rensa ut cachade ID:n som inte längre finns som draft i DB
+                for (const site of allSelectedSites) {
+                    if (!newIds[site.name]) continue;
+                    const stillExists = existing.find(
+                        (r) => r.id === newIds[site.name] && r.status === "draft"
+                    );
+                    if (!stillExists) {
+                        delete newIds[site.name];
+                        changed = true;
+                    }
+                }
+
+                // Återanvänd befintliga utkast om de finns i DB
+                for (const site of allSelectedSites) {
                     if (newIds[site.name]) continue;
                     const match = existing.find(
                         (r) => r.company_name === site.name && r.status === "draft"
@@ -161,7 +178,7 @@ function FormPage() {
             }
 
             // Skapa nya utkast för sajter som inte har något befintligt ärende.
-            for (const site of emailSites) {
+            for (const site of allSelectedSites) {
                 if (newIds[site.name]) continue;
                 try {
                     const req = await createPrivacyRequest({
@@ -377,7 +394,7 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
         legalEmail, setLegalEmail,
         legalEmailError, setLegalEmailError,
         generatedEmails, loadingSite, copiedSite, setCopiedSite,
-        generateEmailForSite, mailtoLink,
+        generateEmailForSite, mailtoLink, getMailtoFallback,
         buildLegalTemplate,
         emailSites, formSites,
         error, setError,

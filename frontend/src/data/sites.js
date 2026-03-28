@@ -86,7 +86,6 @@ export const SITES = [
 // id matchar backend-värden; label visas i UI.
 export const REQUEST_TYPES = [
     { id: "delete", label: "Radering" },
-    { id: "access", label: "Registerutdrag" },
     { id: "rectify", label: "Rättelse" },
     { id: "restrict", label: "Begränsning" },
     { id: "object", label: "Invändning" },

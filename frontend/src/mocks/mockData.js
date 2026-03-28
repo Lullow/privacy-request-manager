@@ -3,8 +3,7 @@
 
 // Exempelärenden med olika statusar för att testa dashboard-vyn och statistiken.
 export const mockRequests = [
-    { id: 1, company_name: "Merinfo", status: "generated" },
-    { id: 2, company_name: "Eniro", status: "draft" },
+    { id: 1, company_name: "Merinfo", status: "sent" },
 ];
 
 // Exempelmeddelanden, nycklat på ärendets id.

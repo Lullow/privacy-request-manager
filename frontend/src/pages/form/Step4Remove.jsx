@@ -15,7 +15,7 @@ export default function Step4Remove({
     legalEmail, setLegalEmail,
     legalEmailError, setLegalEmailError,
     generatedEmails, loadingSite, copiedSite, setCopiedSite,
-    generateEmailForSite, mailtoLink,
+    generateEmailForSite, mailtoLink, getMailtoFallback,
     buildLegalTemplate,
     emailSites, formSites,
     error, setError,
@@ -270,17 +270,22 @@ export default function Step4Remove({
                                     value={buildLegalTemplate()}
                                     style={{ minHeight: 120, width: "100%", marginBottom: 6, fontSize: "0.8rem", boxSizing: "border-box" }}
                                 />
-                                <button
-                                    className={copiedSite === site.name ? "btn" : "btn btn-secondary"}
-                                    type="button"
-                                    onClick={() => {
-                                        navigator.clipboard.writeText(buildLegalTemplate());
-                                        setCopiedSite(site.name);
-                                        setTimeout(() => setCopiedSite(null), 2000);
-                                    }}
-                                >
-                                    {copiedSite === site.name ? "Kopierat!" : "Kopiera mall"}
-                                </button>
+                                <div style={{ display: "flex", gap: 8 }}>
+                                    <a href={getMailtoFallback(site)}>
+                                        <button className="btn" type="button">Öppna i mejlklient</button>
+                                    </a>
+                                    <button
+                                        className={copiedSite === site.name ? "btn" : "btn btn-secondary"}
+                                        type="button"
+                                        onClick={() => {
+                                            navigator.clipboard.writeText(buildLegalTemplate());
+                                            setCopiedSite(site.name);
+                                            setTimeout(() => setCopiedSite(null), 2000);
+                                        }}
+                                    >
+                                        {copiedSite === site.name ? "Kopierat!" : "Kopiera mall"}
+                                    </button>
+                                </div>
                             </div>
                         ) : null
                     )}

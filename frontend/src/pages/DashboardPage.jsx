@@ -18,6 +18,7 @@ const navigate = useNavigate();
 const { logout } = useAuth();
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 const [deleteLoading, setDeleteLoading] = useState(false);
+const [pendingDeleteIds, setPendingDeleteIds] = useState(null);
 
 // Raderar kontot permanent via backend, loggar ut och navigerar till startsidan.
 async function handleDeleteAccount() {
@@ -77,19 +78,33 @@ const filterLabel = filters.pagaende && filters.avslutad && filters.utkast ? "Al
     : filters.avslutad ? "Avslutad"
     : "Alla";
 
-// Beräknar procentvärden för donuten baserat på riktiga ärenden
-const total = requests.length || 1;
-const completePercent = Math.round((requests.filter(r => r.status === "complete").length / total) * 100);
-const waitingPercent = Math.round((requests.filter(r => ["waiting", "generated"].includes(r.status)).length / total) * 100);
-const deniedPercent = Math.round((requests.filter(r => r.status === "denied").length / total) * 100);
+// Donuten räknar bara skickade ärenden — inte utkast eller genererade
+const sentRequests = requests.filter(r => !["draft", "generated"].includes(r.status));
+const sentTotal = sentRequests.length || 1;
+const completePercent = Math.round((sentRequests.filter(r => r.status === "complete").length / sentTotal) * 100);
+const waitingPercent = Math.round((sentRequests.filter(r => r.status === "waiting" || r.status === "sent").length / sentTotal) * 100);
+const deniedPercent = Math.round((sentRequests.filter(r => r.status === "denied").length / sentTotal) * 100);
 
-// Filtrerar listan baserat på aktiva filter
-const filteredRequests = requests.filter((req) => {
-    if (req.status === "draft") return filters.utkast;
-    const pagaende = ["generated", "waiting"].includes(req.status);
-    const avslutad = ["complete", "denied"].includes(req.status);
-    return (pagaende && filters.pagaende) || (avslutad && filters.avslutad);
-});
+// draft + generated = inte skickat än → grupperas till EN rad
+// sent, waiting, complete, denied = skickat → separata rader
+const notSentStatuses = ["draft", "generated"];
+const drafts = requests.filter(r => notSentStatuses.includes(r.status));
+const combinedDraft = drafts.length > 0 ? {
+    id: drafts[0].id,
+    company_name: drafts.length === 1 ? drafts[0].company_name : `Flera valda`,
+    status: "draft",
+    _allDraftIds: drafts.map(d => d.id),
+} : null;
+
+const filteredRequests = [
+    ...(filters.utkast && combinedDraft ? [combinedDraft] : []),
+    ...requests.filter((req) => {
+        if (notSentStatuses.includes(req.status)) return false;
+        const pagaende = ["sent", "waiting"].includes(req.status);
+        const avslutad = ["complete", "denied"].includes(req.status);
+        return (pagaende && filters.pagaende) || (avslutad && filters.avslutad);
+    }),
+];
 
 
 // Återställer notis-state varje gång dashboarden laddas (demo-läge).
@@ -227,7 +242,7 @@ return(
             )}
         </div>
 
-        <div className="donut" ref={ref} data-waiting={waitingPercent} data-complete={completePercent} data-denied={deniedPercent} data-total={requests.length}>
+        <div className="donut" ref={ref} data-waiting={waitingPercent} data-complete={completePercent} data-denied={deniedPercent} data-total={sentRequests.length}>
             <div className="donut-center">
                 0
                 <span>Ärenden</span>
@@ -255,7 +270,7 @@ return(
         <div className="cell case-actions">
             <button className="btn-dashboard" onClick={() => navigate(one.status === "draft" ? "/create-request" : `/messages?id=${one.id}`)}>Visa</button>
             {one.status === "draft" && (
-                <button className="btn-dashboard" onClick={() => handleDelete(one.id)}>Radera</button>
+                <button className="btn-dashboard" onClick={() => setPendingDeleteIds(one._allDraftIds || [one.id])}>Radera</button>
             )}
             {one.status !== "draft" && (
                 <button
@@ -303,6 +318,22 @@ return(
                     <button className="btn-danger" onClick={handleDeleteAccount} disabled={deleteLoading}>
                         {deleteLoading ? "Raderar..." : "Ja, radera mitt konto"}
                     </button>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {pendingDeleteIds && (
+        <div className="modal-overlay">
+            <div className="modal-card">
+                <h2>Är du säker?</h2>
+                <p className="muted">Utkastet raderas permanent. Detta går inte att ångra.</p>
+                <div className="modal-actions">
+                    <button className="btn-secondary" onClick={() => setPendingDeleteIds(null)}>Avbryt</button>
+                    <button className="btn-danger" onClick={async () => {
+                        await Promise.all(pendingDeleteIds.map(id => handleDelete(id)));
+                        setPendingDeleteIds(null);
+                    }}>Ja, radera</button>
                 </div>
             </div>
         </div>

@@ -26,7 +26,14 @@ export default function Step6Done({ selectedRemoveSites, requestIds, requestPath
                                 {isBankId ? (
                                     <span style={{ fontSize: "0.82rem", color: "#64748b" }}>Hanteras via BankID</span>
                                 ) : status === "sent" ? (
-                                    <span style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 600 }}>✓ Skickat</span>
+                                    <>
+                                        <span style={{ fontSize: "0.82rem", color: "#16a34a", fontWeight: 600 }}>✓ Skickat</span>
+                                        {site && (
+                                            <a href={getMailtoFallback(site)} style={{ fontSize: "0.78rem", color: "rgba(16,32,86,0.6)", textDecoration: "underline" }}>
+                                                Öppna i mejlklient
+                                            </a>
+                                        )}
+                                    </>
                                 ) : status === "failed" ? (
                                     <>
                                         <span style={{ fontSize: "0.82rem", color: "#dc2626" }}>Misslyckades</span>

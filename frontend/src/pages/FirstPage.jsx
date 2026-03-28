@@ -133,7 +133,16 @@ export default function FirstPage() {
                 </div>
             </div>
 
-            <img src="./first-page2.png" alt="GDPR illustration" className="feature-image"/>
+        </section>
+
+        <section className="split-section">
+            <div className="split-text">
+                <h2>Ta tillbaka kontrollen över dina uppgifter.</h2>
+                <p>Personuppgiftssajter lagrar din adress, ditt telefonnummer och din ålder — utan att du bett om det. Enligt GDPR har du rätt att begära att de tar bort dem. Vi gör det enkelt.</p>
+            </div>
+            <div className="split-image">
+                <img src="./first-page2.png" alt="GDPR illustration" />
+            </div>
         </section>
     </section>
     );

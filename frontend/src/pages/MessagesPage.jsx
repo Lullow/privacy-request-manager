@@ -18,12 +18,22 @@ function MessagesPage() {
         JSON.parse(localStorage.getItem("unreadRequests") || "[]")
     );
 
-    // Hämtar alla ärenden när sidan laddas
+    // Hämtar alla ärenden när sidan laddas och grupperar utkast till ett
     useEffect(() => {
         async function load() {
             try {
                 const data = await getPrivacyRequests();
-                if (data.length > 0) setRequests(data);
+                if (data.length > 0) {
+                    const notSentStatuses = ["draft", "generated"];
+                    const drafts = data.filter(r => notSentStatuses.includes(r.status));
+                    const sent = data.filter(r => !notSentStatuses.includes(r.status));
+                    const grouped = drafts.length > 0 ? [{
+                        ...drafts[0],
+                        company_name: drafts.length === 1 ? drafts[0].company_name : `Flera valda`,
+                        _allDraftIds: drafts.map(d => d.id),
+                    }] : [];
+                    setRequests([...grouped, ...sent]);
+                }
             } catch (err) {
                 console.error(err);
             }

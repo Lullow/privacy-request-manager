@@ -4,7 +4,7 @@
 export function translateStatus(status) {
     const statuses = {
         draft: "Utkast",
-        generated: "Besvarad",
+        generated: "Genererat",
         sent: "Skickat",
         waiting: "Väntar",
         complete: "Mottaget",
