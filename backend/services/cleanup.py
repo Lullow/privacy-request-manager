@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from sqlalchemy import delete, func, or_, select
 
@@ -15,7 +15,7 @@ CLEANUP_INTERVAL_SECONDS = 24 * 60 * 60
 
 async def _delete_inactive_users() -> None:
     """Raderar konton som varit inaktiva i minst 24 månader."""
-    cutoff = datetime.now(timezone.utc) - timedelta(days=INACTIVITY_MONTHS * 30)
+    cutoff = datetime.utcnow() - timedelta(days=INACTIVITY_MONTHS * 30)
 
     async with SessionLocal() as session:
         count_q = select(func.count()).select_from(User).where(
@@ -45,7 +45,7 @@ async def _delete_expired_tokens() -> None:
     """Raderar tokens som passerat sitt expires_at."""
     async with SessionLocal() as session:
         result = await session.execute(
-            delete(Token).where(Token.expires_at < datetime.now(timezone.utc))
+            delete(Token).where(Token.expires_at < datetime.utcnow())
         )
         count = result.rowcount
         await session.commit()

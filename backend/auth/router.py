@@ -149,7 +149,7 @@ async def login(request: Request, payload: UserLogin, session: AsyncSession = De
             detail="Verifiera din e-postadress först. Kontrollera din inkorg.",
         )
 
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.utcnow()
 
     db_token = build_auth_token(user.id)
     session.add(db_token)

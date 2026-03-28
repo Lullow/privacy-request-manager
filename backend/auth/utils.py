@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from models import Token
 
@@ -14,5 +14,5 @@ def build_auth_token(user_id: int) -> Token:
     return Token(
         token=generate_token(),
         user_id=user_id,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=TOKEN_LIFETIME_DAYS),
+        expires_at=datetime.utcnow() + timedelta(days=TOKEN_LIFETIME_DAYS),
     )
