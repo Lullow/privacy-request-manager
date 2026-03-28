@@ -71,6 +71,17 @@ class UserCreate(BaseModel):
     password: str  # klartext här — hashas sedan i auth-logiken
     redirect_to: str | None = None  # Sidan att skicka användaren till efter e-postverifiering
 
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Lösenordet måste vara minst 8 tecken.")
+        if not any(c.isdigit() for c in v):
+            raise ValueError("Lösenordet måste innehålla minst en siffra.")
+        if not any(c.isalpha() for c in v):
+            raise ValueError("Lösenordet måste innehålla minst en bokstav.")
+        return v
+
     @field_validator("redirect_to")
     @classmethod
     def validate_redirect_to(cls, v: str | None) -> str | None:

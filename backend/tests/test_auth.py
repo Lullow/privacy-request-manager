@@ -67,3 +67,30 @@ async def test_me_with_invalid_token_returns_401(client):
 async def test_verify_email_invalid_token_returns_400(client):
     resp = await client.get("/api/auth/verify-email?token=nonexistent")
     assert resp.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_register_weak_password_returns_422(client):
+    resp = await client.post("/api/auth/register", json={
+        "email": "weak@example.com",
+        "password": "abc",
+    })
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_password_no_digit_returns_422(client):
+    resp = await client.post("/api/auth/register", json={
+        "email": "nodigit@example.com",
+        "password": "abcdefgh",
+    })
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_password_no_letter_returns_422(client):
+    resp = await client.post("/api/auth/register", json={
+        "email": "noletter@example.com",
+        "password": "12345678",
+    })
+    assert resp.status_code == 422
