@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 
 from connect_db import get_session
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 security = HTTPBearer()
+logger = logging.getLogger(__name__)
 
 
 async def get_current_token(
@@ -24,12 +26,14 @@ async def get_current_token(
     db_token = result.scalar_one_or_none()
 
     if not db_token:
+        logger.warning("Request with invalid token")
         raise HTTPException(status_code=401, detail="Invalid token")
 
     # Replace the naive expires_at with a timezone-aware comparison.
     # make expires_at aware by treating it as UTC so comparison is consistent.
     expires_at = db_token.expires_at.replace(tzinfo=timezone.utc) if db_token.expires_at.tzinfo is None else db_token.expires_at
     if expires_at < datetime.now(timezone.utc):
+        logger.warning("Expired token used for user id=%s", db_token.user_id)
         raise HTTPException(status_code=401, detail="Token has expired — please log in again.")
 
     return db_token

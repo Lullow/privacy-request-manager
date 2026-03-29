@@ -140,14 +140,17 @@ async def login(request: Request, payload: UserLogin, session: AsyncSession = De
     # Deliberately combine the "user not found" and "wrong password" cases into a single
     # 401 response to prevent user enumeration via different error messages.
     if not user or not bcrypt.checkpw(payload.password.encode(), user.password_hash.encode()):
+        logger.warning("Failed login attempt for email: %s", payload.email)
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     if not user.is_verified:
+        logger.warning("Login attempt for unverified account: %s", payload.email)
         raise HTTPException(
             status_code=403,
             detail="Please verify your email address first. Check your inbox.",
         )
 
+    logger.info("Successful login for user id=%s", user.id)
     user.last_login_at = datetime.utcnow()
 
     db_token = build_auth_token(user.id)
