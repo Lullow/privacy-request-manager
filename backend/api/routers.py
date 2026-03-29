@@ -1,6 +1,7 @@
 from auth.dependencies import get_current_user
 from connect_db import get_session
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from limiter import limiter
 from models import Message, PrivacyRequest, User
 from schemas import (
     GenerateMessageRequest,
@@ -212,8 +213,10 @@ async def list_request_messages(
 
 
 @router.post("/{request_id}/send")
+@limiter.limit("10/minute")
 async def send_privacy_request(
     request_id: int,
+    request: Request,
     payload: SendRequestBody,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
@@ -255,8 +258,10 @@ async def send_privacy_request(
 
 
 @router.post("/{request_id}/reminder")
+@limiter.limit("5/minute")
 async def send_reminder(
     request_id: int,
+    request: Request,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
