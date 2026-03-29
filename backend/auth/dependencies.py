@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from connect_db import get_session
 from fastapi import Depends, HTTPException
@@ -26,9 +26,10 @@ async def get_current_token(
     if not db_token:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    # datetime.utcnow() is used here because the DB column is TIMESTAMP WITHOUT TIME ZONE.
-    # Comparing a timezone-aware datetime against it would raise a TypeError.
-    if db_token.expires_at < datetime.utcnow():
+    # Replace the naive expires_at with a timezone-aware comparison.
+    # make expires_at aware by treating it as UTC so comparison is consistent.
+    expires_at = db_token.expires_at.replace(tzinfo=timezone.utc) if db_token.expires_at.tzinfo is None else db_token.expires_at
+    if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="Token has expired — please log in again.")
 
     return db_token

@@ -124,10 +124,10 @@ class MessageRead(BaseModel):
 # --- AI generation ---
 
 class GenerateMessageRequest(BaseModel):
-    tone: str = "neutral"
-    message_type: str = "initial_request"
+    tone: Literal["neutral", "formal", "firm"] = "neutral"
+    message_type: Literal["initial_request", "follow_up", "escalation"] = "initial_request"
     # default_factory avoids the mutable-default-argument pitfall with lists.
-    request_types: list[str] = Field(default_factory=list)
+    request_types: list[Literal["delete", "access", "correction", "portability"]] = Field(default_factory=list)
     birth_date: str | None = None
     use_legal_template: bool = False
     # Fields used only when use_legal_template=True.

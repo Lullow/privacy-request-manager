@@ -1,3 +1,5 @@
+import re
+
 from auth.dependencies import get_current_user
 from connect_db import get_session
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -244,12 +246,15 @@ async def send_privacy_request(
     body = message.message_body
     # Substitute the personal number placeholder at send time so it is never stored in the DB.
     if payload.personal_number and "[PERSONNUMMER]" in body:
+        # Validate format before substitution to prevent injection via malformed values.
+        if not re.fullmatch(r"\d{6,8}-?\d{4}", payload.personal_number):
+            raise HTTPException(status_code=400, detail="Invalid personal number format.")
         body = body.replace("[PERSONNUMMER]", payload.personal_number)
 
     try:
         await send_email(to=request_row.company_email, subject=message.subject, body=body)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not send email: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Could not send email. Please try again later.")
 
     request_row.status = "sent"
     await session.commit()
@@ -302,8 +307,8 @@ async def send_reminder(
             subject=generated["subject"],
             body=generated["message_body"],
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Could not send reminder: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Could not send reminder. Please try again later.")
 
     request_row.status = "waiting"
     await session.commit()
