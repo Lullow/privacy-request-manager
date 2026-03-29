@@ -21,24 +21,27 @@ const [deleteLoading, setDeleteLoading] = useState(false);
 const [pendingDeleteIds, setPendingDeleteIds] = useState(null);
 const [deleteError, setDeleteError] = useState(null);
 const [loadError, setLoadError] = useState(null);
+const [accountDeleteError, setAccountDeleteError] = useState(null);
 
 // Raderar kontot permanent via backend, loggar ut och navigerar till startsidan.
 async function handleDeleteAccount() {
     setDeleteLoading(true);
+    setAccountDeleteError(null);
     try {
         await deleteAccount();
         logout();
         navigate("/", { replace: true });
-    } catch {
+    } catch (err) {
         setDeleteLoading(false);
-        setShowDeleteConfirm(false);
+        setAccountDeleteError("Kunde inte radera kontot. Försök igen.");
     }
 }
 
 
     // Initieras med mockRequests som placeholder tills backend svarar.
     // Om backend returnerar data ersätts mock-datan (se useEffect nedan).
-    const [requests, setRequests] = useState(mockRequests)
+    const [requests, setRequests] = useState(mockRequests);
+    const [usingMockData, setUsingMockData] = useState(true);
 
 // reminderState — håller koll på varje ärendes påminnelseknapp: null | "loading" | "sent" | "error"
 const [reminderState, setReminderState] = useState({});
@@ -57,6 +60,8 @@ async function handleSendReminder(id) {
     try {
         await sendReminder(id);
         setReminderState(s => ({ ...s, [id]: "sent" }));
+        // Återställ "Skickad" efter 4 sekunder så användaren kan skicka igen vid behov.
+        setTimeout(() => setReminderState(s => ({ ...s, [id]: null })), 4000);
     } catch {
         setReminderState(s => ({ ...s, [id]: "error" }));
         // Återställ felstatus efter 4 sekunder så användaren kan försöka igen.
@@ -122,7 +127,10 @@ useEffect(() => {
     async function load() {
         try {
             const data = await getPrivacyRequests();
-            if (data.length > 0) setRequests(data);
+            if (data.length > 0) {
+                setRequests(data);
+                setUsingMockData(false);
+            }
         } catch (err) {
             setLoadError("Kunde inte hämta ärenden från servern. Visar lokal data.");
         }
@@ -256,6 +264,9 @@ return(
     {loadError && (
         <p className="hint" style={{ color: "orange", marginBottom: 8 }}>{loadError}</p>
     )}
+    {usingMockData && !loadError && (
+        <p className="hint" style={{ color: "orange", marginBottom: 8 }}>Visar exempeldata — ansluter till servern...</p>
+    )}
     <div className="border">
     {/* Caselist */}
     <div className="case-list">
@@ -320,6 +331,9 @@ return(
             <div className="modal-card">
                 <h2>Är du säker?</h2>
                 <p className="muted">Ditt konto och all kopplad data raderas permanent. Detta går inte att ångra.</p>
+                {accountDeleteError && (
+                    <p className="hint" style={{ color: "red" }}>{accountDeleteError}</p>
+                )}
                 <div className="modal-actions">
                     <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
                         Avbryt
