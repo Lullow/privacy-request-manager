@@ -80,8 +80,19 @@ function LoginPage() {
     // Register → anropar registerUser → visar "konto skapat" → byter till login-läget (sparar ingen token eftersom backend inte ger någon vid register)
     // Login → anropar loginUser → token sparas automatiskt → navigerar till Dashboard via onLogin()
 async function handleSubmit() {
-    setLoading(true);
     setError("");
+
+    // Validera lokalt innan vi skickar till backend.
+    if (!form.email || !form.email.includes("@")) {
+        setError("Ange en giltig e-postadress.");
+        return;
+    }
+    if (!form.password || form.password.length < 8) {
+        setError("Lösenordet måste vara minst 8 tecken.");
+        return;
+    }
+
+    setLoading(true);
 
     try {
         if (mode === "register") {
@@ -93,7 +104,12 @@ async function handleSubmit() {
             navigate(next, { replace: true });
         }
     } catch (err) {
-        setError(err.message);
+        // Visa generiskt meddelande för login-fel för att inte avslöja om kontot finns.
+        if (mode === "login") {
+            setError("Felaktig e-postadress eller lösenord.");
+        } else {
+            setError(err.message);
+        }
     }
 
     setLoading(false);
@@ -113,6 +129,7 @@ async function handleSubmit() {
                         : "Skapa ett konto först.."
                         }
                     </p>
+                    <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
     <div className="field">
         <label>E-post</label>
         <input
@@ -131,7 +148,6 @@ async function handleSubmit() {
                 placeholder="Minst 8 tecken"
                 value={form.password}
                 onChange={(e) => updateField("password", e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                 style={{ width: "100%", paddingRight: "2.5rem", boxSizing: "border-box" }}
             />
             <button
@@ -168,18 +184,19 @@ async function handleSubmit() {
     {error && <small className="hint">{error}</small>}
 
     <div className="actions">
-        <button className="btn" type="button" disabled={loading} onClick={handleSubmit}>
+        <button className="btn" type="submit" disabled={loading}>
             {loading ? "Laddar..." : mode === "login" ? "Logga in" : "Skapa konto"}
         </button>
     </div>
 
     <p className="muted" style={{ marginTop: 12 }}>
         {mode === "login" ? (
-            <>Inget konto? <button className="btn btn-secondary" onClick={() => switchMode("register")}>Skapa ett konto</button></>
+            <>Inget konto? <button type="button" className="btn btn-secondary" onClick={() => switchMode("register")}>Skapa ett konto</button></>
         ) : (
-            <>Har du redan ett konto? <button className="btn btn-secondary" onClick={() => switchMode("login")}>Logga in</button></>
+            <>Har du redan ett konto? <button type="button" className="btn btn-secondary" onClick={() => switchMode("login")}>Logga in</button></>
         )}
     </p>
+                    </form>
 
                     </div>
                 </main>

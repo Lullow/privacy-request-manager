@@ -32,9 +32,10 @@ export async function getMe() {
 }
 
 // Raderar kontot och all kopplad data permanent.
-// Anropas från inställningarna i DashboardPage efter att användaren bekräftat.
+// skipRedirectOn401 förhindrar att 401-logiken triggar efter att kontot raderats
+// och token ogiltigförklarats — DashboardPage hanterar navigeringen själv.
 export async function deleteAccount() {
-    return apiFetch("/auth/account", { method: "DELETE" });
+    return apiFetch("/auth/account", { method: "DELETE", skipRedirectOn401: true });
 }
 
 // Loggar ut användaren och ogiltigförklarar token i databasen.

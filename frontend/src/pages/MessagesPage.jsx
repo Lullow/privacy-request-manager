@@ -65,12 +65,9 @@ function MessagesPage() {
         setMessagesError(null);
         try {
             const data = await getRequestMessages(request.id);
-            // Fallback till mock-data om backend returnerar en tom lista (t.ex. i demo-läge).
-            setMessages(data.length > 0 ? data : (mockMessages[request.id] ?? []));
-        } catch (err) {
-            // Vid nätverksfel — visa mock-data med en varning så användaren vet att datan kan vara inaktuell.
-            setMessages(mockMessages[request.id] ?? []);
-            setMessagesError("Kunde inte hämta meddelanden från servern. Visar lokal data.");
+            setMessages(data);
+        } catch {
+            setMessagesError("Kunde inte hämta meddelanden från servern.");
         }
     }
 

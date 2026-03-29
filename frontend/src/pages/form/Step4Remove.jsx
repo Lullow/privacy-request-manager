@@ -186,17 +186,34 @@ export default function Step4Remove({
                     <div className="field">
                         <label>Typ av begäran</label>
                         <div className="chip-grid">
-                            {REQUEST_TYPES.map((t) => (
-                                <label className="chip" key={t.id}>
-                                    <input
-                                        type="checkbox"
-                                        checked={requestTypes.includes(t.id)}
-                                        onChange={() => toggleRequestType(t.id)}
-                                    />
-                                    <span>{t.label}</span>
-                                </label>
-                            ))}
+                            {REQUEST_TYPES.map((t) => {
+                                const isComingSoon = t.id !== "delete";
+                                return (
+                                    <label
+                                        className="chip"
+                                        key={t.id}
+                                        title={isComingSoon ? "Ej tillgänglig ännu — kommer snart!" : undefined}
+                                        style={isComingSoon ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={requestTypes.includes(t.id)}
+                                            onChange={() => !isComingSoon && toggleRequestType(t.id)}
+                                            disabled={isComingSoon}
+                                        />
+                                        <span>{t.label}{isComingSoon && " 🔒"}</span>
+                                    </label>
+                                );
+                            })}
                         </div>
+                        {requestTypes.some(id => id !== "delete") && (
+                            <small className="hint" style={{ color: "orange", marginTop: 6, display: "block" }}>
+                                Endast radering är tillgängligt just nu — övriga typer kommer snart.
+                            </small>
+                        )}
+                        <small className="muted" style={{ marginTop: 6, display: "block" }}>
+                            Rättelse, Begränsning, Invändning och Dataportabilitet är ej tillgängliga ännu.
+                        </small>
                     </div>
                     <div className="field" style={{ marginTop: 20 }}>
                         <label>Tonalitet</label>

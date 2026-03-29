@@ -22,15 +22,16 @@ const [pendingDeleteIds, setPendingDeleteIds] = useState(null);
 const [deleteError, setDeleteError] = useState(null);
 const [loadError, setLoadError] = useState(null);
 const [accountDeleteError, setAccountDeleteError] = useState(null);
+const [accountDeleted, setAccountDeleted] = useState(false);
 
-// Raderar kontot permanent via backend, loggar ut och navigerar till startsidan.
+// Raderar kontot permanent via backend, loggar ut och visar bekräftelseruta.
 async function handleDeleteAccount() {
     setDeleteLoading(true);
     setAccountDeleteError(null);
     try {
         await deleteAccount();
-        logout();
-        navigate("/", { replace: true });
+        setShowDeleteConfirm(false);
+        setAccountDeleted(true);
     } catch (err) {
         setDeleteLoading(false);
         setAccountDeleteError("Kunde inte radera kontot. Försök igen.");
@@ -41,7 +42,7 @@ async function handleDeleteAccount() {
     // Initieras med mockRequests som placeholder tills backend svarar.
     // Om backend returnerar data ersätts mock-datan (se useEffect nedan).
     const [requests, setRequests] = useState(mockRequests);
-    const [usingMockData, setUsingMockData] = useState(true);
+    const [usingMockData, setUsingMockData] = useState(false);
 
 // reminderState — håller koll på varje ärendes påminnelseknapp: null | "loading" | "sent" | "error"
 const [reminderState, setReminderState] = useState({});
@@ -340,6 +341,20 @@ return(
                     </button>
                     <button className="btn-danger" onClick={handleDeleteAccount} disabled={deleteLoading}>
                         {deleteLoading ? "Raderar..." : "Ja, radera mitt konto"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )}
+
+    {accountDeleted && (
+        <div className="modal-overlay">
+            <div className="modal-card">
+                <h2>Kontot raderat</h2>
+                <p className="muted">Ditt konto och all kopplad data har raderats permanent.</p>
+                <div className="modal-actions">
+                    <button className="btn" onClick={() => { logout(); navigate("/", { replace: true }); }}>
+                        OK
                     </button>
                 </div>
             </div>

@@ -43,7 +43,11 @@ async function parseErrorResponse(res) {
             return error.message;
         }
 
-        // FastAPI returnerar ibland detail som ett objekt (valideringsfel) — serialisera det.
+        // FastAPI returnerar ibland detail som en lista (Pydantic-valideringsfel) — visa första felet läsbart.
+        if (Array.isArray(error.detail)) {
+            return error.detail.map(e => e.msg).join(", ");
+        }
+
         if (error.detail !== undefined) {
             return JSON.stringify(error.detail);
         }
@@ -97,15 +101,22 @@ export async function apiFetch(endpoint, options = {}) {
     }
 
     // 401 = sessionen har gått ut eller token är ogiltig — logga ut användaren.
+    // Redirectar bara om en token faktiskt fanns och skipRedirectOn401 inte är satt.
     if (res.status === 401) {
+        const hadToken = !!token;
         removeToken();
-        window.location.href = "/login";
+        if (hadToken && !options.skipRedirectOn401) {
+            window.location.href = "/login";
+        }
         throw new Error("Sessionen har gått ut. Logga in igen.");
     }
 
     if (!res.ok) {
         throw new Error(await parseErrorResponse(res));
     }
+
+    // 204 No Content har ingen body — returnera null istället för att försöka parsa JSON.
+    if (res.status === 204) return null;
 
     return res.json();
 }
