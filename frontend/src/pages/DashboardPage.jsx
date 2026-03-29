@@ -19,6 +19,8 @@ const { logout } = useAuth();
 const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 const [deleteLoading, setDeleteLoading] = useState(false);
 const [pendingDeleteIds, setPendingDeleteIds] = useState(null);
+const [deleteError, setDeleteError] = useState(null);
+const [loadError, setLoadError] = useState(null);
 
 // Raderar kontot permanent via backend, loggar ut och navigerar till startsidan.
 async function handleDeleteAccount() {
@@ -46,7 +48,7 @@ async function handleDelete(id) {
         await deletePrivacyRequest(id);
         setRequests(prev => prev.filter(r => r.id !== id));
     } catch (err) {
-        console.error(err);
+        setDeleteError("Kunde inte radera ärendet. Försök igen.");
     }
 }
 
@@ -57,6 +59,8 @@ async function handleSendReminder(id) {
         setReminderState(s => ({ ...s, [id]: "sent" }));
     } catch {
         setReminderState(s => ({ ...s, [id]: "error" }));
+        // Återställ felstatus efter 4 sekunder så användaren kan försöka igen.
+        setTimeout(() => setReminderState(s => ({ ...s, [id]: null })), 4000);
     }
 }
 
@@ -120,7 +124,7 @@ useEffect(() => {
             const data = await getPrivacyRequests();
             if (data.length > 0) setRequests(data);
         } catch (err) {
-            console.error(err);
+            setLoadError("Kunde inte hämta ärenden från servern. Visar lokal data.");
         }
     }
     load();
@@ -133,12 +137,11 @@ useEffect(() => {
 
     // ref pekar på donut-diven i JSX (<div className="donut" ref={ref}>). 
     // .current hämtar ut den faktiska div-noden.
-    const donut = ref.current
-    // Finds child-element och donut-center class
-    // querySelector är ett inbyggt webb-API — letar efter ett child-element inuti donut-diven med klassen .donut-center. 
-    // Det är den lilla cirkeln i mitten med siffran.
-    // Alltså: donut = hela donut-diven, center = siffran i mitten av donuten.
+    const donut = ref.current;
+    // Skyddar mot krasch om ref inte är satt ännu (t.ex. om komponenten avmonteras innan animationen startar).
+    if (!donut) return;
     const center = donut.querySelector(".donut-center");
+    if (!center) return;
 
     // string to int
     // donut.dataset — hämtar data-* attributen från donut-diven i JSX:
@@ -250,8 +253,11 @@ return(
         </div>
     </div>
 
+    {loadError && (
+        <p className="hint" style={{ color: "orange", marginBottom: 8 }}>{loadError}</p>
+    )}
     <div className="border">
-    {/* Caselist */} 
+    {/* Caselist */}
     <div className="case-list">
         
         {/* Header Row */} 
@@ -291,6 +297,9 @@ return(
 
     {filteredRequests.length === 0 && (
     <p className="muted">Inga ärenden matchar filtret.</p>
+)}
+    {deleteError && (
+    <p className="hint" style={{ color: "red", padding: "8px 16px" }}>{deleteError}</p>
 )}
 
         </div>

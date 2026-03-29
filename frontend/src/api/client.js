@@ -63,6 +63,7 @@ async function parseErrorResponse(res) {
 //   - Content-Type: application/json
 //   - Authorization: Bearer <token> (om tillgängligt och auth !== false)
 // Kastar ett Error med läsbart meddelande vid icke-OK-svar.
+// Vid 401 rensas token och sidan laddas om till login.
 export async function apiFetch(endpoint, options = {}) {
     const token = getToken();
     // auth: false kan skickas in för endpoints som inte kräver inloggning (t.ex. verifyEmail).
@@ -74,11 +75,33 @@ export async function apiFetch(endpoint, options = {}) {
         ...options.headers,
     };
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-        method: options.method || "GET",
-        body: options.body ? JSON.stringify(options.body) : undefined,
-        headers,
-    });
+    // Avbryt requesten automatiskt efter 15 sekunder för att undvika att den hänger.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    let res;
+    try {
+        res = await fetch(`${API_BASE}${endpoint}`, {
+            method: options.method || "GET",
+            body: options.body ? JSON.stringify(options.body) : undefined,
+            headers,
+            signal: controller.signal,
+        });
+    } catch (err) {
+        if (err.name === "AbortError") {
+            throw new Error("Förfrågan tog för lång tid. Kontrollera din internetanslutning.");
+        }
+        throw new Error("Kunde inte nå servern. Kontrollera din internetanslutning.");
+    } finally {
+        clearTimeout(timeout);
+    }
+
+    // 401 = sessionen har gått ut eller token är ogiltig — logga ut användaren.
+    if (res.status === 401) {
+        removeToken();
+        window.location.href = "/login";
+        throw new Error("Sessionen har gått ut. Logga in igen.");
+    }
 
     if (!res.ok) {
         throw new Error(await parseErrorResponse(res));

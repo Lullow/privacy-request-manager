@@ -12,6 +12,8 @@ function MessagesPage() {
     const [requests, setRequests] = useState(mockRequests);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [messages, setMessages] = useState([]);
+    const [messagesError, setMessagesError] = useState(null);
+    const [loadError, setLoadError] = useState(null);
     // unreadRequests — lista med ärende-ID:n som har olästa notiser.
     // Sparas i localStorage av NotificationBell och rensas här när användaren öppnar ärendet.
     const [unreadRequests, setUnreadRequests] = useState(
@@ -35,7 +37,7 @@ function MessagesPage() {
                     setRequests([...grouped, ...sent]);
                 }
             } catch (err) {
-                console.error(err);
+                setLoadError("Kunde inte hämta ärenden från servern. Visar lokal data.");
             }
         }
         load();
@@ -60,13 +62,15 @@ function MessagesPage() {
         setUnreadRequests(updated);
         localStorage.setItem("unreadRequests", JSON.stringify(updated));
 
+        setMessagesError(null);
         try {
             const data = await getRequestMessages(request.id);
             // Fallback till mock-data om backend returnerar en tom lista (t.ex. i demo-läge).
             setMessages(data.length > 0 ? data : (mockMessages[request.id] ?? []));
         } catch (err) {
-            // Vid nätverksfel — visa mock-data istället för ett tomt tillstånd.
+            // Vid nätverksfel — visa mock-data med en varning så användaren vet att datan kan vara inaktuell.
             setMessages(mockMessages[request.id] ?? []);
+            setMessagesError("Kunde inte hämta meddelanden från servern. Visar lokal data.");
         }
     }
 
@@ -77,6 +81,9 @@ function MessagesPage() {
                 {/* Sidebar — utanför container, i linje med loggan */}
                 <div className="messages-sidebar">
                     <h2>Ärenden</h2>
+                {loadError && (
+                    <p className="hint" style={{ color: "orange", fontSize: "0.85rem" }}>{loadError}</p>
+                )}
                     {requests.map((req) => (
                         <div
                             key={req.id}
@@ -110,6 +117,9 @@ function MessagesPage() {
                             {selectedRequest && (
                                 <>
                                     <h2>{selectedRequest.company_name}</h2>
+                                    {messagesError && (
+                                        <p className="hint" style={{ color: "orange" }}>{messagesError}</p>
+                                    )}
                                     {selectedRequest.status === "draft" && (
                                         <div className="draft-placeholder">
                                             <p className="muted">Du har inte skickat någon förfrågan för detta ärende än.</p>
