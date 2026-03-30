@@ -17,7 +17,7 @@ export const SITES = [
         searchUrl: () => `https://www.avlistamig.se`,
         removeMethod: "email",
         removeUrl: null,
-        removeEmail: "elias-cherrou@live.se",
+        removeEmail: "maddesvensson_96@hotmail.com",
         removeSteps: ["Ett testärende för att verifiera att mejlflödet fungerar."],
         removeNote: "Detta är en testsite — ta bort den innan lansering.",
     },
