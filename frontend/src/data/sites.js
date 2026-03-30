@@ -13,11 +13,11 @@ function toSearchQuery(name) {
 //   removeNote  — valfri varning/notering om sajtens begränsningar (t.ex. att Mrkoll bara döljer).
 export const SITES = [
     {
-        name: "Test (Elias)",
+        name: "Test",
         searchUrl: () => `https://www.avlistamig.se`,
         removeMethod: "email",
         removeUrl: null,
-        removeEmail: "maddesvensson_96@hotmail.com",
+        removeEmail: "elias-cherrou@live.se",
         removeSteps: ["Ett testärende för att verifiera att mejlflödet fungerar."],
         removeNote: "Detta är en testsite — ta bort den innan lansering.",
     },
