@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import TopBar from "../components/TopBar";
-import { getPrivacyRequests, getRequestMessages } from "../api/privacyRequestsApi";
+import { getPrivacyRequests, getRequestMessages, getInboundMessages } from "../api/privacyRequestsApi";
 import { translateStatus, translateMessageType } from "../utils/translations";
 import { mockRequests, mockMessages } from "../mocks/mockData";
 
@@ -12,6 +12,7 @@ function MessagesPage() {
     const [requests, setRequests] = useState(mockRequests);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [messages, setMessages] = useState([]);
+    const [inboundMessages, setInboundMessages] = useState([]);
     const [messagesError, setMessagesError] = useState(null);
     const [loadError, setLoadError] = useState(null);
     // unreadRequests — lista med ärende-ID:n som har olästa notiser.
@@ -63,9 +64,14 @@ function MessagesPage() {
         localStorage.setItem("unreadRequests", JSON.stringify(updated));
 
         setMessagesError(null);
+        setInboundMessages([]);
         try {
-            const data = await getRequestMessages(request.id);
-            setMessages(data);
+            const [outbound, inbound] = await Promise.all([
+                getRequestMessages(request.id),
+                getInboundMessages(request.id),
+            ]);
+            setMessages(outbound);
+            setInboundMessages(inbound);
         } catch {
             setMessagesError("Kunde inte hämta meddelanden från servern.");
         }
@@ -123,21 +129,38 @@ function MessagesPage() {
                                             <button className="draft-continue-btn" onClick={() => navigate("/create-request")}>Fortsätt formuläret →</button>
                                         </div>
                                     )}
-                                    {selectedRequest.status !== "draft" && messages.length === 0 && (
+                                    {selectedRequest.status !== "draft" && messages.length === 0 && inboundMessages.length === 0 && (
                                         <p className="muted">Inga meddelanden för detta ärende.</p>
                                     )}
-                                    {messages.map((msg) => (
-                                        <div key={msg.id} className="message-bubble">
-                                            <div className="message-meta">
-                                                <span className="message-type">{translateMessageType(msg.message_type)}</span>
-                                                <span className="message-date">
-                                                    {new Date(msg.created_at).toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}
-                                                </span>
+                                    {[
+                                        ...messages.map(m => ({ ...m, _kind: "outbound", _ts: new Date(m.created_at) })),
+                                        ...inboundMessages.map(m => ({ ...m, _kind: "inbound", _ts: new Date(m.received_at) })),
+                                    ]
+                                        .sort((a, b) => a._ts - b._ts)
+                                        .map((msg) => msg._kind === "outbound" ? (
+                                            <div key={`out-${msg.id}`} className="message-bubble">
+                                                <div className="message-meta">
+                                                    <span className="message-type">{translateMessageType(msg.message_type)}</span>
+                                                    <span className="message-date">
+                                                        {msg._ts.toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}
+                                                    </span>
+                                                </div>
+                                                <p className="message-subject"><strong>{msg.subject}</strong></p>
+                                                <p className="message-body">{msg.message_body}</p>
                                             </div>
-                                            <p className="message-subject"><strong>{msg.subject}</strong></p>
-                                            <p className="message-body">{msg.message_body}</p>
-                                        </div>
-                                    ))}
+                                        ) : (
+                                            <div key={`in-${msg.id}`} className="message-bubble message-bubble--inbound">
+                                                <div className="message-meta">
+                                                    <span className="message-type">Svar från {msg.from_email}</span>
+                                                    <span className="message-date">
+                                                        {msg._ts.toLocaleString("sv-SE", { dateStyle: "short", timeStyle: "short" })}
+                                                    </span>
+                                                </div>
+                                                <p className="message-subject"><strong>{msg.subject}</strong></p>
+                                                <p className="message-body">{msg.body}</p>
+                                            </div>
+                                        ))
+                                    }
                                 </>
                             )}
                         </div>

@@ -53,6 +53,11 @@ export function deletePrivacyRequest(id) {
     });
 }
 
+// Hämtar inkommande svar (från sajterna) för ett ärende.
+export function getInboundMessages(id) {
+    return apiFetch(`/privacy-requests/${id}/inbound-messages`);
+}
+
 // Genererar och skickar en påminnelse till sajten för ett specifikt ärende.
 // Skapar ett nytt meddelande av typen "reminder" och uppdaterar ärendets status till "waiting".
 export function sendReminder(id) {

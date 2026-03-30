@@ -797,6 +797,11 @@ h2 { margin: 0 0 8px 0; font-size: 18px; }
     box-shadow: 0 2px 12px rgba(2, 6, 23, 0.06);
 }
 
+.message-bubble--inbound {
+    background: #f0f4ff;
+    border-left: 3px solid var(--color-primary, #4f6ef7);
+}
+
 .message-meta {
     display: flex;
     justify-content: space-between;
