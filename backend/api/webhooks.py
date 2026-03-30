@@ -61,7 +61,7 @@ async def inbound_email_webhook(
 
     # Try to match to a PrivacyRequest by comparing the sender's domain/email.
     privacy_request_id: int | None = None
-    stmt = select(PrivacyRequest).where(PrivacyRequest.company_email == from_email)
+    stmt = select(PrivacyRequest).where(PrivacyRequest.company_email.ilike(from_email))
     match = (await session.execute(stmt)).scalars().first()
     if match:
         privacy_request_id = match.id
