@@ -1,5 +1,3 @@
-import hashlib
-import hmac
 import logging
 
 from auth.dependencies import get_current_user
@@ -10,24 +8,19 @@ from schemas import InboundMessageRead
 from settings import settings
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from svix.webhooks import Webhook, WebhookVerificationError
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Webhooks"])
 
 
-def _verify_resend_signature(payload: bytes, signature: str | None, secret: str) -> bool:
-    """Return True if the HMAC-SHA256 signature matches the payload."""
-    if not signature:
-        return False
-    expected = hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
-
-
 @router.post("/webhooks/inbound-email", status_code=status.HTTP_200_OK)
 async def inbound_email_webhook(
     request: Request,
     session: AsyncSession = Depends(get_session),
+    svix_id: str | None = Header(default=None, alias="svix-id"),
+    svix_timestamp: str | None = Header(default=None, alias="svix-timestamp"),
     svix_signature: str | None = Header(default=None, alias="svix-signature"),
 ):
     """Receive inbound email events from Resend and store them in the database."""
@@ -35,7 +28,15 @@ async def inbound_email_webhook(
 
     # Verify webhook signature if a secret is configured.
     if settings.RESEND_WEBHOOK_SECRET:
-        if not _verify_resend_signature(raw_body, svix_signature, settings.RESEND_WEBHOOK_SECRET):
+        wh = Webhook(settings.RESEND_WEBHOOK_SECRET)
+        headers = {
+            "svix-id": svix_id or "",
+            "svix-timestamp": svix_timestamp or "",
+            "svix-signature": svix_signature or "",
+        }
+        try:
+            wh.verify(raw_body, headers)
+        except WebhookVerificationError:
             logger.warning("Inbound webhook: invalid signature — request rejected")
             raise HTTPException(status_code=401, detail="Invalid webhook signature.")
 
