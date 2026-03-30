@@ -38,7 +38,6 @@ function LoginPage() {
     // Om lyckat → navigera till Dashboard
     // Om fel → sätt error med ett felmeddelande
     // Sätter loading till false
-    //TODO felmeddelande för (epost finns/fel lösenord eller epost)
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
