@@ -17,6 +17,7 @@ function MessagesPage() {
     const [loadError, setLoadError] = useState(null);
     // unreadRequests — lista med ärende-ID:n som har olästa notiser.
     // Sparas i localStorage av NotificationBell och rensas här när användaren öppnar ärendet.
+    const [expandedInbound, setExpandedInbound] = useState({});
     const [unreadRequests, setUnreadRequests] = useState(
         JSON.parse(localStorage.getItem("unreadRequests") || "[]")
     );
@@ -149,7 +150,12 @@ function MessagesPage() {
                                                 <p className="message-body">{msg.message_body}</p>
                                             </div>
                                         ) : (
-                                            <div key={`in-${msg.id}`} className="message-bubble message-bubble--inbound">
+                                            <div
+                                                key={`in-${msg.id}`}
+                                                className="message-bubble message-bubble--inbound"
+                                                style={{ cursor: "pointer" }}
+                                                onClick={() => setExpandedInbound(prev => ({ ...prev, [msg.id]: !prev[msg.id] }))}
+                                            >
                                                 <div className="message-meta">
                                                     <span className="message-type">Svar från {msg.from_email}</span>
                                                     <span className="message-date">
@@ -157,7 +163,7 @@ function MessagesPage() {
                                                     </span>
                                                 </div>
                                                 <p className="message-subject"><strong>{msg.subject}</strong></p>
-                                                <p className="message-body">{msg.body}</p>
+                                                {expandedInbound[msg.id] && <p className="message-body">{msg.body}</p>}
                                             </div>
                                         ))
                                     }
