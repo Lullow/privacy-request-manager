@@ -13,6 +13,7 @@ from slowapi.errors import RateLimitExceeded
 from sqlalchemy import Connection
 
 from api.routers import router as privacy_request_router
+from api.webhooks import router as webhooks_router
 from auth.router import router as auth_router
 from connect_db import engine
 from limiter import limiter
@@ -111,6 +112,7 @@ app.add_middleware(
 
 app.include_router(privacy_request_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
+app.include_router(webhooks_router, prefix="/api")
 
 
 @app.get("/health")

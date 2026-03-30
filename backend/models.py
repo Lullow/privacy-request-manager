@@ -47,6 +47,9 @@ class PrivacyRequest(Base):
     messages: Mapped[list["Message"]] = relationship(
         back_populates="privacy_request", cascade="all, delete-orphan"
     )
+    inbound_messages: Mapped[list["InboundMessage"]] = relationship(
+        back_populates="privacy_request", cascade="all, delete-orphan"
+    )
 
 
 class Message(Base):
@@ -64,6 +67,19 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     privacy_request: Mapped["PrivacyRequest"] = relationship(back_populates="messages")
+
+
+class InboundMessage(Base):
+    __tablename__ = "inbound_message"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    privacy_request_id: Mapped[int | None] = mapped_column(ForeignKey("privacy_request.id", ondelete="SET NULL"), nullable=True)
+    from_email: Mapped[str] = mapped_column(String(200))
+    subject: Mapped[str] = mapped_column(String(255))
+    body: Mapped[str] = mapped_column(Text)
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    privacy_request: Mapped["PrivacyRequest | None"] = relationship(back_populates="inbound_messages")
 
 
 class Token(Base):

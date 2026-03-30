@@ -144,6 +144,19 @@ class GenerateMessageResponse(BaseModel):
     tone: str
 
 
+# --- Inbound messages ---
+
+class InboundMessageRead(BaseModel):
+    id: int
+    privacy_request_id: int | None
+    from_email: str
+    subject: str
+    body: str
+    received_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # --- Send ---
 
 class SendRequestBody(BaseModel):
