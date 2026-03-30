@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
+@limiter.limit("3/hour")
 async def register(request: Request, payload: UserCreate, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.email == payload.email))
     existing_user = result.scalar_one_or_none()

@@ -23,7 +23,9 @@ router = APIRouter(prefix="/privacy-requests", tags=["Privacy Requests"])
 
 
 @router.post("", response_model=PrivacyRequestRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def create_privacy_request(
+    request: Request,
     payload: PrivacyRequestCreate,
     session: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
@@ -215,7 +217,7 @@ async def list_request_messages(
 
 
 @router.post("/{request_id}/send")
-@limiter.limit("10/minute")
+@limiter.limit("3/5minute")
 async def send_privacy_request(
     request_id: int,
     request: Request,
@@ -263,7 +265,7 @@ async def send_privacy_request(
 
 
 @router.post("/{request_id}/reminder")
-@limiter.limit("5/minute")
+@limiter.limit("1/10minute")
 async def send_reminder(
     request_id: int,
     request: Request,
