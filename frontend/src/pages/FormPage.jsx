@@ -339,6 +339,13 @@ Referenser: GDPR art. 12, 17, 77 · IMY IMYRS 2024:1 · Dataskyddslagen (2018:21
     // så att de finns redo att skickas när användaren signerat.
     async function prepareAndGoToStep5() {
         setError("");
+        if (requestPath === "legal") {
+            const valid = /^\d{6}-\d{4}$/.test(personalNumber) || /^\d{8}-\d{4}$/.test(personalNumber);
+            if (!valid) {
+                setPersonalNumberError("Ange ett giltigt personnummer (ÅÅMMDD-XXXX eller ÅÅÅÅMMDD-XXXX).");
+                return;
+            }
+        }
         if (requestPath === "legal" && personalNumber.trim() && formSites.length > 0) {
             setIsPreparingStep5(true);
             try {
