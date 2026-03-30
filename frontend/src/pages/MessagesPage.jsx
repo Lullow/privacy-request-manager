@@ -27,7 +27,7 @@ function MessagesPage() {
             try {
                 const data = await getPrivacyRequests();
                 if (data.length > 0) {
-                    const notSentStatuses = ["draft", "generated"];
+                    const notSentStatuses = ["draft"];
                     const drafts = data.filter(r => notSentStatuses.includes(r.status));
                     const sent = data.filter(r => !notSentStatuses.includes(r.status));
                     const grouped = drafts.length > 0 ? [{
