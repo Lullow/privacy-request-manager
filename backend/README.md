@@ -4,6 +4,8 @@ REST API backend for a GDPR privacy request tool that helps users get their pers
 
 This was built together with Gabriella during the course *Ramverk i Python* (Feb–Apr 2026). The focus was on building a production-quality FastAPI application with async SQLAlchemy, JWT auth, AI-generated emails, and real email delivery via webhook integration.
 
+**Frontend repo:** [Lullow/prm-frontend](https://github.com/Lullow/prm-frontend) (private)
+
 ## What it does
 
 - Register and authenticate users (JWT tokens, bcrypt passwords, email verification)
