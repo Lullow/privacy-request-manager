@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First page</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="pictures/fav.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section class="hero">
+    <div class="hero-content">
+
+        <div class="hero-text">
+            <h1>Radera ditt digitala fotspår</h1>
+            <p>Hantera GDPR-raderingar enkelt och strukturerat</p>
+            <a class="btn" href="form.html"> Kom igång→</a>
+        </div>
+
+    </div>
+
+    <div class="hero-image">
+        <img src="pictures/picture1.png" alt="Hero bild" title="Hero bild" >
+    </div>
+
+    </div>
+</section>
+
+
+<section class="features">
+    <div class="feature-list">
+        <div class="feature">
+            <h3>Skapa ärende</h3>
+            <p>Välj webbplats och identifiera dina uppgifter</p>
+        </div>
+
+        <div class="feature">
+            <a href="generate.html" class="feature-btn">Generera mall</a>
+            <p>Få juridiskt korrekt GDPR-begäran</p>
+        </div>
+
+        <div class="feature">
+            <h3>Följ upp</h3>
+            <p>Spåra status och få påminnelser</p>
+        </div>
+    </div>
+
+    <img src="pictures/picture2.png" alt="GDPR illustration" class="feature-image">
+</section>
+
+
+<script>
+
+const features = document.querySelectorAll('.feature');
+
+window.addEventListener('scroll', () => {
+    features.forEach(feature => {
+        const rect = feature.getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+            feature.classList.add('visible');
+        }
+    });
+});
+</script>
+
+
+
+
+</body>
+</html>

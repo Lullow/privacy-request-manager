@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="pictures/fav.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+
+</head>
+<body class="page">
+    
+    <header class="topbar">
+        <a class="brand" href="index.html">
+            <span class="brand-dot"></span>
+            Privary Request Manager
+        </a>
+        <a class="btn btn-secondary" href="index.html">Tillbaka</a>
+    </header>
+
+    <main class="container">
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h1>Skapa nytt raderingsärende</h1>
+                    <p class="muted">
+                        Välj webbplats och identifiera dina uppgifter
+                    </p>
+                </div>    
+            </div>
+            <img class="card-icon" src="pictures/fav.png" alt="icon">
+
+            <form class="form" action="dashboard.html">
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="FullName">För- och efternamn</label>
+                        <input id="fullName" name="fullName" type="text" placeholder="[Förnamn] [Efternamn]" required>                    
+                    </div>
+                    
+                    <div class="field">
+                        <label for="email">E-post</label>
+                        <input id="email" name="email" type="email" placeholder="exempel@mail.com" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="city">Ort</label>
+                        <input id="city" name="city" type="text" placeholder="[Ort]" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="profileUrl">Länk till profilsida</label>
+                        <input id="profileUrl" name="profileUrl" type="url" placeholder="https://">
+                        <small class="hint">Tips: Klistra in länken där du hittade dina uppgifter</small>
+                    </div>
+                </div>
+
+                <br>
+                <hr class="divider">
+
+                <section class="block">
+                    <h2>Vilka webbplater har dina personuppgifter?</h2>
+                    <p class="muted">Välj en eller flera:</p>
+
+                    <div class="chip-grid">
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="ratsit">
+                            <span>Ratsit</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="mrkoll">
+                            <span>MrKoll</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="birthday">
+                            <span>Birthday</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="hitta">
+                            <span>Hitta</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="eniro">
+                            <span>Eniro</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="upplysning">
+                            <span>Upplysning</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="merinfo">
+                            <span>Merinfo</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="google">
+                            <span>Google (delisting)</span>
+                        </label>
+                    </div>
+                </section>
+
+                <br>
+                <hr class="divider">
+
+                <section class="block">
+                    <h2>Kolla upp dig snabbt</h2>
+                    <p class="muted">Om du inte redan har gjort det kan du öppna länkarna i en ny flik</p>
+                        
+                    <div class="link-buttons">
+                        <a class="btn btn-secondary" href="https://www.ratsit.se/" target="_blank" rel="noopener">Ratsit</a>
+                        <a class="btn btn-secondary" href="https://mrkoll.se/" target="_blank" rel="noopener">MrKoll</a>
+                        <a class="btn btn-secondary" href="https://www.birthday.se/" target="_blank" rel="noopener">Birthday</a>
+                        <a class="btn btn-secondary" href="https://www.hitta.se/" target="_blank" rel="noopener">Hitta</a>
+                        <a class="btn btn-secondary" href="https://www.eniro.se/" target="_blank" rel="noopener">Eniro</a>
+                        <a class="btn btn-secondary" href="https://www.upplysning.se/" target="_blank" rel="noopener">Upplysning</a>
+                        <a class="btn btn-secondary" href="https://www.merinfo.se/" target="_blank" rel="noopener">Merinfo</a>
+                        <a class="btn btn-secondary" href="https://support.google.com/legal/answer/10769224?hl=sv" target="_blank" rel="noopener">Google formulär</a>
+                        <a class="btn btn-secondary" href="https://www.bing.com/webmaster/tools/eu-privacy-request" target="_blank" rel="noopener">Bing formulär</a>
+                        <a class="btn btn-secondary" href="https://www.imy.se/privatperson/dataskydd/dina-rattigheter/radering/" target="_blank" rel="noopener">IMY: radering</a>
+                    </div>
+                </section>
+
+                <br>
+                <hr class="divider">
+
+                <div class="actions">
+                    <a class="btn btn-secondary" href="index.html">Avbryt</a>
+                    <button class="btn" type="submit">Skapa ärende -></button>
+                </div>
+
+                <p class="disclaimer">Privacy Request Manager är ett tekniskt hjälpmedel för att strukturera och följa upp begäranden om radering av personuppgifter enligt GDPR. 
+                    Tjänsten ersätter inte juridisk rådgivning och garanterar inte att radering sker. 
+                    All kommunikation med externa webbplatser sker på användarens ansvar.</p>
+            </form>
+        </section>
+    </main>
+
+</body>
+</html>
+
+
+<!-- Byta lang till sv? -->
+<!-- Line 39: Error: The value of the for attribute of the label element must be the ID of a non-hidden form control -->

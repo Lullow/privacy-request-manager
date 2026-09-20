@@ -1,0 +1,73 @@
+import { createContext, useEffect, useState } from "react";
+import { getMe, logoutUser } from "../api/authApi";
+
+// Skapar auth-kontexten som delas i hela appen via AuthProvider.
+// Konsumeras via useAuth-hooken (src/hooks/useAuth.js).
+export const AuthContext = createContext();
+
+export function AuthProvider({ children }) {
+    // Initieras direkt från localStorage så att inloggad status återställs vid sidladdning.
+    const [token, setToken] = useState(localStorage.getItem("token") || "");
+    // Användarens profildata hämtas från backend efter att token verifierats.
+    const [user, setUser] = useState(null);
+    // loading är true tills vi vet om token är giltig — hindrar ProtectedRoute från att
+    // omdirigera för tidigt innan auth-kontrollen är klar.
+    const [loading, setLoading] = useState(true);
+
+    // Verifierar token mot backend och hämtar användarens profildata.
+    // Om token är ogiltig eller utgången rensas den och användaren loggas ut tyst.
+    async function fetchMe() {
+        try {
+            const data = await getMe();
+            setUser(data);
+        } catch {
+            // Token är ogiltig — rensa auth-state helt.
+            localStorage.removeItem("token");
+            setToken("");
+            setUser(null);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    // Körs varje gång token ändras (inloggning, utloggning, sidladdning).
+    useEffect(() => {
+        if (token) {
+            fetchMe();
+        } else {
+            // Ingen token — ingen nätverksbegäran behövs, laddar klart direkt.
+            setLoading(false);
+        }
+    }, [token]);
+
+    // Sparar token i både localStorage (persistent) och state (reaktivt).
+    // Anropas från LoginPage och VerifyEmailPage efter lyckad autentisering.
+    function login(newToken) {
+        localStorage.setItem("token", newToken);
+        setToken(newToken);
+    }
+
+    // Rensar token och användardata. Anropas från TopBar via handleLogout.
+    // Kallar backend så att token raderas ur databasen direkt.
+    async function logout() {
+        try { await logoutUser(); } catch { /* ignorera nätverksfel vid utloggning */ }
+        localStorage.removeItem("token");
+        setToken("");
+        setUser(null);
+    }
+
+    return (
+        <AuthContext.Provider
+            value={{
+                token,
+                user,
+                loading,
+                login,
+                logout,
+                isAuthenticated: !!token,
+            }}
+        >
+            {children}
+        </AuthContext.Provider>
+    );
+}

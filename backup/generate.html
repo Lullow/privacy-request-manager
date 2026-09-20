@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generera GDPR-mall | Privacy Request Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="pictures/fav.png" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="page">
+
+    <!-- Header -->
+    <header class="topbar">
+        <a class="brand" href="index.html">
+            <span class="brand-dot"></span>
+            Privacy Request Manager
+        </a>
+        <a class="btn btn-secondary" href="index.html">Tillbaka</a>
+    </header>
+
+    <main class="container">
+
+        <!-- Ärendeinformation -->
+        <section class="card">
+            <section class="request-info">
+                <h1>Generera mall för ärende</h1>
+                <p class="muted">
+                    Välj typ av mall att generera
+                </p>
+                <img class="card-icon" src="pictures/fav.png" alt="icon">
+
+                <br>
+                <br>
+
+                <div class="?">
+                    <div class="field">
+                        <label for="FullName">För- och efternamn</label>
+                        <input id="fullName" name="fullName" type="text" placeholder="[Förnamn] [Efternamn]" required>                    
+                    </div>
+                    
+                    <div class="field">
+                        <label for="email">E-post</label>
+                        <input id="email" name="email" type="email" placeholder="exempel@mail.com" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="city">Ort</label>
+                        <input id="city" name="city" type="text" placeholder="[Ort]" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="profileUrl">Länk till profilsida</label>
+                        <input id="profileUrl" name="profileUrl" type="url" placeholder="https://">
+                        <small class="hint">Tips: </small>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <section class="block">
+                    <h2>Vilken webbplats vill du generera en mall för?</h2>
+                    <p class="muted">Det går bara att generera en mall per gång:</p>
+
+                    <div class="chip-grid">
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="ratsit">
+                            <span>Ratsit</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="mrkoll">
+                            <span>MrKoll</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="birthday">
+                            <span>Birthday</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="hitta">
+                            <span>Hitta</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="eniro">
+                            <span>Eniro</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="upplysning">
+                            <span>Upplysning</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="merinfo">
+                            <span>Merinfo</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" name="sites" value="google">
+                            <span>Google (delisting)</span>
+                        </label>
+                    </div>
+                </section>
+            </section>
+
+            <hr class="divider">
+
+            <!-- Inställningar -->
+            <section class="generator-settings">
+                <h2>Inställningar för automatiskt genererad mall</h2>
+
+                <form>
+                    <div class="form-group">
+                        <label for="tone">Välj ton:</label>
+                        <select id="tone" name="tone">
+                            <option value="">Neutral</option>
+                            <option value="">Formell</option>
+                            <option value="">Tydlig / Krävande</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="template-type">Typ av mall:</label>
+                        <select id="template-type" name="template-type">
+                        <option value="gdpr">GDPR-begäran</option>
+                        <option value="gdpr">Uppföljning</option>
+                        <option value="gdpr">IMY-klagomål</option>
+                        </select>
+                    </div>
+                    
+                    <br>
+                    <button type="button">Generera mall</button>
+                </form>
+            </section>
+
+            <!-- Generera resiltat-->
+            <section class="generated-result">
+                <h2>Generera mall (vart ska denna vara)</h2>
+
+                <div class="form-group">
+                    <label for="subject">Ämne</label>
+                    <input type="text" id="subject" name="subject"
+                        placeholder="Begäran om radering av personuppfiter">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Meddelande</label>
+                    <textarea id="message" name="message" rows="9">
+    Hej,
+
+    Jag begär härmed radering av mina personuppgifter enligt GDPR..
+    Mer text..
+                    </textarea>
+                </div>
+
+                <div class="actions">
+                    <button type="button">Kopiera</button>
+                    <button type="button">Spara utkast</button>
+                    <button type="button">Skicka</button>
+                </div>
+            </section>
+        </section>
+        <hr class="divider">
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>
+            Privacy Request Manager är ett tekniskt hjälpmedel för att strukturera
+            GDPR-begäranden. Tjänsten ersätter inte juridisk rådgivning.
+        </p>
+    </footer>
+
+</body>
+</html>
