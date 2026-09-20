@@ -13,15 +13,6 @@ function toSearchQuery(name) {
 //   removeNote  — valfri varning/notering om sajtens begränsningar (t.ex. att Mrkoll bara döljer).
 export const SITES = [
     {
-        name: "Test",
-        searchUrl: () => `https://www.avlistamig.se`,
-        removeMethod: "email",
-        removeUrl: null,
-        removeEmail: "elias-cherrou@live.se",
-        removeSteps: ["Ett testärende för att verifiera att mejlflödet fungerar."],
-        removeNote: "Detta är en testsite — ta bort den innan lansering.",
-    },
-    {
         name: "Ratsit",
         searchUrl: (name, city) => `https://www.ratsit.se/sok/person?vem=${toSearchQuery(name)}${city ? `&ort=${toSearchQuery(city)}` : ""}&m=0&k=0&r=0&er=0&b=0&eb=0&amin=16&amax=120&fon=1&page=1`,
         removeMethod: "form",
