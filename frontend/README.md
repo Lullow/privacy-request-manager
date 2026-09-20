@@ -1,10 +1,8 @@
 # Privacy Request Manager — Frontend
 
-React frontend for a GDPR privacy request tool that helps users get their personal data removed from public data broker sites.
+React single-page app for a GDPR privacy request tool that helps users get their personal data removed from public data broker sites.
 
-Built together with Gabriella during the course *Ramverk i Python* (Feb–Apr 2026).
-
-**Backend repo:** [Lullow/prm-backend](https://github.com/Lullow/prm-backend) (private)
+Backend lives in [`../backend`](../backend).
 
 ## What it does
 
@@ -20,10 +18,11 @@ Built together with Gabriella during the course *Ramverk i Python* (Feb–Apr 20
 
 ```
 npm install
+cp .env.example .env
 npm run dev
 ```
 
-Requires the backend API running locally or a configured `VITE_API_URL` in `.env`.
+`VITE_API_BASE_URL` must point at a running backend — see [`../backend`](../backend) for how to start one.
 
 ## Structure
 
@@ -38,12 +37,19 @@ src/
 └── data/           — static data
 ```
 
+The user-facing copy is in Swedish, since the tool targets Swedish data brokers.
+
 ## Tech
 
-- React
-- Vite
+- React 19
+- Vite 7
+- React Router 7
 - JavaScript (JSX)
 
 ## Reflection
 
-This was the first time I built a full-stack project with a proper separation between frontend and backend. Working with JWT auth, protected routes, and async API calls across a real codebase was a big step up from previous labs.
+This was the first time I built a full-stack project with a proper separation between frontend and backend. Handling token-based auth, protected routes and async API calls across a real codebase was a big step up from previous labs.
+
+---
+
+Built together with Gabriella Roupé for the course *Ramverk i Python* at Teknikhögskolan Stockholm, February–April 2026.
